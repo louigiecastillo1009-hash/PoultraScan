@@ -36,13 +36,13 @@ export default function ForgotPassword() {
   const emailFloated = emailFocused || email.length > 0;
 
   return (
-    <div className="bg-[#F7FAF8] min-h-dvh flex items-center justify-center p-4 md:p-6 font-sans antialiased text-[#10231A] w-full">
+    <div className="auth-card-side bg-[#F7FAF8] min-h-dvh flex items-center justify-center p-4 sm:p-6 font-sans antialiased text-[#10231A] w-full">
       <main className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-2xl p-8 md:p-10 shadow-card border border-[#E4ECE7] flex flex-col items-center text-center">
+        <div className="auth-card-pad bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-card border border-[#E4ECE7] flex flex-col items-center text-center">
 
           {/* Logo */}
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-4">
-            <FiFeather className="text-white text-3xl" />
+          <div className="auth-brand-mark w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-4">
+            <FiFeather className="text-white text-2xl sm:text-3xl" />
           </div>
 
           {isSuccess ? (
@@ -54,7 +54,7 @@ export default function ForgotPassword() {
               <h1 className="text-2xl font-semibold tracking-tight text-[#10231A] mb-3">
                 Check Your Email
               </h1>
-              <p className="text-base text-[#4B6357] mb-8 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#4B6357] mb-6 sm:mb-8 leading-relaxed break-words">
                 We've sent a 6-character code to <span className="font-semibold text-[#10231A]">{email}</span>. Enter it on the next page to reset your password.
               </p>
               <button
@@ -85,14 +85,14 @@ export default function ForgotPassword() {
           ) : (
             /* Step 1: Enter Email */
             <>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#10231A] mb-3">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#10231A] mb-3">
                 Reset Your Password
               </h1>
-              <p className="text-base text-[#4B6357] mb-8 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#4B6357] mb-6 sm:mb-8 leading-relaxed">
                 Enter your email address and we'll send you a 6-character reset code.
               </p>
 
-              <form onSubmit={handleRequestCode} className="w-full flex flex-col gap-6">
+              <form onSubmit={handleRequestCode} className="w-full flex flex-col gap-4 sm:gap-5">
                 {error && (
                   <div className="text-sm text-[#EF4444] bg-[#FEF2F2] border border-[#FECACA] rounded-lg px-4 py-2 text-center">
                     {error}
@@ -138,7 +138,7 @@ export default function ForgotPassword() {
           )}
 
           {/* Back to Login Anchor */}
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <a className="text-sm font-semibold text-[#14532D] hover:text-[#166534] transition-colors flex items-center gap-2"
               href="/login"
             >

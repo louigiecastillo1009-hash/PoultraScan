@@ -35,25 +35,25 @@ export default function VerifyResetCode() {
   };
 
   return (
-    <div className="bg-[#F7FAF8] min-h-[100dvh] flex items-center justify-center p-4 sm:p-6 md:p-8 font-sans antialiased text-[#10231A] w-full">
+    <div className="auth-card-side bg-[#F7FAF8] min-h-[100dvh] flex items-center justify-center p-4 sm:p-6 md:p-8 font-sans antialiased text-[#10231A] w-full">
       <main className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-2xl p-7 sm:p-10 md:p-12 shadow-card border border-[#E4ECE7] flex flex-col items-center text-center">
+        <div className="auth-card-pad bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-card border border-[#E4ECE7] flex flex-col items-center text-center">
 
           {/* Brand Mark */}
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_6px_16px_rgba(20, 83, 45,0.30)] mb-6">
+          <div className="auth-brand-mark w-12 h-12 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_6px_16px_rgba(20, 83, 45,0.30)] mb-5 sm:mb-6">
             <FiFeather className="text-white text-xl" />
           </div>
 
           {/* Primary Icon */}
-          <div className="w-16 h-16 bg-[#E9F4EE] text-[#14532D] rounded-full flex items-center justify-center mb-5">
-            <FiCheckCircle className="text-3xl" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#E9F4EE] text-[#14532D] rounded-full flex items-center justify-center mb-4 sm:mb-5">
+            <FiCheckCircle className="text-2xl sm:text-3xl" />
           </div>
 
           {/* Heading + Subtext */}
           <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-[#10231A] mb-3">
             Enter Reset Code
           </h1>
-          <p className="text-sm sm:text-base text-[#4B6357] mb-8 leading-relaxed max-w-[340px]">
+          <p className="text-sm sm:text-base text-[#4B6357] mb-6 sm:mb-8 leading-relaxed max-w-[340px] break-words">
             We've sent a 6-character code
             {email ? (
               <> to <span className="font-semibold text-[#10231A] break-all">{email}</span></>
@@ -72,7 +72,7 @@ export default function VerifyResetCode() {
 
             {/* Code Input — focus ring removed, only subtle border shift */}
             <div className="relative w-full">
-              <div className="relative flex items-center h-[60px] rounded-xl border-2 border-[#E4ECE7]/70 bg-[#F7FAF8]/60 focus-within:border-[#14532D] focus-within:bg-white transition-all duration-300 px-5">
+              <div className="relative flex items-center h-14 sm:h-[60px] rounded-xl border-2 border-[#E4ECE7]/70 bg-[#F7FAF8]/60 focus-within:border-[#14532D] focus-within:bg-white transition-all duration-300 px-4 sm:px-5">
                 <FiHash className="text-xl mr-3 flex-shrink-0 text-[#4B6357]" />
                 <input
                   className="w-full h-full bg-transparent border-0 p-0 text-[#10231A] text-lg outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 shadow-none tracking-[0.3em] uppercase font-semibold placeholder:text-[#718279]/60 placeholder:tracking-[0.3em] placeholder:font-semibold"
@@ -97,7 +97,7 @@ export default function VerifyResetCode() {
           </form>
 
           {/* Resend Hint */}
-          <div className="mt-6 text-sm text-[#4B6357]">
+          <div className="mt-5 sm:mt-6 text-sm text-[#4B6357]">
             Didn't get a code?{' '}
             <Link
               to="/forgot-password"
@@ -108,7 +108,7 @@ export default function VerifyResetCode() {
           </div>
 
           {/* Divider */}
-          <div className="w-full flex items-center gap-3 my-7">
+          <div className="w-full flex items-center gap-3 my-5 sm:my-7">
             <div className="flex-1 h-px bg-[#E9F4EE]" />
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[#718279]">or</span>
             <div className="flex-1 h-px bg-[#E9F4EE]" />

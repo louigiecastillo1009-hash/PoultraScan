@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from database.base import Base
+from database.database import DATABASE_URL, engine
 
 
 
@@ -35,6 +36,10 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+
+# Use the real database URL (built from DB_* env vars) instead of the
+# placeholder value in alembic.ini, so migrations work on Render/Aiven.
+config.set_main_option("sqlalchemy.url", DATABASE_URL.replace("%", "%%"))
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -73,11 +78,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = engine
 
     with connectable.connect() as connection:
         context.configure(

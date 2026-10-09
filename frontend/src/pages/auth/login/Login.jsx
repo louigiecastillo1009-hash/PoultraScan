@@ -77,11 +77,11 @@ export default function Login() {
   const passwordFloated = passwordFocused || password.length > 0;
 
   return (
-    <div className="bg-[#F7FAF8] text-[#10231A] antialiased min-h-[100dvh] flex w-full">
+    <div className="bg-[#F7FAF8] text-[#10231A] antialiased min-h-[100dvh] flex flex-col md:flex-row w-full">
       {/* Split Screen Layout */}
-      <div className="flex w-full min-h-[100dvh]">
+
         {/* Left Side: Brand panel (Hidden below md) */}
-        <div className="hidden md:flex md:w-1/2 h-full min-h-dvh relative overflow-hidden">
+        <div className="hidden md:flex md:w-[44%] lg:w-1/2 relative overflow-hidden">
           {/* Base image - blurred */}
           <img
             src="/img/left-hero.png"
@@ -89,12 +89,12 @@ export default function Login() {
             className="absolute inset-0 w-full h-full object-cover object-top scale-110 blur-xs opacity-60"
           />
 
-  
-
-        
+          {/* Decorative blurred blobs for depth */}
+          <div className="absolute -top-16 -left-16 w-72 h-72 bg-[#10B981]/25 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 -right-10 w-80 h-80 bg-[#FACC15]/15 rounded-full blur-3xl" />
 
           {/* Top-left brand mark */}
-          <div className="absolute top-8 left-8 flex items-center gap-2 z-10">
+          <div className="absolute top-6 left-6 lg:top-8 lg:left-8 flex items-center gap-2 z-10">
             <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg">
               <FiFeather className="text-[#FACC15] text-xl" />
             </div>
@@ -104,21 +104,21 @@ export default function Login() {
           </div>
 
           {/* Bottom overlay text + mini stats */}
-          <div className="absolute bottom-0 left-0 right-0 p-10 z-10">
-            <div className="flex gap-6 mb-6">
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-gradient-to-t from-[#052E16]/90 via-[#052E16]/50 to-transparent">
+            <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-6 mb-4 lg:mb-6">
               {[
                 { value: '10k+', label: 'Birds analyzed' },
                 { value: '4.8s', label: 'Avg. scan time' },
                 { value: '24/7', label: 'Flock monitoring' },
               ].map((s) => (
-                <div key={s.label} className="px-4 py-3 rounded-xl bg-white/10 backdrop-blur-md ring-1 ring-white/15">
-                  <p className="text-white font-bold text-lg leading-none text-tabular">{s.value}</p>
+                <div key={s.label} className="px-3.5 py-3 rounded-xl bg-white/10 backdrop-blur-md ring-1 ring-white/15">
+                  <p className="text-white font-bold text-base md:text-lg leading-none text-tabular">{s.value}</p>
                   <p className="text-white/60 text-[11px] mt-1 font-medium">{s.label}</p>
                 </div>
               ))}
             </div>
-            <div className=" from-[#052E16]/80 via-[#052E16]/30 to-transparent pt-6">
-              <h2 className="text-white text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
+            <div>
+              <h2 className="text-white text-xl lg:text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
                 Smarter poultry health, in real time.
               </h2>
               <p className="text-white/80 text-sm max-w-sm">
@@ -129,11 +129,21 @@ export default function Login() {
         </div>
 
         {/* Right Side: Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 bg-[#F7FAF8] min-h-[100dvh]">
-          <div className="w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-8 shadow-card border border-[#E4ECE7] flex flex-col gap-5 sm:gap-6 my-auto">
+        <div className="auth-card-side w-full md:w-[56%] lg:w-1/2 flex flex-col items-center justify-center px-4 py-7 sm:px-6 sm:py-6 md:px-6 lg:px-8 bg-[#F7FAF8]">
+          {/* Compact brand mark — mobile & tablet portrait only */}
+          <div className="md:hidden w-full max-w-[440px] flex items-center justify-center gap-2 mb-5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14532D] via-[#166534] to-[#10B981] flex items-center justify-center shadow-[0_6px_16px_rgba(20,83,45,0.28)]">
+              <FiFeather className="text-white text-lg" />
+            </div>
+            <span className="text-lg font-semibold tracking-wide text-[#10231A]">
+              PoultraScan <span className="text-[#166534]">AI</span>
+            </span>
+          </div>
+
+          <div className="auth-card-pad auth-card-gap w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-7 lg:p-8 shadow-card border border-[#E4ECE7] flex flex-col gap-4 lg:gap-5">
             {/* Logo & Header */}
             <div className="flex flex-col items-center text-center gap-2 sm:gap-3">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#14532D] via-[#166534] to-[#10B981] flex items-center justify-center shadow-[0_8px_20px_rgba(20,83,45,0.3)] mb-1">
+              <div className="auth-card-logo hidden md:flex w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gradient-to-br from-[#14532D] via-[#166534] to-[#10B981] items-center justify-center shadow-[0_8px_20px_rgba(20,83,45,0.3)] mb-1">
                 <FiFeather className="text-white text-2xl" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#10231A]">
@@ -324,7 +334,6 @@ export default function Login() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

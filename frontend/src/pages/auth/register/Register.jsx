@@ -25,7 +25,7 @@ function SuccessModal({ onDone }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#10231A]/60 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-[0_24px_64px_-12px_rgba(5, 46, 22,0.35)] p-8 flex flex-col items-center text-center">
+      <div className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-[0_24px_64px_-12px_rgba(5, 46, 22,0.35)] p-6 sm:p-8 flex flex-col items-center text-center">
         <div className="relative w-20 h-20 mb-5">
           <svg className="w-20 h-20" viewBox="0 0 80 80">
             <circle cx="40" cy="40" r="36" fill="none" stroke="#E9F4EE" strokeWidth="4" />
@@ -126,10 +126,9 @@ export default function Register() {
   };
 
   return (
-    <div className="bg-[#F7FAF8] min-h-dvh flex text-[#10231A] antialiased w-full">
-      <div className="flex w-full min-h-dvh">
+    <div className="bg-[#F7FAF8] min-h-dvh flex flex-col md:flex-row text-[#10231A] antialiased w-full">
 
-       <div className="hidden md:flex md:w-1/2 h-full min-h-dvh relative overflow-hidden">
+       <div className="hidden md:flex md:w-[44%] lg:w-1/2 relative overflow-hidden">
   {/* Base Image - blurred */}
   <img
     src="/img/left-hero.png"
@@ -143,7 +142,7 @@ export default function Register() {
   <div className="absolute bottom-0 -right-10 w-80 h-80 bg-[#FACC15]/15 rounded-full blur-3xl" />
 
   {/* Top-left brand mark */}
-  <div className="absolute top-8 left-8 flex items-center gap-2 z-10">
+  <div className="absolute top-6 left-6 lg:top-8 lg:left-8 flex items-center gap-2 z-10">
     <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg">
       <FiFeather className="text-[#FACC15] text-xl" />
     </div>
@@ -153,9 +152,9 @@ export default function Register() {
   </div>
 
   {/* Bottom overlay text */}
-  <div className="absolute bottom-0 left-0 right-0 p-10 z-10">
-    <div className=" from-[#052E16]/80 via-[#052E16]/30 to-transparent pt-6">
-      <h2 className="text-white text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
+  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-gradient-to-t from-[#052E16]/90 via-[#052E16]/50 to-transparent">
+    <div>
+      <h2 className="text-white text-xl lg:text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
         Smarter poultry health, in real time.
       </h2>
       <p className="text-white/80 text-sm max-w-sm">
@@ -165,18 +164,28 @@ export default function Register() {
   </div>
 </div>
 
-        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-16 bg-[#F7FAF8]">
-          <div className="w-full max-w-[460px] bg-white rounded-2xl p-6 md:p-10 shadow-card border border-[#E4ECE7]">
+        <div className="auth-card-side w-full md:w-[56%] lg:w-1/2 flex flex-col items-center justify-center px-4 py-7 sm:px-6 sm:py-6 md:px-6 lg:px-8 bg-[#F7FAF8]">
+          {/* Compact brand mark — mobile only */}
+          <div className="md:hidden w-full max-w-[440px] flex items-center justify-center gap-2 mb-5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_6px_16px_rgba(20, 83, 45,0.28)]">
+              <FiFeather className="text-white text-lg" />
+            </div>
+            <span className="text-lg font-semibold tracking-wide text-[#10231A]">
+              PoultraScan <span className="text-[#166534]">AI</span>
+            </span>
+          </div>
 
-            <div className="flex flex-col items-center mb-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-4">
+          <div className="auth-card-pad auth-card-gap w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-7 lg:p-8 shadow-card border border-[#E4ECE7]">
+
+            <div className="flex flex-col items-center text-center mb-6 lg:mb-8">
+              <div className="auth-card-logo hidden md:flex w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-3 lg:mb-4">
                 <FiFeather className="text-white text-3xl" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#10231A]">Create Your Account</h1>
-              <p className="text-base text-[#4B6357] mt-1 text-center">Join PoultraScan AI to start monitoring your flock.</p>
+              <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#10231A]">Create Your Account</h1>
+              <p className="text-sm lg:text-base text-[#4B6357] mt-1 text-center">Join PoultraScan AI to start monitoring your flock.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
               {(formError || error) && (
                 <div className="text-sm text-[#EF4444] bg-[#FEF2F2] border border-[#FECACA] rounded-lg px-4 py-2 text-center">
@@ -306,7 +315,7 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="flex items-start py-2">
+              <div className="flex items-start py-1">
                 <div className="flex items-center h-5">
                   <input
                     className="w-4 h-4 text-[#14532D] bg-white border-[#E4ECE7] rounded focus:ring-[#14532D] focus:ring-2 cursor-pointer"
@@ -326,7 +335,7 @@ export default function Register() {
               </div>
 
               <button
-                className="w-full h-[52px] bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] text-white rounded-xl text-base font-semibold hover:from-[#052E16] hover:via-[#14532D] hover:to-[#166534] active:scale-[0.98] transition-all shadow-md shadow-[#14532D]/30 mt-6 disabled:opacity-50"
+                className="w-full h-[52px] bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] text-white rounded-xl text-base font-semibold hover:from-[#052E16] hover:via-[#14532D] hover:to-[#166534] active:scale-[0.98] transition-all shadow-md shadow-[#14532D]/30 mt-4 disabled:opacity-50"
                 type="submit"
                 disabled={loading}
               >
@@ -334,8 +343,8 @@ export default function Register() {
               </button>
             </form>
 
-            <div className="mt-8 text-center">
-              <p className="text-base text-[#4B6357]">
+            <div className="mt-6 text-center">
+              <p className="text-sm lg:text-base text-[#4B6357]">
                 Already have an account?{' '}
                 <a className="text-[#14532D] hover:underline font-bold transition-colors" href="/login">Login</a>
               </p>
@@ -343,8 +352,6 @@ export default function Register() {
 
           </div>
         </div>
-
-      </div>
 
       {showSuccess && <SuccessModal onDone={() => navigate('/login')} />}
     </div>

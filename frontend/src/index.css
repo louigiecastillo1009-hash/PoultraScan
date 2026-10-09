@@ -260,6 +260,40 @@ textarea:focus {
   background-size: 34px 34px;
 }
 
+/* ---------- Auth layout tuning ---------- */
+
+/* Short viewports (laptops, landscape phones): tighten the auth cards so the
+   whole form fits without page scrolling. On Login/Register the brand identity
+   is already carried by the split panel (md+) or the mobile brand header, so
+   the duplicate in-card tile can go; the standalone pages keep a smaller mark. */
+@media (max-height: 800px) {
+  .auth-card-pad {
+    padding: 1.25rem;
+  }
+  .auth-card-gap {
+    gap: 1rem;
+  }
+  .auth-card-side {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+  .auth-card-logo {
+    display: none;
+  }
+  .auth-brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .auth-brand-mark svg {
+    font-size: 1.125rem;
+  }
+  .auth-footer {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
 /* ---------- Animations ---------- */
 
 @keyframes shimmer {

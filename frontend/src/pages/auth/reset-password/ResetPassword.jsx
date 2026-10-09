@@ -92,13 +92,13 @@ export default function ResetPassword() {
     <div className="bg-[#F7FAF8] text-[#10231A] antialiased min-h-[100dvh] flex flex-col justify-between w-full">
 
       {/* Main Container */}
-      <main className="flex-grow flex items-center justify-center p-4 sm:p-8 md:p-12">
-        <div className="w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-10 md:p-12 shadow-card border border-[#E4ECE7] flex flex-col gap-6 sm:gap-9 my-auto">
+      <main className="auth-card-side flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8">
+        <div className="auth-card-pad auth-card-gap w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-8 md:p-10 shadow-card border border-[#E4ECE7] flex flex-col gap-5 sm:gap-6 lg:gap-8 my-auto">
 
           {/* Logo */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-4">
-              <FiFeather className="text-white text-3xl" />
+            <div className="auth-brand-mark w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-4">
+              <FiFeather className="text-white text-2xl sm:text-3xl" />
             </div>
           </div>
 
@@ -282,9 +282,9 @@ export default function ResetPassword() {
       </main>
 
       {/* Footer Details */}
-      <footer className="w-full py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-3 bg-[#F7FAF8] border-t border-[#E4ECE7] text-center md:text-left">
+      <footer className="auth-footer w-full py-3 px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-3 bg-[#F7FAF8] border-t border-[#E4ECE7] text-center md:text-left">
         <div className="text-xs font-bold text-[#10231A]/80">
-          Ã‚Â© {new Date().getFullYear()} PoultraScan AI. All rights reserved.
+          © {new Date().getFullYear()} PoultraScan AI. All rights reserved.
         </div>
         <div className="flex flex-wrap justify-center gap-4">
           <a className="text-xs text-[#4B6357] hover:text-[#14532D] transition-colors" href="#">Privacy Policy</a>
