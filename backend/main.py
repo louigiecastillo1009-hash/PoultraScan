@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -21,9 +23,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+_origins_env = os.getenv("ALLOWED_ORIGINS")
+allow_origins = [o.strip() for o in _origins_env.split(",") if o.strip()] if _origins_env else ["http://localhost:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://poultra-scan.vercel.app"],  # exact Vite dev origin, no trailing slash
+    allow_origins=allow_origins,  # comma-separated in ALLOWED_ORIGINS, defaults to localhost:5173
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
