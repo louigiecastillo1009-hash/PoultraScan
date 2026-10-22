@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MdAdd } from 'react-icons/md';
+import { HiPlus } from 'react-icons/hi2';
+
 import { useActiveFarm } from '../context/activeFarmContext';
 import { QuickScanModal } from './index';
-import { HiPlus } from 'react-icons/hi2';
 import { navLinks, navLinksRight } from '../constant/navList';
 
 export default function BottomNav() {
@@ -13,74 +13,60 @@ export default function BottomNav() {
   const [quickScanOpen, setQuickScanOpen] = useState(false);
 
   const isActive = (link) => location.pathname.startsWith(link.path);
+  const links = [...navLinks, ...navLinksRight];
 
   const handleNavClick = (link) => {
     navigate(link.path);
   };
 
-  const renderLink = (link) => {
-    const { key, label, icon: Icon } = link;
-    const active = isActive(link);
-
-    return (
-      <button
-        key={key}
-        onClick={() => handleNavClick(link)}
-        aria-label={label}
-        aria-current={active ? 'page' : undefined}
-        className="relative flex flex-1 flex-col items-center justify-center gap-1 py-2 group"
-      >
-        {/* active indicator — thin bar, not a dot/badge */}
-        <span
-          className={`absolute top-0 h-[2.5px] w-6 rounded-full transition-all duration-200 ${
-            active ? 'bg-[#14532D] opacity-100' : 'opacity-0'
-          }`}
-        />
-
-        <Icon
-          className={`text-[21px] transition-colors duration-200 ${
-            active ? 'text-[#14532D]' : 'text-[#9AA9A0] group-active:text-[#4B6357]'
-          }`}
-        />
-
-        <span
-          className={`text-[10px] font-medium leading-none transition-colors duration-200 ${
-            active ? 'text-[#14532D]' : 'text-[#9AA9A0]'
-          }`}
-        >
-          {label}
-        </span>
-      </button>
-    );
-  };
-
   return (
     <>
-      <nav className="fixed bottom-0 left-0 z-50 w-full bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#E4ECE7]" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-28 bg-gradient-to-t from-[#F7FAF8] via-[#F7FAF8]/85 to-transparent md:hidden"
+      />
 
-        <div className="relative mx-auto flex max-w-[480px] items-center px-1">
-          {/* left links */}
-          <div className="flex flex-1 items-center justify-around">
-            {navLinks.map(renderLink)}
-          </div>
+      <nav
+        aria-label="Primary navigation"
+        className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.625rem)] md:hidden"
+      >
+        <div className="mx-auto flex w-full max-w-md items-center gap-1 rounded-[1.35rem] border border-[#DFE6E0] bg-white/95 p-1.5 shadow-[0_14px_36px_-12px_rgba(20,40,31,0.32)] backdrop-blur-xl">
+          {links.map((link) => {
+            const { key, label, icon: Icon } = link;
+            const active = isActive(link);
 
-          {/* center FAB */}
-          <div className="flex w-16 shrink-0 justify-center">
-            <button
-              onClick={() => setQuickScanOpen(true)}
-              aria-label="Quick scan"
-              className="group relative -top-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#166534] text-white shadow-[0_8px_20px_-4px_rgba(16,185,129,0.4)] transition-all duration-200 hover:bg-[#10B981] hover:shadow-[0_10px_24px_-4px_rgba(16,185,129,0.55)] hover:scale-105 active:scale-90"
-              style={{ height: '3.25rem', width: '3.25rem' }}
-            >
-             <HiPlus className="text-2xl transition-transform duration-300 ease-out group-hover:rotate-90 group-active:rotate-90" />
-            </button>
-          </div>
+            return (
+              <button
+                key={key}
+                onClick={() => handleNavClick(link)}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                className={`flex h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors duration-150 ${
+                  active
+                    ? 'bg-[#E6F1EA] text-[#1E4A38]'
+                    : 'text-[#7D8B82] active:bg-[#ECF1ED] active:text-[#1B2922]'
+                }`}
+              >
+                <Icon className="text-[20px]" />
+                <span
+                  className={`text-[10px] leading-none ${
+                    active ? 'font-bold' : 'font-medium'
+                  }`}
+                >
+                  {label}
+                </span>
+              </button>
+            );
+          })}
 
-          {/* right links */}
-          <div className="flex flex-1 items-center justify-around">
-            {navLinksRight.map(renderLink)}
-          </div>
+          <button
+            onClick={() => setQuickScanOpen(true)}
+            aria-label="Quick scan"
+            className="ml-0.5 flex h-12 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-[#1E4A38] text-white shadow-[0_8px_20px_-8px_rgba(40,92,69,0.8)] transition-transform active:scale-95"
+          >
+            <HiPlus className="text-[21px]" />
+            <span className="text-[9px] font-semibold leading-none">Scan</span>
+          </button>
         </div>
       </nav>
 

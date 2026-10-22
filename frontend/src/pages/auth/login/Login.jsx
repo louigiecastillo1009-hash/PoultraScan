@@ -105,18 +105,6 @@ export default function Login() {
 
           {/* Bottom overlay text + mini stats */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-gradient-to-t from-[#052E16]/90 via-[#052E16]/50 to-transparent">
-            <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-6 mb-4 lg:mb-6">
-              {[
-                { value: '10k+', label: 'Birds analyzed' },
-                { value: '4.8s', label: 'Avg. scan time' },
-                { value: '24/7', label: 'Flock monitoring' },
-              ].map((s) => (
-                <div key={s.label} className="px-3.5 py-3 rounded-xl bg-white/10 backdrop-blur-md ring-1 ring-white/15">
-                  <p className="text-white font-bold text-base md:text-lg leading-none text-tabular">{s.value}</p>
-                  <p className="text-white/60 text-[11px] mt-1 font-medium">{s.label}</p>
-                </div>
-              ))}
-            </div>
             <div>
               <h2 className="text-white text-xl lg:text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
                 Smarter poultry health, in real time.

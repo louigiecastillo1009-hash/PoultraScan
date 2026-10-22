@@ -1,17 +1,37 @@
-import { useState } from 'react';
-import { MdClose, MdImage, MdRefresh } from 'react-icons/md';
+import { useEffect, useState } from 'react';
+import { MdEdit, MdImage, MdRefresh } from 'react-icons/md';
 
 import FarmLocationSelect from './FarmLocationSelect';
+import FarmModalShell from './FarmModalShell';
 import { useFarmLocation, composeFarmAddress } from '../hooks/useFarmLocation';
+import { thumbnailSrc } from '../../../utils/thumbnailSrc';
+
+const FORM_ID = 'farm-details-form';
+
+const FIELD_CLASSES =
+  'h-11 w-full rounded-xl border border-[#DFE6E0] bg-white px-3.5 text-sm text-[#1B2922] placeholder:text-[#8F9B93] transition-colors focus:border-[#1E4A38]';
+
+const LABEL_CLASSES = 'text-[12px] font-semibold text-[#56665C]';
 
 export default function EditFarmModal({ farm, onClose, onSave, saving, error }) {
+  const existingPreview = farm?.image_url ? thumbnailSrc(farm.image_url) : null;
+
   const [farmName, setFarmName] = useState(farm?.farm_name ?? '');
   const [capacity, setCapacity] = useState(farm?.capacity ?? '');
   const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(farm?.image_url ?? null);
+  const [previewUrl, setPreviewUrl] = useState(existingPreview);
   const [locationError, setLocationError] = useState(null);
 
   const location = useFarmLocation();
+
+  // Revoke object URLs created for local previews so they don't leak when the
+  // modal closes or a different photo is selected.
+  useEffect(
+    () => () => {
+      if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    },
+    [previewUrl]
+  );
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -57,64 +77,169 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
     location.region && provinceKnown && !location.provincesApplicable
   );
   const cityNeedsProvince = location.provincesApplicable && !location.province;
+  const footerError = locationError || error;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[#10231A]/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-modal">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4ECE7]">
-          <h3 className="text-sm font-bold text-[#10231A]">{farm ? 'Edit Farm' : 'Add Farm'}</h3>
-          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-full hover:bg-[#F7FAF8] text-[#4B6357] transition-colors">
-            <MdClose className="text-lg" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#4B6357]">Farm Image (optional)</label>
-            <label
-              htmlFor="farm-image-input"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-dashed border-[#C5D6CC] text-sm text-[#4B6357] cursor-pointer hover:bg-[#F7FAF8] hover:border-[#14532D] transition-all"
+    <FarmModalShell
+      title={farm ? 'Edit farm' : 'Add a new farm'}
+      description={
+        farm
+          ? 'Update the farm profile and scan location.'
+          : 'Create a farm profile so scans and flock records have a home.'
+      }
+      icon={farm ? MdEdit : MdImage}
+      onClose={onClose}
+      footer={
+        <div className="flex flex-col gap-3">
+          {footerError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium leading-relaxed text-[#B42318]"
             >
-              {previewUrl ? (
-                <img src={previewUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+              {footerError}
+            </p>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#DFE6E0] bg-white px-4 text-sm font-semibold text-[#56665C] transition-colors hover:bg-[#ECF1ED] hover:text-[#1B2922] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4A38]/35"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form={FORM_ID}
+              disabled={saving}
+              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E4A38] px-4 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(40,92,69,0.65)] transition-colors hover:bg-[#173D2D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4A38]/35 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                  Saving...
+                </>
+              ) : farm ? (
+                'Save changes'
               ) : (
-                <span className="w-10 h-10 rounded-lg bg-[#E9F4EE] flex items-center justify-center flex-shrink-0">
-                  <MdImage className="text-[#14532D] text-lg" />
-                </span>
+                'Add farm'
               )}
-              <span>{imageFile ? imageFile.name : previewUrl ? 'Change image' : 'Upload an image'}</span>
-            </label>
-            <input
-              id="farm-image-input"
-              type="file"
-              accept="image/png, image/jpeg, image/webp"
-              onChange={handleImageChange}
-              className="hidden"
-            />
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-5">
+        <section aria-labelledby="farm-photo-heading" className="space-y-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <span id="farm-photo-heading" className={LABEL_CLASSES}>
+              Farm photo
+            </span>
+            <span className="text-[11px] text-[#65746B]">Optional</span>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#4B6357]">Farm Name</label>
+          <label
+            htmlFor="farm-image-input"
+            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#C9D7CE] bg-[#FBFCFA] p-3 transition-colors hover:border-[#1E4A38] hover:bg-[#F4F6F2] focus-within:border-[#1E4A38]"
+          >
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt=""
+                className="h-12 w-12 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#E6F1EA] text-[#1E4A38]">
+                <MdImage className="text-xl" />
+              </span>
+            )}
+
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-[#1B2922]">
+                {imageFile ? imageFile.name : previewUrl ? 'Change farm photo' : 'Upload a farm photo'}
+              </span>
+              <span className="mt-0.5 block text-[11px] text-[#65746B]">
+                PNG, JPG or WebP
+              </span>
+            </span>
+
+            <span className="hidden shrink-0 rounded-lg border border-[#DFE6E0] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#56665C] group-hover:border-[#C2D2C8] sm:block">
+              Browse
+            </span>
+          </label>
+          <input
+            id="farm-image-input"
+            type="file"
+            accept="image/png, image/jpeg, image/webp"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+        </section>
+
+        <section aria-labelledby="farm-details-heading" className="space-y-4">
+          <h3 id="farm-details-heading" className="text-[13px] font-bold text-[#1B2922]">
+            Farm details
+          </h3>
+
+          <div className="space-y-1.5">
+            <label htmlFor="farm-name" className={LABEL_CLASSES}>
+              Farm name <span className="text-[#B42318]">*</span>
+            </label>
             <input
+              id="farm-name"
               type="text"
               value={farmName}
               onChange={(e) => setFarmName(e.target.value)}
               required
-              className="px-3 py-2.5 rounded-xl border border-[#E4ECE7] text-sm text-[#10231A] focus:outline-none focus:ring-2 focus:ring-[#14532D]/30"
+              autoComplete="organization"
+              placeholder="e.g. San Isidro Poultry Farm"
+              className={FIELD_CLASSES}
             />
           </div>
 
-          {/* Cascading Philippine location selector (PSGC Cloud) */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#4B6357]">Location</span>
-              {farm && farm.location && (
-                <span className="text-[11px] text-[#718279] truncate max-w-[16rem]" title={farm.location}>
-                  Current: {farm.location}
-                </span>
-              )}
-            </div>
+          <div className="space-y-1.5">
+            <label htmlFor="farm-capacity" className={LABEL_CLASSES}>
+              Capacity
+            </label>
+            <input
+              id="farm-capacity"
+              type="number"
+              min="0"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              inputMode="numeric"
+              placeholder="Number of birds"
+              className={FIELD_CLASSES}
+            />
+            <p className="text-[11px] leading-relaxed text-[#65746B]">
+              Optional. You can update this as your flock grows.
+            </p>
+          </div>
+        </section>
 
+        <section
+          aria-labelledby="farm-location-heading"
+          className="space-y-3 border-t border-[#ECF1ED] pt-5"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 id="farm-location-heading" className="text-[13px] font-bold text-[#1B2922]">
+                Location <span className="text-[#B42318]">*</span>
+              </h3>
+              <p className="mt-0.5 text-[11px] text-[#65746B]">
+                Select from region down to barangay.
+              </p>
+            </div>
+            {farm?.location && (
+              <p
+                className="max-w-full rounded-lg bg-[#ECF1ED] px-2.5 py-1.5 text-[11px] leading-relaxed text-[#56665C] sm:max-w-[19rem]"
+                title={farm.location}
+              >
+                Current: {farm.location}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FarmLocationSelect
               label="Region"
               placeholder="Select region"
@@ -183,72 +308,53 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
               }
               loadingMessage="Loading barangays..."
             />
-
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-[#4B6357]">
-                Street, Purok, or Subdivision (optional)
-              </span>
-              <input
-                type="text"
-                value={location.details}
-                onChange={(e) => location.setDetails(e.target.value)}
-                placeholder="House no., street, sitio / purok, etc. (optional)"
-                className="px-3 py-2.5 rounded-xl border border-[#E4ECE7] text-sm text-[#10231A] focus:outline-none focus:ring-2 focus:ring-[#14532D]/30"
-              />
-            </div>
-
-            {(locationError || (location.regionsState.error && !location.region)) && (
-              <p className="text-xs text-[#EF4444] font-medium">
-                {locationError || 'Unable to load regions. Please retry above.'}
-              </p>
-            )}
-
-            {location.region && location.regionDataState.error && (
-              <p className="text-xs text-[#EF4444] font-medium flex items-center gap-1.5 flex-wrap">
-                {location.regionDataState.error}
-                <button
-                  type="button"
-                  onClick={location.retryRegionData}
-                  className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#14532D] hover:underline"
-                >
-                  <MdRefresh className="text-sm" />
-                  Retry
-                </button>
-              </p>
-            )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#4B6357]">Capacity</label>
+          <div className="space-y-1.5">
+            <label htmlFor="farm-street" className={LABEL_CLASSES}>
+              Street, purok, or subdivision
+            </label>
             <input
-              type="number"
-              min="0"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              className="px-3 py-2.5 rounded-xl border border-[#E4ECE7] text-sm text-[#10231A] focus:outline-none focus:ring-2 focus:ring-[#14532D]/30"
+              id="farm-street"
+              type="text"
+              value={location.details}
+              onChange={(e) => location.setDetails(e.target.value)}
+              placeholder="House no., street, sitio / purok, etc. (optional)"
+              className={FIELD_CLASSES}
             />
           </div>
 
-          {error && <p className="text-xs text-[#EF4444] font-medium">{error}</p>}
+          {location.regionsState.error && !location.region && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2">
+              <p className="text-[12px] font-medium text-[#B42318]">
+                Unable to load regions. Please retry.
+              </p>
+              <button
+                type="button"
+                onClick={location.retryRegionData}
+                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#1E4A38] hover:underline"
+              >
+                <MdRefresh className="text-sm" />
+                Retry
+              </button>
+            </div>
+          )}
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-[#E4ECE7] text-sm font-semibold text-[#10231A] hover:bg-[#F7FAF8] transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] text-white text-sm font-semibold hover:from-[#166534] hover:to-[#052E16] transition-all disabled:opacity-50 shadow-md shadow-[#14532D]/25"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          {location.region && location.regionDataState.error && (
+            <p className="flex flex-wrap items-center gap-1.5 text-[12px] font-medium text-[#B42318]">
+              {location.regionDataState.error}
+              <button
+                type="button"
+                onClick={location.retryRegionData}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#1E4A38] hover:underline"
+              >
+                <MdRefresh className="text-sm" />
+                Retry
+              </button>
+            </p>
+          )}
+        </section>
+      </form>
+    </FarmModalShell>
   );
 }

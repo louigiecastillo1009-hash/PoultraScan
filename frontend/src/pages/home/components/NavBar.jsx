@@ -1,12 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  MdBiotech,
-  MdMenu,
-  MdClose,
-} from 'react-icons/md';
-
-
+import { MdBiotech, MdMenu, MdClose, MdArrowForward } from 'react-icons/md';
 
 export default function NavBar() {
   const navigate = useNavigate();
@@ -20,83 +14,126 @@ export default function NavBar() {
 
   const closeMobile = () => setMobileOpen(false);
 
-  return (
-    <header className="sticky top-0 z-50 bg-[#F7FAF8]/90 backdrop-blur-sm border-b border-[#E4ECE7]">
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between px-4 md:px-8 h-16">
-        <div className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] flex items-center justify-center text-white shadow-sm">
-            <MdBiotech className="text-lg" />
-          </span>
-          <span className="text-[17px] font-bold text-[#10231A] tracking-tight">
-            PoultraScan
-          </span>
-        </div>
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
 
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            
-            <a  key={l.label}
-              href={l.href}
-              className="text-sm font-medium text-[#10231A]/70 hover:text-[#14532D] active:scale-95 transition-all duration-150"
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
+
+  const goTo = (path) => {
+    closeMobile();
+    navigate(path);
+  };
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-[#DDE2E4]/80 bg-[#ECEDF1]/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[68px] w-full max-w-[1280px] items-center justify-between px-4 sm:h-[76px] sm:px-6 lg:px-8">
+        <a
+          href="/home"
+          className="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#41B05E] focus-visible:ring-offset-4 focus-visible:ring-offset-[#ECEDF1]"
+          aria-label="PoultraScan home"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#028915] text-white shadow-[0_8px_18px_-10px_rgba(2,137,21,0.8)]">
+            <MdBiotech className="text-[19px]" aria-hidden="true" />
+          </span>
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="truncate text-[17px] font-extrabold tracking-[-0.035em] text-[#0B0B0D]">
+              PoultraScan
+            </span>
+            <span className="mt-1 hidden text-[8px] font-bold uppercase tracking-[0.16em] text-[#7B837E] sm:block">
+              AI flock diagnostics
+            </span>
+          </span>
+        </a>
+
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="rounded-full px-3.5 py-2 text-[13.5px] font-semibold text-[#4A4748] transition-colors duration-150 hover:bg-white/70 hover:text-[#0B0B0D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#41B05E] focus-visible:ring-offset-2"
             >
-              {l.label}
+              {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-2 md:flex">
           <button
+            type="button"
             onClick={() => navigate('/login')}
-            className="text-sm font-semibold text-[#10231A] hover:text-[#14532D] active:scale-95 transition-all duration-150"
+            className="rounded-lg px-3 py-2 text-[13.5px] font-bold text-[#0B0B0D] transition-colors duration-150 hover:text-[#028915] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#41B05E] focus-visible:ring-offset-2"
           >
             Log in
           </button>
           <button
+            type="button"
             onClick={() => navigate('/register')}
-            className="bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:from-[#052E16] hover:via-[#14532D] hover:to-[#166534] active:scale-95 transition-all duration-150 shadow-sm"
+            className="ps-btn ps-btn-primary ps-btn-sm"
           >
             Get started
+            <MdArrowForward className="text-base" aria-hidden="true" />
           </button>
         </div>
 
         <button
-          className="md:hidden text-[#10231A] text-2xl active:scale-90 transition-transform duration-150"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D7DCDE] bg-white/60 text-[#0B0B0D] transition-colors duration-150 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#41B05E] focus-visible:ring-offset-2 md:hidden"
+          onClick={() => setMobileOpen((value) => !value)}
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
+          aria-controls="home-mobile-menu"
         >
-          {mobileOpen ? <MdClose /> : <MdMenu />}
+          {mobileOpen ? (
+            <MdClose className="text-[22px]" aria-hidden="true" />
+          ) : (
+            <MdMenu className="text-[22px]" aria-hidden="true" />
+          )}
         </button>
       </div>
 
-      {/* Always rendered so max-height/opacity can animate the open/close */}
-      <div
-        className={`md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
-          mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div className="px-4 pb-4 flex flex-col gap-3 border-t border-[#E4ECE7] bg-[#F7FAF8]">
-          {links.map((l) => (
-            <a key={l.label} href={l.href} onClick={closeMobile} className="text-sm font-medium text-[#10231A] py-2">
-              {l.label}
-            </a>
-          ))}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => { closeMobile(); navigate('/login'); }}
-              className="flex-1 text-sm font-semibold text-[#10231A] border border-[#E4ECE7] bg-white rounded-xl py-2.5 active:scale-95 transition-transform duration-150"
-            >
-              Log in
-            </button>
-            <button
-              onClick={() => { closeMobile(); navigate('/register'); }}
-              className="flex-1 bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] text-white text-sm font-semibold rounded-xl py-2.5 active:scale-95 transition-transform duration-150"
-            >
-              Get started
-            </button>
-          </div>
+      {mobileOpen && (
+        <div
+          id="home-mobile-menu"
+          className="absolute inset-x-0 top-full max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-b border-[#DDE2E4] bg-[#F7F8F6] shadow-[0_24px_50px_-28px_rgba(11,18,13,0.4)] md:hidden"
+        >
+          <nav className="mx-auto w-full max-w-[1280px] px-4 py-3 sm:px-6" aria-label="Mobile navigation">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={closeMobile}
+                className="flex items-center justify-between border-b border-[#E5E8E9] py-3.5 text-[15px] font-semibold text-[#0B0B0D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#41B05E] focus-visible:ring-offset-2"
+              >
+                {link.label}
+                <MdArrowForward className="text-base text-[#7B837E]" aria-hidden="true" />
+              </a>
+            ))}
+
+            <div className="grid grid-cols-2 gap-2.5 pt-4">
+              <button
+                type="button"
+                onClick={() => goTo('/login')}
+                className="ps-btn ps-btn-secondary"
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo('/register')}
+                className="ps-btn ps-btn-primary"
+              >
+                Get started
+              </button>
+            </div>
+          </nav>
         </div>
-      </div>
+      )}
     </header>
   );
 }

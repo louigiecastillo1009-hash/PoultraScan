@@ -1,15 +1,22 @@
-import  { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdAdd, MdGridView, MdSearch,MdTrendingUp,} from 'react-icons/md';
+import {
+  MdAdd,
+  MdAgriculture,
+  MdClose,
+  MdErrorOutline,
+  MdGridView,
+  MdRefresh,
+  MdSearch,
+  MdTrendingUp,
+} from 'react-icons/md';
 
 import { useFarms } from '../hooks/useFarms';
 import { useSaveFarm } from '../hooks/useCreateFarm';
 import { useActiveFarm } from '../../../context/activeFarmContext';
-import {TopNav,BottomNav} from '../../../components/index'
+import { TopNav, BottomNav } from '../../../components/index';
 
-import {EditFarmModal,FarmCard,StatPill} from '../components/index'
-
-
+import { EditFarmModal, FarmCard, StatPill } from '../components/index';
 
 export default function FarmsList() {
   const navigate = useNavigate();
@@ -21,7 +28,8 @@ export default function FarmsList() {
   const { save, loading: saving, error: saveError } = useSaveFarm();
   const { activeFarmId, setActiveFarmId } = useActiveFarm();
 
-  const totalCapacity = farms?.reduce((sum, f) => sum + (Number(f.capacity) || 0), 0) ?? 0;
+  const totalCapacity =
+    farms?.reduce((sum, f) => sum + (Number(f.capacity) || 0), 0) ?? 0;
   const activeFarm = farms?.find((f) => f.id === activeFarmId);
 
   const filteredFarms = useMemo(() => {
@@ -39,169 +47,260 @@ export default function FarmsList() {
       await save(data, null);
       setAddOpen(false);
       refetch();
-    } catch (err) {
+    } catch {
       // saveError already set by the hook; modal stays open so user sees it
     }
   };
 
+  const hasFarms = farms?.length > 0;
+
   return (
-    <div className="bg-[#F7FAF8] text-[#10231A] antialiased min-h-dvh mb-10 lg:mb-0 flex flex-col font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
-          
-  <TopNav />
+    <div className="flex min-h-dvh flex-col bg-[#F4F6F2] text-[#1B2922] antialiased">
+      <TopNav />
 
-<div className="md:hidden">
-  <BottomNav />
-</div>
-  
-
-      <main className="flex-grow pt-[calc(env(safe-area-inset-top)+6rem)] md:pt-24 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] md:pb-12 px-4 md:px-8 max-w-[1200px] mx-auto w-full">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-[#718279] mb-4">
-          <span>Dashboard</span>
-          <span>/</span>
-          <span className="text-[#14532D] font-semibold">Farms</span>
-        </div>
-
-        {/* Header */}
-     <div className="relative overflow-hidden rounded-2xl mb-6 bg-gradient-to-br from-[#14532D] to-[#166534] shadow-lg shadow-[#14532D]/20">
-        {/* background photo */}
-        <img
-          src="/img/hero.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-35"
-          style={{
-            maskImage: 'linear-gradient(to right, transparent 0%, transparent 35%, black 80%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 35%, black 80%)',
-          }}
-        />
-     
-        {/* decorative glows */}
-        <div className="pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-24 h-44 w-44 rounded-full bg-[#FACC15]/20 blur-3xl" />
-
-        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 text-white text-[10px] font-bold uppercase tracking-widest mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15]" />
-              Farm Management
-            </span>
-            <h1 className="text-2xl md:text-[28px] font-bold text-white tracking-tight">My Farms</h1>
-            <p className="text-white/80 text-sm mt-1.5">
-              {activeFarm ? (
-                <>
-                  Scans will be saved to{' '}
-                  <span className="font-semibold text-white">{activeFarm.farm_name}</span>.
-                </>
-              ) : (
-                'Select a farm below to start saving scans to it.'
-              )}
-            </p>
-          </div>
-          <button
-            onClick={() => setAddOpen(true)}
-            className="bg-white text-[#14532D] px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-[#E9F4EE] transition-colors active:scale-[0.98] w-full sm:w-auto justify-center shadow-sm"
-          >
-            <MdAdd className="text-lg" />
-            Add New Farm
-          </button>
-        </div>
+      <div className="md:hidden">
+        <BottomNav />
       </div>
 
-        {/* Metric pills */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-8">
-          <StatPill label="Farms" value={farms?.length ?? 0} icon={MdGridView} />
-          <StatPill label="Total Capacity" value={totalCapacity.toLocaleString()} icon={MdTrendingUp} />
-        </div>
+      <main className="mx-auto w-full max-w-[1200px] flex-grow px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 md:pb-14 md:pt-24 lg:px-8">
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-4 hidden items-center gap-2 text-[11px] font-medium text-[#7D8B82] sm:flex"
+        >
+          <span>Workspace</span>
+          <span aria-hidden="true">/</span>
+          <span className="font-semibold text-[#1E4A38]">Farms</span>
+        </nav>
 
-        {/* Toolbar */}
-        {!loading && !error && farms?.length > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-            <div className="flex items-center gap-3">
-              <h2 className="text-[15px] font-semibold text-[#10231A]">All Farms</h2>
-              <span className="text-xs font-semibold text-[#14532D] bg-[#E9F4EE] px-2.5 py-1 rounded-full">
-                {farms.length} total
+        {/* Page hero */}
+        <section
+          aria-labelledby="farms-title"
+          className="relative isolate overflow-hidden rounded-2xl bg-[#143528] shadow-[0_24px_55px_-32px_rgba(20,53,40,0.75)] sm:rounded-3xl"
+        >
+          <img
+            src="/img/hero1.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover object-center opacity-55"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#102B20]/95 via-[#102B20]/78 to-[#102B20]/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#102B20]/65 via-[#102B20]/10 to-transparent sm:bg-none" />
+          <div className="ps-grid-overlay absolute inset-0 opacity-10" />
+
+          <div className="relative flex flex-col gap-5 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#F3E8D2] backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C7A76C]" />
+                Farm management
               </span>
+              <h1
+                id="farms-title"
+                className="mt-3 text-[28px] font-bold leading-tight tracking-tight text-white sm:text-[34px]"
+              >
+                My farms
+              </h1>
+              <p className="mt-1.5 max-w-lg text-[13px] leading-relaxed text-white/75 sm:text-sm">
+                Manage your farm profiles and choose which farm receives new
+                scans.
+              </p>
             </div>
-            <div className="relative w-full sm:w-72">
-              <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#718279] text-lg pointer-events-none" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search farms..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-[#E4ECE7] text-sm text-[#10231A] placeholder-[#718279] focus:outline-none focus:border-[#14532D] focus:ring-2 focus:ring-[#14532D]/20 transition-colors"
-              />
-            </div>
-          </div>
-        )}
 
-        {/* Loading */}
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-[#E4ECE7] overflow-hidden shadow-card">
-                <div className="aspect-[16/10] skeleton rounded-none" />
-                <div className="p-5 space-y-3">
-                  <div className="h-4 skeleton w-2/3" />
-                  <div className="h-3 skeleton w-1/2" />
-                  <div className="h-10 skeleton mt-4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Error */}
-        {error && !loading && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-[#FECACA] shadow-card">
-            <p className="text-sm text-[#EF4444] font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Grid */}
-        {!loading && !error && farms?.length > 0 && filteredFarms?.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredFarms.map((farm) => (
-              <FarmCard
-                key={farm.id}
-                farm={farm}
-                isActive={farm.id === activeFarmId}
-                onSelectActive={() => setActiveFarmId(farm.id)}
-                onOpenDetails={() => navigate(`/farm/${farm.id}`)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* No search matches */}
-        {!loading && !error && farms?.length > 0 && filteredFarms?.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-[#E4ECE7] shadow-card">
-            <p className="text-sm text-[#4B6357]">
-              No farms match <span className="font-semibold text-[#10231A]">"{query}"</span>.
-            </p>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && !error && farms?.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-[#E4ECE7] flex flex-col items-center gap-4 shadow-card">
-            <div className="w-16 h-16 rounded-2xl bg-[#E9F4EE] flex items-center justify-center text-[#14532D]">
-              <MdGridView className="text-3xl" />
-            </div>
-            <div>
-              <h3 className="text-[17px] font-bold text-[#10231A]">No farms yet</h3>
-              <p className="text-sm text-[#4B6357] mt-1">Get started by adding your first farm location.</p>
-            </div>
             <button
+              type="button"
               onClick={() => setAddOpen(true)}
-              className="bg-gradient-to-br from-[#14532D] to-[#166534] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-[#166534] hover:to-[#052E16] transition-all active:scale-[0.98] flex items-center gap-2 mt-2 shadow-md shadow-[#14532D]/25"
+              className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[#F3E8D2] px-5 text-sm font-semibold text-[#173D2D] shadow-[0_10px_24px_-12px_rgba(0,0,0,0.45)] transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F3E8D2]/60 sm:w-auto"
             >
               <MdAdd className="text-lg" />
-              Add Your First Farm
+              Add new farm
             </button>
           </div>
-        )}
+        </section>
+
+        {/* Summary */}
+        <section
+          aria-label="Farm summary"
+          className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 lg:grid-cols-3"
+        >
+          <StatPill
+            label="Total farms"
+            value={farms?.length ?? 0}
+            icon={MdGridView}
+            caption="Profiles under your account"
+            loading={loading}
+          />
+          <StatPill
+            label="Total capacity"
+            value={totalCapacity.toLocaleString()}
+            icon={MdTrendingUp}
+            tone="gold"
+            caption="Birds across all farms"
+            loading={loading}
+          />
+          <div className="col-span-2 lg:col-span-1">
+            <StatPill
+              label="Active scanning farm"
+              value={activeFarm?.farm_name || 'None selected'}
+              icon={MdAgriculture}
+              tone={activeFarm ? 'green' : 'muted'}
+              valueClassName="text-[15px] sm:text-[17px]"
+              caption={
+                activeFarm
+                  ? 'New scans are saved to this farm.'
+                  : 'Choose a farm below to start saving scans.'
+              }
+              loading={loading}
+            />
+          </div>
+        </section>
+
+        {/* Farm records */}
+        <section aria-labelledby="farm-records-heading" className="mt-7 sm:mt-9">
+          <div className="mb-3.5 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <h2
+                id="farm-records-heading"
+                className="text-[17px] font-bold tracking-tight text-[#1B2922]"
+              >
+                All farms
+              </h2>
+              {hasFarms && (
+                <span className="rounded-full bg-[#ECF1ED] px-2.5 py-1 text-[11px] font-semibold text-[#65746B]">
+                  {farms.length} total
+                </span>
+              )}
+            </div>
+
+            {hasFarms && (
+              <div className="relative w-full sm:w-[19rem]">
+                <MdSearch className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-[#7D8B82]" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search farms or locations..."
+                  aria-label="Search farms"
+                  className="h-11 w-full rounded-xl border border-[#DFE6E0] bg-white py-0 pl-10 pr-10 text-[16px] text-[#1B2922] placeholder:text-[#8F9B93] transition-colors focus:border-[#1E4A38] sm:text-sm [&::-webkit-search-cancel-button]:hidden"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#7D8B82] transition-colors hover:bg-[#ECF1ED] hover:text-[#1B2922]"
+                  >
+                    <MdClose className="text-base" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Loading */}
+          {loading && (
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex animate-pulse flex-row overflow-hidden rounded-2xl border border-[#DFE6E0] bg-white sm:flex-col"
+                >
+                  <div className="w-[96px] shrink-0 self-stretch bg-[#ECF1ED] sm:aspect-[16/9] sm:w-full sm:self-auto" />
+                  <div className="flex-1 space-y-3 p-3.5 sm:p-5">
+                    <div className="h-3.5 w-3/4 rounded bg-[#ECF1ED]" />
+                    <div className="h-3 w-full rounded bg-[#F0F4F1]" />
+                    <div className="h-3 w-2/3 rounded bg-[#F0F4F1]" />
+                    <div className="mt-4 h-9 w-full rounded-lg bg-[#F0F4F1]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {error && !loading && (
+            <div className="flex flex-col items-center rounded-2xl border border-[#FECACA] bg-white px-5 py-12 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FEF2F2] text-[#B42318]">
+                <MdErrorOutline className="text-2xl" />
+              </span>
+              <h3 className="mt-3 text-[15px] font-bold text-[#1B2922]">
+                Could not load your farms
+              </h3>
+              <p className="mt-1 max-w-sm text-[13px] leading-relaxed text-[#65746B]">
+                {error}
+              </p>
+              <button
+                type="button"
+                onClick={refetch}
+                className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-lg border border-[#DFE6E0] bg-white px-3.5 text-[13px] font-semibold text-[#1E4A38] transition-colors hover:bg-[#ECF1ED]"
+              >
+                <MdRefresh className="text-base" />
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* Grid */}
+          {!loading && !error && hasFarms && filteredFarms?.length > 0 && (
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+              {filteredFarms.map((farm) => (
+                <FarmCard
+                  key={farm.id}
+                  farm={farm}
+                  isActive={farm.id === activeFarmId}
+                  onSelectActive={() => setActiveFarmId(farm.id)}
+                  onOpenDetails={() => navigate(`/farm/${farm.id}`)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* No search matches */}
+          {!loading && !error && hasFarms && filteredFarms?.length === 0 && (
+            <div className="flex flex-col items-center rounded-2xl border border-[#DFE6E0] bg-white px-5 py-12 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ECF1ED] text-[#56665C]">
+                <MdSearch className="text-2xl" />
+              </span>
+              <h3 className="mt-3 text-[15px] font-bold text-[#1B2922]">
+                No farms match “{query}”
+              </h3>
+              <p className="mt-1 text-[13px] text-[#65746B]">
+                Try a different farm name or location.
+              </p>
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-lg border border-[#DFE6E0] bg-white px-3.5 text-[13px] font-semibold text-[#1E4A38] transition-colors hover:bg-[#ECF1ED]"
+              >
+                <MdClose className="text-base" />
+                Clear search
+              </button>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && !error && !hasFarms && (
+            <div className="flex flex-col items-center rounded-2xl border border-[#DFE6E0] bg-white px-5 py-14 text-center sm:py-16">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E6F1EA] text-[#1E4A38]">
+                <MdAgriculture className="text-[28px]" />
+              </span>
+              <h3 className="mt-4 text-[17px] font-bold tracking-tight text-[#1B2922]">
+                No farms yet
+              </h3>
+              <p className="mt-1 max-w-sm text-[13px] leading-relaxed text-[#65746B]">
+                Add your first farm to start saving scans and tracking flock
+                records.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAddOpen(true)}
+                className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1E4A38] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(40,92,69,0.8)] transition-colors hover:bg-[#173D2D]"
+              >
+                <MdAdd className="text-lg" />
+                Add your first farm
+              </button>
+            </div>
+          )}
+        </section>
       </main>
 
       {addOpen && (

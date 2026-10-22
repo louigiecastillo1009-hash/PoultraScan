@@ -1,39 +1,36 @@
-import {
-  MdClose,
-  MdErrorOutline,
-} from 'react-icons/md';
+import { MdDeleteOutline, MdWarningAmber } from 'react-icons/md';
 
-export default function DeleteFarmModal({ farmName, onClose, onConfirm, deleting, error }) {
+import FarmModalShell from './FarmModalShell';
+
+export default function DeleteFarmModal({
+  farmName,
+  onClose,
+  onConfirm,
+  deleting,
+  error,
+}) {
   return (
-    <div className="fixed inset-0 z-[60] bg-[#10231A]/50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-modal border border-[#E4ECE7]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4ECE7]">
-          <h3 className="text-[15px] font-bold text-[#10231A]">Delete Farm</h3>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="p-1.5 rounded-lg hover:bg-[#F7FAF8] text-[#4B6357] transition-colors"
-          >
-            <MdClose className="text-lg" />
-          </button>
-        </div>
-
-        <div className="p-5 flex flex-col gap-4">
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
-            <MdErrorOutline className="text-[#EF4444] text-lg flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-[#EF4444] leading-relaxed">
-              Are you sure you want to delete <span className="font-bold">{farmName}</span>? This cannot be undone,
-              and all scan history tied to this farm will no longer be accessible.
+    <FarmModalShell
+      title="Delete farm"
+      description="This action permanently removes the farm profile."
+      icon={MdDeleteOutline}
+      onClose={onClose}
+      size="sm"
+      footer={
+        <div className="flex flex-col gap-3">
+          {error && (
+            <p
+              role="alert"
+              className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium leading-relaxed text-[#B42318]"
+            >
+              {error}
             </p>
-          </div>
-
-          {error && <p className="text-xs text-[#EF4444] font-medium">{error}</p>}
-
-          <div className="flex gap-3 pt-1">
+          )}
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-[#E4ECE7] text-sm font-semibold text-[#10231A] hover:bg-[#F7FAF8] transition-colors"
+              className="h-11 flex-1 rounded-xl border border-[#DFE6E0] bg-white px-4 text-sm font-semibold text-[#56665C] transition-colors hover:bg-[#ECF1ED] hover:text-[#1B2922] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4A38]/35"
             >
               Cancel
             </button>
@@ -41,13 +38,37 @@ export default function DeleteFarmModal({ farmName, onClose, onConfirm, deleting
               type="button"
               onClick={onConfirm}
               disabled={deleting}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-[#EF4444] text-white text-sm font-semibold hover:bg-[#DC2626] transition-colors disabled:opacity-50 shadow-md shadow-[#EF4444]/25"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#B42318] px-4 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(180,35,24,0.7)] transition-colors hover:bg-[#912018] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B42318]/35 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {deleting ? 'Deleting...' : 'Delete Farm'}
+              {deleting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete farm'
+              )}
             </button>
           </div>
         </div>
+      }
+    >
+      <div className="rounded-xl border border-[#FAD8D4] bg-[#FEF3F2] p-4">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FEE4E2] text-[#B42318]">
+            <MdWarningAmber className="text-lg" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[#B42318]">
+              Delete “{farmName}”?
+            </p>
+            <p className="mt-1 text-[13px] leading-relaxed text-[#8A3A32]">
+              This cannot be undone. All scan history tied to this farm will no
+              longer be accessible.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </FarmModalShell>
   );
 }

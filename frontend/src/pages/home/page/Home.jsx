@@ -1,17 +1,28 @@
-import {PageStyles} from '../css/PageStyles.jsx'
-import {NavBar,Hero,StatsStrip,HowItWorks,FeatureGrid,Testimonial,CtaBanner,Footer} from '../components/index'
+import { PageStyles } from '../css/PageStyles.jsx';
+import {
+  NavBar,
+  Hero,
+  StatsStrip,
+  HowItWorks,
+  FeatureGrid,
+  Testimonial,
+  CtaBanner,
+  Footer,
+} from '../components/index';
 
 export default function HomePage() {
   return (
-    <div className="min-h-dvh bg-[#F7FAF8]">
+    <div className="min-h-dvh overflow-x-clip bg-[#ECEDF1] text-[#0B0B0D] antialiased">
       <PageStyles />
       <NavBar />
-      <Hero />
-      <StatsStrip />
-      <HowItWorks />
-      <FeatureGrid />
-      <Testimonial />
-      <CtaBanner />
+      <main>
+        <Hero />
+        <StatsStrip />
+        <HowItWorks />
+        <FeatureGrid />
+        <Testimonial />
+        <CtaBanner />
+      </main>
       <Footer />
     </div>
   );
