@@ -2,7 +2,7 @@
 import {
   MdCameraAlt,
   MdNotificationsActive,
-  MdMenuBook,
+  MdHistory,
   MdOutlineFolderShared,
 } from 'react-icons/md';
 import {Reveal,FeatureCard} from './index'
@@ -15,9 +15,9 @@ export default function FeatureGrid() {
       description: 'Vision AI trained on common poultry conditions classifies issues straight from a coop photo.',
     },
     {
-      icon: MdMenuBook,
-      title: 'Health journal',
-      description: 'Every scan lands on a timeline per farm, so patterns across weeks are easy to spot.',
+      icon: MdHistory,
+      title: 'Scan history',
+      description: 'Every scan is saved per farm, so patterns across weeks are easy to spot.',
     },
     {
       icon: MdNotificationsActive,

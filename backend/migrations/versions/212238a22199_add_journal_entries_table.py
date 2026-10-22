@@ -20,6 +20,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    from sqlalchemy import inspect
+
+    if inspect(op.get_bind()).has_table('journal_entries'):
+        return
+
     op.create_table(
         'journal_entries',
         sa.Column('id', sa.Integer(), nullable=False),

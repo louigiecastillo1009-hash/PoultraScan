@@ -318,6 +318,10 @@ class AIPredictionService:
             ScanSummaryService.generate_for_session(db, scan_session_id)
         except HTTPException as e:
             print(f"[SUMMARY WARNING] Could not generate scan summary: {e.detail}")
+        except Exception as e:
+            # Predictions are already persisted — a summary/db hiccup must
+            # never turn a successful scan into a 500 for the user.
+            print(f"[SUMMARY WARNING] Could not generate scan summary: {e}")
 
         return {
             "chickens": chickens_result,

@@ -8,7 +8,6 @@ const navLinks = [
   { label: 'Scans', path: '/scan' },
   { label: 'History', path: '/scan/history' },
   { label: 'Farms', path: '/farm' },
-  { label: 'Journal', path: '/journal' },
 ];
 
 function getActiveFromPath(pathname) {

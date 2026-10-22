@@ -1,4 +1,4 @@
-import { MdHome, MdAgriculture, MdAdd, MdMenuBook, MdHistory } from 'react-icons/md';
+import { MdHome, MdAgriculture, MdHistory } from 'react-icons/md';
 
 export const navLinks = [
   { key: 'home', label: 'Home', icon: MdHome, path: '/dashboard' },
@@ -6,6 +6,5 @@ export const navLinks = [
 ];
 
 export const navLinksRight = [
-  { key: 'journal', label: 'Journal', icon: MdMenuBook, path: '/journal' },
   { key: 'history', label: 'History', icon: MdHistory, path: '/scan/history' },
 ];

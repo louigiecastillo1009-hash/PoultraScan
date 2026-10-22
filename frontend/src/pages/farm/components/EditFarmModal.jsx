@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { MdClose, MdImage } from 'react-icons/md';
+import { MdClose, MdImage, MdRefresh } from 'react-icons/md';
 
+import FarmLocationSelect from './FarmLocationSelect';
+import { useFarmLocation, composeFarmAddress } from '../hooks/useFarmLocation';
 
 export default function EditFarmModal({ farm, onClose, onSave, saving, error }) {
   const [farmName, setFarmName] = useState(farm?.farm_name ?? '');
-  const [location, setLocation] = useState(farm?.location ?? '');
   const [capacity, setCapacity] = useState(farm?.capacity ?? '');
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(farm?.image_url ?? null);
+  const [locationError, setLocationError] = useState(null);
+
+  const location = useFarmLocation();
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -18,13 +22,41 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    let locationValue;
+    setLocationError(null);
+
+    if (location.region) {
+      // The user started a fresh selection — it must be completed or fully
+      // cleared before submitting, so no half-chosen address is saved.
+      if (!location.isComplete) {
+        setLocationError('Please complete the location selection or clear the region.');
+        return;
+      }
+      locationValue = composeFarmAddress(location);
+    } else if (farm) {
+      // Edit mode, picker untouched: keep the previously saved address as-is
+      // so existing records stay compatible.
+      locationValue = farm.location ?? '';
+    } else {
+      setLocationError('Please select the farm location from the dropdowns.');
+      return;
+    }
+
     onSave({
       farm_name: farmName,
-      location,
+      location: locationValue,
       capacity: capacity === '' ? null : Number(capacity),
       image: imageFile,
     });
   };
+
+  const provinceKnown =
+    !location.regionDataState.loading && !location.regionDataState.error;
+  const provinceNotApplicable = Boolean(
+    location.region && provinceKnown && !location.provincesApplicable
+  );
+  const cityNeedsProvince = location.provincesApplicable && !location.province;
 
   return (
     <div className="fixed inset-0 z-[60] bg-[#10231A]/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -72,15 +104,118 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#4B6357]">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
-              className="px-3 py-2.5 rounded-xl border border-[#E4ECE7] text-sm text-[#10231A] focus:outline-none focus:ring-2 focus:ring-[#14532D]/30"
+          {/* Cascading Philippine location selector (PSGC Cloud) */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[#4B6357]">Location</span>
+              {farm && farm.location && (
+                <span className="text-[11px] text-[#718279] truncate max-w-[16rem]" title={farm.location}>
+                  Current: {farm.location}
+                </span>
+              )}
+            </div>
+
+            <FarmLocationSelect
+              label="Region"
+              placeholder="Select region"
+              options={location.regions}
+              value={location.region}
+              onSelect={location.changeRegion}
+              loading={location.regionsState.loading}
+              error={location.regionsState.error}
+              onRetry={location.retryRegionData}
+              loadingMessage="Loading regions..."
             />
+
+            <FarmLocationSelect
+              label="Province"
+              placeholder="Select province"
+              options={location.provinceList}
+              value={location.province}
+              onSelect={location.changeProvince}
+              loading={location.regionDataState.loading}
+              error={location.regionDataState.error}
+              onRetry={location.retryRegionData}
+              disabled={
+                !location.region ||
+                location.regionDataState.loading ||
+                Boolean(location.regionDataState.error)
+              }
+              notApplicable={provinceNotApplicable}
+              loadingMessage="Loading provinces..."
+            />
+
+            <FarmLocationSelect
+              label="City / Municipality"
+              placeholder={
+                cityNeedsProvince
+                  ? 'Select a province first'
+                  : 'Select city / municipality'
+              }
+              options={location.cityList}
+              value={location.city}
+              onSelect={location.changeCity}
+              loading={cityNeedsProvince ? false : location.cityState.loading}
+              error={location.cityState.error}
+              onRetry={location.province ? () => location.changeProvince(location.province) : null}
+              disabled={
+                !location.region ||
+                location.regionDataState.loading ||
+                Boolean(location.regionDataState.error) ||
+                cityNeedsProvince
+              }
+              loadingMessage="Loading cities and municipalities..."
+            />
+
+            <FarmLocationSelect
+              label="Barangay"
+              placeholder="Select city / municipality first"
+              options={location.barangayList}
+              value={location.barangay}
+              onSelect={location.changeBarangay}
+              loading={location.barangayState.loading}
+              error={location.barangayState.error}
+              onRetry={location.city ? () => location.changeCity(location.city) : null}
+              disabled={
+                !location.city ||
+                (location.provincesApplicable ? location.cityState.loading : false) ||
+                location.barangayState.loading
+              }
+              loadingMessage="Loading barangays..."
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-[#4B6357]">
+                Street, Purok, or Subdivision (optional)
+              </span>
+              <input
+                type="text"
+                value={location.details}
+                onChange={(e) => location.setDetails(e.target.value)}
+                placeholder="House no., street, sitio / purok, etc. (optional)"
+                className="px-3 py-2.5 rounded-xl border border-[#E4ECE7] text-sm text-[#10231A] focus:outline-none focus:ring-2 focus:ring-[#14532D]/30"
+              />
+            </div>
+
+            {(locationError || (location.regionsState.error && !location.region)) && (
+              <p className="text-xs text-[#EF4444] font-medium">
+                {locationError || 'Unable to load regions. Please retry above.'}
+              </p>
+            )}
+
+            {location.region && location.regionDataState.error && (
+              <p className="text-xs text-[#EF4444] font-medium flex items-center gap-1.5 flex-wrap">
+                {location.regionDataState.error}
+                <button
+                  type="button"
+                  onClick={location.retryRegionData}
+                  className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#14532D] hover:underline"
+                >
+                  <MdRefresh className="text-sm" />
+                  Retry
+                </button>
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">

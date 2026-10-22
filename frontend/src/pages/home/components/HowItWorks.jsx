@@ -15,7 +15,7 @@ export default function HowItWorks() {
     {
       index: '03',
       title: 'Act',
-      description: 'Get a flagged list with recommended next steps, automatically logged to your farm journal.',
+      description: 'Get a flagged list with recommended next steps for every bird scanned.',
     },
   ];
 

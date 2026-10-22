@@ -19,8 +19,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('users', sa.Column('reset_token', sa.String(length=255), nullable=True))
-    op.add_column('users', sa.Column('reset_token_expiry', sa.DateTime(timezone=True), nullable=True))
+    from sqlalchemy import inspect
+
+    inspector = inspect(op.get_bind())
+    if not inspector.has_column('users', 'reset_token'):
+        op.add_column('users', sa.Column('reset_token', sa.String(length=255), nullable=True))
+    if not inspector.has_column('users', 'reset_token_expiry'):
+        op.add_column('users', sa.Column('reset_token_expiry', sa.DateTime(timezone=True), nullable=True))
 
 
 def downgrade() -> None:
