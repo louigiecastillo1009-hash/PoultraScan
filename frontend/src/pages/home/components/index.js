@@ -1,17 +1,12 @@
-export {default as CtaBanner } from './CtaBanner'
-export {default as FeatureGrid } from './FeatureGrid'
-export {default as FeatureCard } from './FeaturedCard'
-export {default as Footer } from './Footer'
-export {default as Hero } from './Hero'
-export {default as HeroBackground } from './HeroBackground'
-export {default as HeroVisual } from './HeroVisual'
-export {default as HowItWorks } from './HowItWorks'
-export {default as NavBar } from './NavBar'
-export {default as Reveal } from './Reveal'
-export {default as ScanCorners } from './ScanCorners'
-export {default as ScanReadoutCard } from './ScanReadoutCard'
-export {default as StatsStrip } from './StatsStrip'
-export {default as StepCard } from './StepCard'
-export {default as Testimonial } from './Testimonial'
-
-
+export { default as CtaBanner } from './CtaBanner';
+export { default as FeatureGrid } from './FeatureGrid';
+export { default as Footer } from './Footer';
+export { default as Hero } from './Hero';
+export { default as HeroVisual } from './HeroVisual';
+export { default as HowItWorks } from './HowItWorks';
+export { default as NavBar } from './NavBar';
+export { default as ProductIntro } from './ProductIntro';
+export { default as ProductPreview } from './ProductPreview';
+export { default as ResponsibleUse } from './ResponsibleUse';
+export { default as Reveal } from './Reveal';
+export { default as ScanCorners } from './ScanCorners';

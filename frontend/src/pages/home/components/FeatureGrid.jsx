@@ -1,54 +1,88 @@
+import { FiActivity, FiCamera, FiFolder, FiGrid } from 'react-icons/fi';
+import { Reveal } from './index';
 
-import {
-  MdCameraAlt,
-  MdNotificationsActive,
-  MdHistory,
-  MdOutlineFolderShared,
-} from 'react-icons/md';
-import {Reveal,FeatureCard} from './index'
+const features = [
+  {
+    icon: FiCamera,
+    title: 'Camera or gallery',
+    description:
+      'Use your phone camera for a quick check, or upload a photo you already have. No extra hardware required.',
+  },
+  {
+    icon: FiActivity,
+    title: 'A per-bird readout',
+    description:
+      'Review detected birds with health indicators, estimated weight and oil yield, and market-readiness status.',
+  },
+  {
+    icon: FiFolder,
+    title: 'Farms kept separate',
+    description:
+      'Create a farm profile for each site and keep every scan tied to the right operation.',
+  },
+  {
+    icon: FiGrid,
+    title: 'A wider view',
+    description:
+      'The dashboard brings recent scans, activity and farm health summaries together in one place.',
+  },
+];
 
 export default function FeatureGrid() {
-  const features = [
-    {
-      icon: MdCameraAlt,
-      title: 'Disease detection',
-      description: 'Vision AI trained on common poultry conditions classifies issues straight from a coop photo.',
-    },
-    {
-      icon: MdHistory,
-      title: 'Scan history',
-      description: 'Every scan is saved per farm, so patterns across weeks are easy to spot.',
-    },
-    {
-      icon: MdNotificationsActive,
-      title: 'Real-time alerts',
-      description: "Flagged birds notify whoever's on shift immediately, not at end-of-day review.",
-    },
-    {
-      icon: MdOutlineFolderShared,
-      title: 'Multi-farm management',
-      description: 'Switch between farms and coops from one account — built for operations, not just one shed.',
-    },
-  ];
-
   return (
-    <section id="features" className="scroll-mt-20 bg-white border-y border-[#E4ECE7]">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-20 md:py-28">
-        <Reveal className="max-w-xl mb-12">
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-widest text-[#14532D]">
-            What you get
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#10231A] mt-3 tracking-tight">
-            Built around the daily walk-through.
+    <section id="features" className="ps-container ps-section ps-anchor">
+      <div className="max-w-[42rem]">
+        <Reveal>
+          <p className="ps-eyebrow">
+            <span className="ps-eyebrow-dot" aria-hidden="true" />
+            What&apos;s inside
+          </p>
+        </Reveal>
+        <Reveal delay={70}>
+          <h2 className="ps-h2 mt-4 text-[#101107]">
+            Built around your poultry scanning workflow.
           </h2>
         </Reveal>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {features.map((f, i) => (
-            <FeatureCard key={f.title} {...f} delay={i * 90} />
-          ))}
-        </div>
+        <Reveal delay={130}>
+          <p className="ps-lead mt-5">
+            A focused set of tools for turning a photo into something you can review, save,
+            and come back to.
+          </p>
+        </Reveal>
       </div>
+
+      <div className="mt-12 grid border-t border-[#101107]/15 md:grid-cols-2">
+        {features.map(({ icon: Icon, title, description }, index) => (
+          <Reveal
+            key={title}
+            delay={index * 80}
+            className={`group border-b border-[#101107]/15 py-8 md:py-10 ${
+              index % 2 === 0 ? 'md:border-r md:pr-10 lg:pr-16' : 'md:pl-10 lg:pl-16'
+            }`}
+          >
+            <div className="flex items-start gap-4 sm:gap-5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#6E8C56]/45 text-[#564F1E] transition-colors duration-200 group-hover:bg-[#6E8C56]/10">
+                <Icon className="text-[19px]" aria-hidden="true" />
+              </span>
+              <div>
+                <h3 className="font-display text-[1.55rem] leading-[1.12] tracking-[-0.02em] text-[#101107] sm:text-[1.7rem]">
+                  {title}
+                </h3>
+                <p className="mt-2 max-w-[26rem] text-[13px] leading-6 text-[#555743] sm:text-sm sm:leading-7">
+                  {description}
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+
+      <Reveal delay={340}>
+        <a href="#inside-app" className="ps-link mt-8">
+          See how it looks in the app
+          <span aria-hidden="true">→</span>
+        </a>
+      </Reveal>
     </section>
   );
 }

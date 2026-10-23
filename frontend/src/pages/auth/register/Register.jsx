@@ -1,7 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiUser, FiMail, FiLock, FiShield, FiEye, FiEyeOff, FiFeather, FiCheck } from 'react-icons/fi';
-import { useAuth } from '../hooks/useAuth';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  FiAlertCircle,
+  FiCheck,
+  FiLock,
+  FiMail,
+  FiShield,
+  FiUser,
+} from "react-icons/fi";
+import { useAuth } from "../hooks/useAuth";
+import {
+  AuthLayout,
+  AuthCard,
+  AuthField,
+  AuthSubmitButton,
+} from "../components";
+import {
+  InfoModal,
+  PrivacyPolicyContent,
+  TermsOfServiceContent,
+} from "../../../components";
 
 function SuccessModal({ onDone }) {
   const [countdown, setCountdown] = useState(3);
@@ -22,50 +40,73 @@ function SuccessModal({ onDone }) {
   }, [onDone]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#10231A]/60 backdrop-blur-sm" />
+    <div className="auth-scope fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#101107]/60 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-[0_24px_64px_-12px_rgba(5, 46, 22,0.35)] p-6 sm:p-8 flex flex-col items-center text-center">
-        <div className="relative w-20 h-20 mb-5">
-          <svg className="w-20 h-20" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="36" fill="none" stroke="#E9F4EE" strokeWidth="4" />
+      <div className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-[#101107]/10 bg-[#FCFDF7] p-7 text-center shadow-[0_40px_90px_-40px_rgba(16,17,7,0.75)] sm:p-8">
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#B1A03E]/70 to-transparent"
+        />
+
+        <div className="relative mx-auto h-20 w-20">
+          <svg
+            aria-hidden="true"
+            className="h-20 w-20"
+            viewBox="0 0 80 80"
+          >
             <circle
               cx="40"
               cy="40"
               r="36"
               fill="none"
-              stroke="#14532D"
-              strokeWidth="4"
+              stroke="#E6EBD6"
+              strokeWidth="3"
+            />
+            <circle
+              cx="40"
+              cy="40"
+              r="36"
+              fill="none"
+              stroke="#6E8C56"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray="226.19"
               strokeDashoffset="226.19"
               style={{
-                animation: 'circleDraw 0.6s ease-out forwards',
-                transform: 'rotate(-90deg)',
-                transformOrigin: '50% 50%',
+                animation: "authCircleDraw 0.6s ease-out forwards",
+                transform: "rotate(-90deg)",
+                transformOrigin: "50% 50%",
               }}
             />
           </svg>
           <div
             className="absolute inset-0 flex items-center justify-center"
-            style={{ animation: 'checkPop 0.4s ease-out 0.5s both' }}
+            style={{ animation: "authCheckPop 0.4s ease-out 0.5s both" }}
           >
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)]">
-              <FiCheck className="text-white text-2xl" strokeWidth={3} />
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#6E8C56] shadow-[0_10px_24px_-10px_rgba(110,140,86,0.8)]">
+              <FiCheck
+                className="text-[22px] text-[#101107]"
+                strokeWidth={3}
+                aria-hidden="true"
+              />
             </div>
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-[#10231A]">Account Created!</h2>
-        <p className="text-sm text-[#4B6357] mt-2">
-          Your PoultraScan AI account is ready. Redirecting you to login in {countdown}...
+        <h2 className="auth-display mt-5 text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#101107]">
+          Account created
+        </h2>
+        <p className="mt-2 text-[13.5px] leading-6 text-[#555743]">
+          Your PoultraScan AI account is ready. Taking you to sign in in{" "}
+          <span className="font-semibold text-[#101107]">{countdown}</span>...
         </p>
 
         <style>{`
-          @keyframes circleDraw {
+          @keyframes authCircleDraw {
             to { stroke-dashoffset: 0; }
           }
-          @keyframes checkPop {
+          @keyframes authCheckPop {
             0% { opacity: 0; transform: scale(0.5); }
             70% { opacity: 1; transform: scale(1.1); }
             100% { opacity: 1; transform: scale(1); }
@@ -80,37 +121,25 @@ export default function Register() {
   const { register, loading, error } = useAuth();
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const [fullNameFocused, setFullNameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const fullNameFloated = fullNameFocused || fullName.length > 0;
-  const emailFloated = emailFocused || email.length > 0;
-  const passwordFloated = passwordFocused || password.length > 0;
-  const confirmPasswordFloated = confirmPasswordFocused || confirmPassword.length > 0;
+  const [legalDoc, setLegalDoc] = useState(null); // null | "terms" | "privacy"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError('');
+    setFormError("");
 
     if (password !== confirmPassword) {
-      setFormError('Passwords do not match!');
+      setFormError("Passwords do not match!");
       return;
     }
 
-    const username = email.split('@')[0];
+    const username = email.split("@")[0];
 
     try {
       await register({
@@ -121,239 +150,147 @@ export default function Register() {
       });
       setShowSuccess(true);
     } catch (err) {
-      setFormError(err.message || 'Registration failed. Please try again.');
+      setFormError(err.message || "Registration failed. Please try again.");
     }
   };
 
   return (
-    <div className="bg-[#F7FAF8] min-h-dvh flex flex-col md:flex-row text-[#10231A] antialiased w-full">
-
-       <div className="hidden md:flex md:w-[44%] lg:w-1/2 relative overflow-hidden">
-  {/* Base Image - blurred */}
-  <img
-    src="/img/left-hero.png"
-    alt=""
-    className="absolute inset-0 w-full h-full object-cover object-top scale-110 blur-xs opacity-60"
-  />
-
-
-  {/* Decorative blurred blobs for depth */}
-  <div className="absolute -top-16 -left-16 w-72 h-72 bg-[#10B981]/25 rounded-full blur-3xl" />
-  <div className="absolute bottom-0 -right-10 w-80 h-80 bg-[#FACC15]/15 rounded-full blur-3xl" />
-
-  {/* Top-left brand mark */}
-  <div className="absolute top-6 left-6 lg:top-8 lg:left-8 flex items-center gap-2 z-10">
-    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg">
-      <FiFeather className="text-[#FACC15] text-xl" />
-    </div>
-    <span className="text-white font-semibold tracking-wide text-lg drop-shadow-sm">
-      PoultraScan <span className="text-[#FACC15]">AI</span>
-    </span>
-  </div>
-
-  {/* Bottom overlay text */}
-  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10 z-10 bg-gradient-to-t from-[#052E16]/90 via-[#052E16]/50 to-transparent">
-    <div>
-      <h2 className="text-white text-xl lg:text-2xl font-semibold tracking-tight mb-2 drop-shadow-sm">
-        Smarter poultry health, in real time.
-      </h2>
-      <p className="text-white/80 text-sm max-w-sm">
-        AI-powered scans help you catch issues early and keep your flock thriving.
-      </p>
-    </div>
-  </div>
-</div>
-
-        <div className="auth-card-side w-full md:w-[56%] lg:w-1/2 flex flex-col items-center justify-center px-4 py-7 sm:px-6 sm:py-6 md:px-6 lg:px-8 bg-[#F7FAF8]">
-          {/* Compact brand mark — mobile only */}
-          <div className="md:hidden w-full max-w-[440px] flex items-center justify-center gap-2 mb-5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] flex items-center justify-center shadow-[0_6px_16px_rgba(20, 83, 45,0.28)]">
-              <FiFeather className="text-white text-lg" />
-            </div>
-            <span className="text-lg font-semibold tracking-wide text-[#10231A]">
-              PoultraScan <span className="text-[#166534]">AI</span>
-            </span>
-          </div>
-
-          <div className="auth-card-pad auth-card-gap w-full max-w-[440px] bg-white rounded-2xl p-6 sm:p-7 lg:p-8 shadow-card border border-[#E4ECE7]">
-
-            <div className="flex flex-col items-center text-center mb-6 lg:mb-8">
-              <div className="auth-card-logo hidden md:flex w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-[#14532D] to-[#166534] items-center justify-center shadow-[0_8px_20px_rgba(20, 83, 45,0.35)] mb-3 lg:mb-4">
-                <FiFeather className="text-white text-3xl" />
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#10231A]">Create Your Account</h1>
-              <p className="text-sm lg:text-base text-[#4B6357] mt-1 text-center">Join PoultraScan AI to start monitoring your flock.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              {(formError || error) && (
-                <div className="text-sm text-[#EF4444] bg-[#FEF2F2] border border-[#FECACA] rounded-lg px-4 py-2 text-center">
-                  {formError || error}
-                </div>
-              )}
-
-              <div className="relative">
-                <div className="relative flex items-center h-[52px] rounded-xl border border-[#E4ECE7] bg-white focus-within:border-[#14532D] focus-within:ring-4 focus-within:ring-[#14532D]/10 transition-all duration-300 px-5">
-                  <FiUser className={`text-xl mr-3 flex-shrink-0 transition-colors duration-200 ${fullNameFocused ? 'text-[#14532D]' : 'text-[#4B6357]'}`} />
-                  <input
-                    className="w-full h-full bg-transparent border-0 p-0 pt-3.5 focus:ring-0 text-[#10231A] text-base outline-none peer"
-                    id="fullName"
-                    name="fullName"
-                    required
-                    type="text"
-                    value={fullName}
-                    onFocus={() => setFullNameFocused(true)}
-                    onBlur={() => setFullNameFocused(false)}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                  <label
-                    htmlFor="fullName"
-                    className={`absolute left-14 origin-left pointer-events-none transition-all duration-250 ease-[cubic-bezier(0.25,0.8,0.25,1)] ${
-                      fullNameFloated
-                        ? 'top-1.5 scale-[0.82] font-semibold text-[#14532D]'
-                        : 'top-1/2 -translate-y-1/2 scale-100 text-[#718279]'
-                    }`}
-                  >
-                    Full Name
-                  </label>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="relative flex items-center h-[52px] rounded-xl border border-[#E4ECE7] bg-white focus-within:border-[#14532D] focus-within:ring-4 focus-within:ring-[#14532D]/10 transition-all duration-300 px-5">
-                  <FiMail className={`text-xl mr-3 flex-shrink-0 transition-colors duration-200 ${emailFocused ? 'text-[#14532D]' : 'text-[#4B6357]'}`} />
-                  <input
-                    className="w-full h-full bg-transparent border-0 p-0 pt-3.5 focus:ring-0 text-[#10231A] text-base outline-none peer"
-                    id="email"
-                    name="email"
-                    required
-                    type="email"
-                    value={email}
-                    onFocus={() => setEmailFocused(true)}
-                    onBlur={() => setEmailFocused(false)}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <label
-                    htmlFor="email"
-                    className={`absolute left-14 origin-left pointer-events-none transition-all duration-250 ease-[cubic-bezier(0.25,0.8,0.25,1)] ${
-                      emailFloated
-                        ? 'top-1.5 scale-[0.82] font-semibold text-[#14532D]'
-                        : 'top-1/2 -translate-y-1/2 scale-100 text-[#718279]'
-                    }`}
-                  >
-                    Email Address
-                  </label>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="relative flex items-center h-[52px] rounded-xl border border-[#E4ECE7] bg-white focus-within:border-[#14532D] focus-within:ring-4 focus-within:ring-[#14532D]/10 transition-all duration-300 px-5">
-                  <FiLock className={`text-xl mr-3 flex-shrink-0 transition-colors duration-200 ${passwordFocused ? 'text-[#14532D]' : 'text-[#4B6357]'}`} />
-                  <input
-                    className="w-full h-full bg-transparent border-0 p-0 pt-3.5 focus:ring-0 text-[#10231A] text-base outline-none peer"
-                    id="password"
-                    name="password"
-                    required
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <label
-                    htmlFor="password"
-                    className={`absolute left-14 origin-left pointer-events-none transition-all duration-250 ease-[cubic-bezier(0.25,0.8,0.25,1)] ${
-                      passwordFloated
-                        ? 'top-1.5 scale-[0.82] font-semibold text-[#14532D]'
-                        : 'top-1/2 -translate-y-1/2 scale-100 text-[#718279]'
-                    }`}
-                  >
-                    Password
-                  </label>
-                  <button
-                    className="text-[#4B6357] hover:text-[#14532D] transition-colors focus:outline-none flex-shrink-0 ml-2"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FiEyeOff className="text-xl" /> : <FiEye className="text-xl" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="relative flex items-center h-[52px] rounded-xl border border-[#E4ECE7] bg-white focus-within:border-[#14532D] focus-within:ring-4 focus-within:ring-[#14532D]/10 transition-all duration-300 px-5">
-                  <FiShield className={`text-xl mr-3 flex-shrink-0 transition-colors duration-200 ${confirmPasswordFocused ? 'text-[#14532D]' : 'text-[#4B6357]'}`} />
-                  <input
-                    className="w-full h-full bg-transparent border-0 p-0 pt-3.5 focus:ring-0 text-[#10231A] text-base outline-none peer"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    required
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onFocus={() => setConfirmPasswordFocused(true)}
-                    onBlur={() => setConfirmPasswordFocused(false)}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                  <label
-                    htmlFor="confirmPassword"
-                    className={`absolute left-14 origin-left pointer-events-none transition-all duration-250 ease-[cubic-bezier(0.25,0.8,0.25,1)] ${
-                      confirmPasswordFloated
-                        ? 'top-1.5 scale-[0.82] font-semibold text-[#14532D]'
-                        : 'top-1/2 -translate-y-1/2 scale-100 text-[#718279]'
-                    }`}
-                  >
-                    Confirm Password
-                  </label>
-                  <button
-                    className="text-[#4B6357] hover:text-[#14532D] transition-colors focus:outline-none flex-shrink-0 ml-2"
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <FiEyeOff className="text-xl" /> : <FiEye className="text-xl" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-start py-1">
-                <div className="flex items-center h-5">
-                  <input
-                    className="w-4 h-4 text-[#14532D] bg-white border-[#E4ECE7] rounded focus:ring-[#14532D] focus:ring-2 cursor-pointer"
-                    id="terms"
-                    name="terms"
-                    required
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label className="text-[#4B6357] cursor-pointer" htmlFor="terms">
-                    I agree to the <a className="text-[#14532D] hover:underline font-bold" href="#">Terms &amp; Conditions</a> and Privacy Policy.
-                  </label>
-                </div>
-              </div>
-
-              <button
-                className="w-full h-[52px] bg-gradient-to-r from-[#14532D] via-[#166534] to-[#10B981] text-white rounded-xl text-base font-semibold hover:from-[#052E16] hover:via-[#14532D] hover:to-[#166534] active:scale-[0.98] transition-all shadow-md shadow-[#14532D]/30 mt-4 disabled:opacity-50"
-                type="submit"
-                disabled={loading}
+    <>
+      <AuthLayout>
+        <AuthCard
+          eyebrow="Create your account"
+          title="Start with a clearer view"
+          subtitle="Set up your account to organize scans, health notes, and farm records in one place."
+        >
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {(formError || error) && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 rounded-2xl border border-[#B3261E]/20 bg-[#FDF3F0] px-3.5 py-2.5 text-[12px] leading-5 text-[#8A2B20]"
               >
-                {loading ? 'Creating account...' : 'Register'}
-              </button>
-            </form>
+                <FiAlertCircle
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-[15px]"
+                />
+                <span>{formError || error}</span>
+              </div>
+            )}
 
-            <div className="mt-6 text-center">
-              <p className="text-sm lg:text-base text-[#4B6357]">
-                Already have an account?{' '}
-                <a className="text-[#14532D] hover:underline font-bold transition-colors" href="/login">Login</a>
+            <AuthField
+              id="register-full-name"
+              name="fullName"
+              label="Full name"
+              icon={FiUser}
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+
+            <AuthField
+              id="register-email"
+              name="email"
+              label="Email address"
+              icon={FiMail}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <AuthField
+              id="register-password"
+              name="password"
+              label="Password"
+              icon={FiLock}
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              password
+            />
+
+            <AuthField
+              id="register-confirm-password"
+              name="confirmPassword"
+              label="Confirm password"
+              icon={FiShield}
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              password
+            />
+
+            <div className="flex items-start gap-2.5 pt-0.5">
+              <input
+                id="terms"
+                name="terms"
+                required
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-[#101107]/25 accent-[#6E8C56] focus:ring-[#6E8C56]"
+              />
+              <p className="text-[11.5px] leading-5 text-[#555743]">
+                <label htmlFor="terms" className="cursor-pointer">
+                  I agree to the
+                </label>{" "}
+                <button
+                  type="button"
+                  onClick={() => setLegalDoc("terms")}
+                  className="font-semibold text-[#564F1E] underline decoration-[#564F1E]/30 underline-offset-2 transition-colors hover:text-[#101107] hover:decoration-[#101107]/50"
+                >
+                  Terms of Service
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  onClick={() => setLegalDoc("privacy")}
+                  className="font-semibold text-[#564F1E] underline decoration-[#564F1E]/30 underline-offset-2 transition-colors hover:text-[#101107] hover:decoration-[#101107]/50"
+                >
+                  Privacy Policy
+                </button>
+                .
               </p>
             </div>
 
-          </div>
-        </div>
+            <AuthSubmitButton
+              label="Create account"
+              loadingLabel="Creating account..."
+              loading={loading}
+            />
+          </form>
 
-      {showSuccess && <SuccessModal onDone={() => navigate('/login')} />}
-    </div>
+          <p className="mt-6 border-t border-[#101107]/10 pt-5 text-center text-[13px] text-[#555743]">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-[#564F1E] underline-offset-4 transition-colors hover:text-[#101107] hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        </AuthCard>
+      </AuthLayout>
+
+      {showSuccess && <SuccessModal onDone={() => navigate("/login")} />}
+
+      <InfoModal
+        isOpen={legalDoc === "terms"}
+        onClose={() => setLegalDoc(null)}
+        title="Terms of Service"
+      >
+        <TermsOfServiceContent />
+      </InfoModal>
+
+      <InfoModal
+        isOpen={legalDoc === "privacy"}
+        onClose={() => setLegalDoc(null)}
+        title="Privacy Policy"
+      >
+        <PrivacyPolicyContent />
+      </InfoModal>
+    </>
   );
 }

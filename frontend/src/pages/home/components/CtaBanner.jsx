@@ -1,39 +1,52 @@
-import { useNavigate } from 'react-router-dom';
-import { MdArrowForward } from 'react-icons/md';
-import { Reveal, ScanCorners } from './index';
+import { Link } from 'react-router-dom';
+import { FiArrowUpRight } from 'react-icons/fi';
+import { Reveal } from './index';
+import { useAuth } from '../../../middleware/AuthContext';
 
 export default function CtaBanner() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const primaryPath = user ? '/scan' : '/register';
+
   return (
-    <section className="max-w-[1200px] mx-auto px-4 md:px-8 pb-20 md:pb-28">
-      <Reveal className="relative rounded-2xl px-6 py-14 md:px-16 md:py-16 text-center overflow-hidden bg-[#0D2818] shadow-lg shadow-black/20">
+    <section className="ps-container pb-16 sm:pb-20 lg:pb-24">
+      <Reveal className="relative isolate overflow-hidden rounded-[1.6rem] bg-[#101107] px-6 py-12 sm:rounded-[2rem] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
         <img
-          src="/img/hero.png"
+          src="/img/poultry-pasture.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-30"
+          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-55"
+          style={{ objectPosition: '62% 52%' }}
+          loading="lazy"
         />
-   
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-[#101107]/82 lg:bg-gradient-to-r lg:from-[#101107] lg:via-[#101107]/88 lg:to-[#101107]/40"
+        />
 
-
-        <span className="relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest mb-4">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15]" />
-          Get started
-        </span>
-
-        <h2 className="relative text-3xl md:text-4xl font-bold text-white tracking-tight text-balance">
-          Give every bird a checkup, every day.
-        </h2>
-        <p className="relative text-white/80 mt-3 max-w-md mx-auto">
-          Set up your first farm and run a scan in under five minutes.
-        </p>
-        <button
-          onClick={() => navigate('/register')}
-          className="relative mt-7 bg-white text-[#0D2818] font-semibold px-7 py-3.5 rounded-xl inline-flex items-center gap-2 hover:bg-[#E9F4EE] active:scale-95 transition-all duration-150 shadow-sm"
-        >
-          Get started free
-          <MdArrowForward />
-        </button>
+        <div className="max-w-[37rem]">
+          <p className="ps-eyebrow ps-eyebrow-light">
+            <span className="ps-eyebrow-dot" aria-hidden="true" />
+            Ready when you are
+          </p>
+          <h2 className="ps-h2 mt-4 text-[#F4F8E5]">Ready to start your poultry scan?</h2>
+          <p className="mt-4 max-w-[31rem] text-[15px] leading-7 text-[#D7DAC8] sm:text-base">
+            {user
+              ? 'Your farm workspace is ready. Add a photo of your flock and keep the next scan with the right farm.'
+              : 'Create an account, add your first farm, and take a photo of your flock. PoultraScan keeps the results with that farm.'}
+          </p>
+          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <Link to={primaryPath} className="ps-btn ps-btn-primary ps-btn-lg w-full sm:w-auto">
+              {user ? 'Start a scan' : 'Create your account'}
+              <FiArrowUpRight className="text-lg" aria-hidden="true" />
+            </Link>
+            <Link
+              to={user ? '/dashboard' : '/login'}
+              className="text-[12px] font-semibold text-[#D7DAC8] underline decoration-[#D7DAC8]/35 underline-offset-4 transition-colors hover:text-[#F4F8E5]"
+            >
+              {user ? 'Open your dashboard' : 'Already have an account? Log in'}
+            </Link>
+          </div>
+        </div>
       </Reveal>
     </section>
   );

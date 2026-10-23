@@ -2,25 +2,27 @@ import { PageStyles } from '../css/PageStyles.jsx';
 import {
   NavBar,
   Hero,
-  StatsStrip,
+  ProductIntro,
   HowItWorks,
   FeatureGrid,
-  Testimonial,
+  ProductPreview,
+  ResponsibleUse,
   CtaBanner,
   Footer,
 } from '../components/index';
 
 export default function HomePage() {
   return (
-    <div className="min-h-dvh overflow-x-clip bg-[#ECEDF1] text-[#0B0B0D] antialiased">
+    <div className="ps-home min-h-dvh overflow-x-clip">
       <PageStyles />
       <NavBar />
       <main>
         <Hero />
-        <StatsStrip />
+        <ProductIntro />
         <HowItWorks />
         <FeatureGrid />
-        <Testimonial />
+        <ProductPreview />
+        <ResponsibleUse />
         <CtaBanner />
       </main>
       <Footer />
