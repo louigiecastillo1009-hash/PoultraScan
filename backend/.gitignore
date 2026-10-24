@@ -91,6 +91,12 @@ Thumbs.db
 # static/uploads/
 
 # ===========================
+# Runtime AI caches (recommendations / classifications)
+# Generated automatically by the backend on the server
+# ===========================
+static/cache/
+
+# ===========================
 # Secrets
 # ===========================
 *.pem

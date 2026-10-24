@@ -16,6 +16,13 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
+# Groq decommissioned the llama-3.3/llama-3.1 models (404 model_not_found).
+# These are the current models available on this key (verified live).
+RECOMMENDATION_MODELS = [
+    "openai/gpt-oss-120b",   # primary
+    "openai/gpt-oss-20b",    # fallback if primary is unavailable
+]
+
 CACHE_FILE = os.path.join("static", "cache", "disease_recommendations.json")
 os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
@@ -160,29 +167,39 @@ Return JSON ONLY.
     try:
         print("[GROQ DEBUG] Sending request to Groq API...")
 
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a poultry farm hygiene and husbandry "
-                        "assistant. You only give guidance about keeping the "
-                        "place clean, providing clean fresh drinking water, "
-                        "and proper feeding. Never suggest medicines, drugs, "
-                        "dosages, or veterinary treatments. "
-                        "Always return valid JSON only."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=0.4,
-            max_tokens=500,
-            response_format={"type": "json_object"},
-        )
+        response = None
+        for model_name in RECOMMENDATION_MODELS:
+            try:
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a poultry farm hygiene and husbandry "
+                                "assistant. You only give guidance about keeping the "
+                                "place clean, providing clean fresh drinking water, "
+                                "and proper feeding. Never suggest medicines, drugs, "
+                                "dosages, or veterinary treatments. "
+                                "Always return valid JSON only."
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        },
+                    ],
+                    temperature=0.4,
+                    max_tokens=500,
+                    response_format={"type": "json_object"},
+                )
+                break
+            except Exception as e:
+                print(f"[GROQ DEBUG] Model '{model_name}' failed: {str(e)[:120]}. Trying next...")
+                continue
+
+        if response is None:
+            raise RuntimeError("All Groq recommendation models failed.")
 
         print("[GROQ DEBUG] Raw API response object received.")
 
