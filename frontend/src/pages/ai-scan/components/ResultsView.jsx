@@ -1,17 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  MdCheckCircle,
-  MdRefresh,
-  MdHistory,
-  MdPhotoCamera
-} from 'react-icons/md';
-import { TotalsFooter, ChickenCard, ChickenTable, ChickenList, ViewModeToggle } from './index'
-import {useNavigate} from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MdHistory, MdPhotoCamera, MdRefresh } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
+
+import { Badge, Button, SectionHeading, Surface } from '../../../components/index';
+import { ChickenCard, ChickenList, ChickenTable, TotalsFooter, ViewModeToggle } from './index';
 
 const VIEW_STORAGE_KEY = 'ai_scan_results_view';
 
-export default function ResultsView({ onScanAgain, onSave, detectionData, predictionData, previewUrl }) {
-  const navigate = useNavigate()
+export default function ResultsView({ onScanAgain, detectionData, predictionData, previewUrl }) {
+  const navigate = useNavigate();
   const detections = detectionData?.detections ?? [];
   const chickens = predictionData?.chickens ?? [];
   const totalWeight = predictionData?.total_weight ?? 0;
@@ -53,7 +50,10 @@ export default function ResultsView({ onScanAgain, onSave, detectionData, predic
     const imgAspect = naturalW / naturalH;
     const containerAspect = containerW / containerH;
 
-    let renderW, renderH, offsetX, offsetY;
+    let renderW;
+    let renderH;
+    let offsetX;
+    let offsetY;
 
     if (imgAspect > containerAspect) {
       // Image is wider than container -> letterboxed top/bottom
@@ -86,107 +86,112 @@ export default function ResultsView({ onScanAgain, onSave, detectionData, predic
   }, [recalcRenderInfo, previewUrl]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-10">
-      {/* Preview with detection boxes */}
-      <section className="bg-white rounded-2xl border border-[#E4ECE7] shadow-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#E4ECE7] flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+      <Surface padding="none" className="overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-lg bg-[#E9F4EE] flex items-center justify-center">
-              <MdPhotoCamera className="text-lg text-[#14532D]" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sage-soft text-sage-dark">
+              <MdPhotoCamera className="text-lg" aria-hidden="true" />
             </span>
             <div>
-              <h2 className="text-sm font-semibold text-[#10231A]">Scan Preview</h2>
-              <p className="text-xs text-[#4B6357] mt-0.5">Captured flock with AI-detected birds</p>
+              <h2 className="font-display text-[1.15rem] font-medium tracking-[-0.02em] text-ink">
+                Scan preview
+              </h2>
+              <p className="mt-0.5 text-[11px] text-muted">
+                Captured flock with AI-detected chickens
+              </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E9F4EE] text-[#14532D] text-[11px] font-bold">
-            <MdCheckCircle className="text-sm" />
-            {chickens.length} {chickens.length === 1 ? 'Chicken' : 'Chickens'} Analyzed
-          </span>
+          <Badge tone="sage" dot>
+            {chickens.length} {chickens.length === 1 ? 'chicken' : 'chickens'} analyzed
+          </Badge>
         </div>
 
         <div
           ref={containerRef}
-          className="relative h-[400px] md:h-[460px] bg-[#0B2416]"
+          className="relative h-[400px] bg-ink md:h-[460px]"
         >
           {previewUrl && (
             <img
               ref={imgRef}
               src={previewUrl}
               alt="Scan result"
-              className="w-full h-full object-contain"
+              className="h-full w-full object-contain"
               onLoad={recalcRenderInfo}
             />
           )}
-          {renderInfo && detections.map((d, i) => {
-            const box = d.bounding_box ?? d;
-            // Backend sends x/y as the CENTER point and width/height, all
-            // in the ORIGINAL image's pixel space (not normalized, not
-            // top-left). Convert to top-left, then scale to displayed size.
-            const boxWidth = (box.width ?? 0) * renderInfo.scaleX;
-            const boxHeight = (box.height ?? 0) * renderInfo.scaleY;
-            const centerX = (box.x ?? 0) * renderInfo.scaleX;
-            const centerY = (box.y ?? 0) * renderInfo.scaleY;
+          {renderInfo &&
+            detections.map((detection, index) => {
+              const box = detection.bounding_box ?? detection;
+              // Backend sends x/y as the CENTER point and width/height, all
+              // in the ORIGINAL image's pixel space (not normalized, not
+              // top-left). Convert to top-left, then scale to displayed size.
+              const boxWidth = (box.width ?? 0) * renderInfo.scaleX;
+              const boxHeight = (box.height ?? 0) * renderInfo.scaleY;
+              const centerX = (box.x ?? 0) * renderInfo.scaleX;
+              const centerY = (box.y ?? 0) * renderInfo.scaleY;
 
-            const left = renderInfo.offsetX + centerX - boxWidth / 2;
-            const top = renderInfo.offsetY + centerY - boxHeight / 2;
+              const left = renderInfo.offsetX + centerX - boxWidth / 2;
+              const top = renderInfo.offsetY + centerY - boxHeight / 2;
 
-            return (
-              <div
-                key={d.tracking_id ?? i}
-                className="absolute border-2 border-[#FACC15] rounded pointer-events-none"
-                style={{
-                  left: `${left}px`,
-                  top: `${top}px`,
-                  width: `${boxWidth}px`,
-                  height: `${boxHeight}px`,
-                }}
-              >
-                <span className="absolute -top-5 left-0 bg-[#FACC15] text-[#0B2416] text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                  #{d.tracking_id ?? i + 1}
-                </span>
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={detection.tracking_id ?? index}
+                  className="pointer-events-none absolute rounded border-2 border-gold"
+                  style={{
+                    left: `${left}px`,
+                    top: `${top}px`,
+                    width: `${boxWidth}px`,
+                    height: `${boxHeight}px`,
+                  }}
+                >
+                  <span className="absolute -top-5 left-0 rounded bg-gold px-1.5 py-0.5 text-[10px] font-bold text-ink shadow-sm">
+                    #{detection.tracking_id ?? index + 1}
+                  </span>
+                </div>
+              );
+            })}
         </div>
-      </section>
+      </Surface>
 
-      {/* Individual results */}
       <section>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-base font-semibold text-[#10231A]">Individual Results</h2>
-            <p className="text-xs text-[#4B6357] mt-0.5">Detailed analysis for each detected chicken</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline text-xs text-[#4B6357] font-medium">
-              {marketReadyCount} of {chickens.length} market ready
-            </span>
-            <ViewModeToggle value={view} onChange={setView} />
-          </div>
+        <SectionHeading
+          eyebrow="Detections"
+          title="Individual results"
+          description="Detailed analysis for each detected chicken."
+          action={
+            <div className="flex items-center gap-3">
+              <span className="hidden text-[11px] font-medium text-muted sm:inline">
+                {marketReadyCount} of {chickens.length} market ready
+              </span>
+              <ViewModeToggle value={view} onChange={setView} />
+            </div>
+          }
+        />
+
+        <div className="mt-5">
+          {view === 'table' && <ChickenTable chickens={chickens} />}
+
+          {view === 'card' && (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {chickens.map((chicken, index) => (
+                <ChickenCard key={chicken.tracking_id ?? index} chicken={chicken} />
+              ))}
+            </div>
+          )}
+
+          {view === 'list' && <ChickenList chickens={chickens} />}
+
+          {view === 'carousel' && (
+            <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
+              {chickens.map((chicken, index) => (
+                <div key={chicken.tracking_id ?? index} className="w-80 flex-shrink-0 snap-start">
+                  <ChickenCard chicken={chicken} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
-        {view === 'table' && <ChickenTable chickens={chickens} />}
-
-        {view === 'card' && (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {chickens.map((chicken, i) => (
-              <ChickenCard key={chicken.tracking_id ?? i} chicken={chicken} />
-            ))}
-          </div>
-        )}
-
-        {view === 'list' && <ChickenList chickens={chickens} />}
-
-        {view === 'carousel' && (
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
-            {chickens.map((chicken, i) => (
-              <div key={chicken.tracking_id ?? i} className="snap-start flex-shrink-0 w-80">
-                <ChickenCard chicken={chicken} />
-              </div>
-            ))}
-          </div>
-        )}
       </section>
 
       <TotalsFooter
@@ -196,22 +201,15 @@ export default function ResultsView({ onScanAgain, onSave, detectionData, predic
         marketReadyCount={marketReadyCount}
       />
 
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-2">
-        <button
-          onClick={onScanAgain}
-          className="group flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-[#E4ECE7] text-[#10231A] text-sm font-semibold shadow-card hover:bg-[#F7FAF8] hover:border-[#9CCFB0] hover:text-[#14532D] active:scale-[0.98] transition-all duration-150"
-        >
-          <MdRefresh className="text-lg text-[#14532D] transition-transform duration-300 group-hover:rotate-180" />
-          <span>Scan Again</span>
-        </button>
-
-        <button
-          onClick={() => navigate('/scan/history')}
-          className="group flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-br from-[#14532D] to-[#166534] text-white text-sm font-semibold shadow-md shadow-[#14532D]/25 hover:from-[#166534] hover:to-[#052E16] hover:shadow-lg hover:shadow-[#14532D]/30 active:scale-[0.98] transition-all duration-150"
-        >
-          <MdHistory className="text-lg transition-transform duration-300 group-hover:-translate-x-0.5" />
-          <span>Go to History</span>
-        </button>
+      <div className="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row">
+        <Button variant="secondary" className="w-full sm:w-auto" onClick={onScanAgain}>
+          <MdRefresh className="text-lg text-sage-dark" aria-hidden="true" />
+          Scan again
+        </Button>
+        <Button className="w-full sm:w-auto" onClick={() => navigate('/scan/history')}>
+          <MdHistory className="text-lg" aria-hidden="true" />
+          Go to history
+        </Button>
       </div>
     </div>
   );

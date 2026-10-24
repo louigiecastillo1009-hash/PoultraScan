@@ -1,46 +1,65 @@
-export default function AlertFeed({ recentEvents }) {
-  const typeStyles = {
-    anomaly: { color: '#EF4444', bg: '#FEF2F2' },
-    completed: { color: '#14532D', bg: '#E9F4EE' },
-  };
+import { MdOutlineNotificationsNone } from 'react-icons/md';
 
-  const timeAgo = (value) => {
-    if (!value) return '';
-    const diffMs = Date.now() - new Date(value).getTime();
-    const mins = Math.floor(diffMs / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
-    const days = Math.floor(hrs / 24);
-    return `${days} day${days === 1 ? '' : 's'} ago`;
-  };
+import Surface from '../../../components/app/Surface';
 
+const typeStyles = {
+  anomaly: {
+    tile: 'bg-critical-soft text-critical',
+    dot: 'bg-critical',
+  },
+  completed: {
+    tile: 'bg-sage-soft text-sage-dark',
+    dot: 'bg-sage-dark',
+  },
+};
+
+function timeAgo(value) {
+  if (!value) return '';
+  const diffMs = Date.now() - new Date(value).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+export default function AlertFeed({ recentEvents = [] }) {
   return (
-    <div className="md:col-span-12 lg:col-span-4 bg-white rounded-2xl border border-[#E4ECE7] flex flex-col shadow-card">
-      <div className="px-6 py-4 border-b border-[#E4ECE7]">
-        <h3 className="text-[15px] font-semibold text-[#10231A]">Alert Feed</h3>
+    <Surface padding="none" className="flex flex-col overflow-hidden lg:col-span-4">
+      <div className="border-b border-ink/10 px-5 py-4 sm:px-6">
+        <h2 className="font-display text-[1.25rem] font-medium tracking-[-0.02em] text-ink">
+          Alert feed
+        </h2>
+        <p className="mt-0.5 text-[10.5px] text-muted">Anomalies and completed checks</p>
       </div>
+
       {recentEvents.length === 0 ? (
-        <div className="px-6 py-10 text-center">
-          <p className="text-sm text-[#4B6357]">No recent activity.</p>
+        <div className="flex flex-1 flex-col items-center justify-center px-5 py-10 text-center">
+          <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-cream-deep text-muted">
+            <MdOutlineNotificationsNone className="text-xl" aria-hidden="true" />
+          </span>
+          <p className="text-[12px] text-muted">No recent activity.</p>
         </div>
       ) : (
-        <ul className="divide-y divide-[#E4ECE7] overflow-y-auto max-h-[320px]">
-          {recentEvents.map((alert, i) => {
+        <ul className="max-h-[320px] divide-y divide-ink/8 overflow-y-auto">
+          {recentEvents.map((alert, index) => {
             const style = typeStyles[alert.type] || typeStyles.completed;
             return (
-              <li key={i} className="px-6 py-4 hover:bg-[#F7FAF8] transition-colors flex gap-3.5">
+              <li
+                key={`${alert.created_at || 'event'}-${index}`}
+                className="flex gap-3 px-5 py-3.5 transition-colors hover:bg-cream-deep/45 sm:px-6"
+              >
                 <span
-                  className="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: style.bg }}
+                  className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${style.tile}`}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: style.color }} />
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} aria-hidden="true" />
                 </span>
-                <div>
-                  <p className="text-sm font-semibold text-[#10231A] leading-snug">{alert.title}</p>
-                  <p className="text-xs text-[#4B6357] mt-1">
-                    {alert.farm_name} • {timeAgo(alert.created_at)}
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold leading-snug text-ink">{alert.title}</p>
+                  <p className="mt-1 text-[10.5px] text-muted">
+                    {alert.farm_name} · {timeAgo(alert.created_at)}
                   </p>
                 </div>
               </li>
@@ -48,6 +67,6 @@ export default function AlertFeed({ recentEvents }) {
           })}
         </ul>
       )}
-    </div>
+    </Surface>
   );
 }

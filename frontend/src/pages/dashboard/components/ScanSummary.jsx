@@ -1,87 +1,102 @@
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdCenterFocusStrong, MdAgriculture, MdChevronRight,  MdArrowForward,} from 'react-icons/md';
+import { MdCenterFocusStrong, MdAgriculture, MdArrowForward } from 'react-icons/md';
 
+import Badge from '../../../components/app/Badge';
+import EmptyState from '../../../components/app/EmptyState';
+import Surface from '../../../components/app/Surface';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 
-export default function ScanSummary({ recentScans }) {
+const statusStyles = {
+  COMPLETED: { tone: 'success', label: 'Completed' },
+  PROCESSING: { tone: 'warning', label: 'Processing' },
+  FAILED: { tone: 'danger', label: 'Failed' },
+};
+
+function formatDate(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+export default function ScanSummary({ recentScans = [] }) {
   const navigate = useNavigate();
 
-  const statusStyles = {
-    COMPLETED: { bg: '#D1FAE5', text: '#059669', label: 'Completed' },
-    PROCESSING: { bg: '#FEF3C7', text: '#D97706', label: 'Processing' },
-    FAILED: { bg: '#FEF2F2', text: '#EF4444', label: 'Failed' },
-  };
-
-
-  const formatDate = (value) => {
-    if (!value) return '—';
-    return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  };
-
   return (
-    <div className="md:col-span-12 lg:col-span-8 bg-white rounded-2xl border border-[#E4ECE7] overflow-hidden flex flex-col shadow-card">
-      <div className="px-6 py-4 border-b border-[#E4ECE7] flex justify-between items-center">
-        <h3 className="text-[15px] font-semibold text-[#10231A]">Recent Scans</h3>
+    <Surface padding="none" className="flex flex-col overflow-hidden lg:col-span-8">
+      <div className="flex items-center justify-between gap-3 border-b border-ink/10 px-5 py-4 sm:px-6">
+        <div>
+          <h2 className="font-display text-[1.25rem] font-medium tracking-[-0.02em] text-ink">
+            Recent scans
+          </h2>
+          <p className="mt-0.5 text-[10.5px] text-muted">Latest activity across your farms</p>
+        </div>
         <button
+          type="button"
           onClick={() => navigate('/scan/history')}
-          className="text-[#14532D] text-sm font-semibold hover:text-[#166534] transition-colors flex items-center gap-0.5"
+          className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.12em] text-olive transition-colors hover:text-ink"
         >
-          View all <MdChevronRight className="text-base" />
+          View all
+          <MdArrowForward className="text-sm" aria-hidden="true" />
         </button>
       </div>
 
       {recentScans.length === 0 ? (
-        <div className="p-8 flex-1 min-h-[320px] flex items-center justify-center bg-[#F7FAF8]">
-          <div className="text-center">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#E4ECE7] text-[#14532D]">
-              <MdCenterFocusStrong className="text-2xl" />
-            </div>
-            <p className="text-[#10231A] font-semibold text-[15px]">No scans yet</p>
-            <p className="text-[#4B6357] text-sm mt-1">Run your first scan to see results here.</p>
-          </div>
+        <div className="flex flex-1 items-center justify-center p-5 sm:p-6">
+          <EmptyState
+            icon={MdCenterFocusStrong}
+            title="No scans yet"
+            description="Run your first scan to see flock results here."
+            className="w-full border-0 bg-transparent px-2 py-8"
+          />
         </div>
       ) : (
-        <ul className="divide-y divide-[#E4ECE7] max-h-[400px] overflow-y-auto">
+        <ul className="max-h-[400px] divide-y divide-ink/8 overflow-y-auto">
           {recentScans.map((scan) => {
-            const s = statusStyles[scan.status] || statusStyles.PROCESSING;
+            const status = statusStyles[scan.status] || statusStyles.PROCESSING;
             return (
-              <li key={scan.summary_id} className="px-6 py-4 flex items-center gap-4 hover:bg-[#F7FAF8] transition-colors">
-                <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-[#F7FAF8] border border-[#E4ECE7] flex items-center justify-center">
+              <li
+                key={scan.summary_id}
+                className="flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-cream-deep/45 sm:px-6"
+              >
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-cream-deep">
                   {scan.thumbnail_url ? (
-                    <img src={thumbnailSrc(scan.thumbnail_url)} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={thumbnailSrc(scan.thumbnail_url)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <MdAgriculture className="text-[#4B6357] text-lg" />
+                    <MdAgriculture className="text-lg text-olive" aria-hidden="true" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-[#10231A] truncate">{scan.farm_name}</p>
-                    <span
-                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: s.bg, color: s.text }}
-                    >
-                      {s.label}
-                    </span>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-[12.5px] font-semibold text-ink">{scan.farm_name}</p>
+                    <Badge tone={status.tone} size="sm">
+                      {status.label}
+                    </Badge>
                   </div>
-                  <p className="text-xs text-[#4B6357] mt-1">
-                    {formatDate(scan.started_at)} • {scan.total_detected ?? 0} Chickens
+                  <p className="mt-1 text-[10.5px] text-muted">
+                    {formatDate(scan.started_at)} · {scan.total_detected ?? 0} chickens
                     {scan.diseased_count > 0 && (
-                      <span className="text-[#EF4444] font-medium"> • {scan.diseased_count} flagged</span>
+                      <span className="font-medium text-critical"> · {scan.diseased_count} flagged</span>
                     )}
                   </p>
                 </div>
-                <span
+
+                <button
+                  type="button"
                   onClick={() => navigate(`/farm/${scan.farm_id}`)}
-                  className="w-8 h-8 rounded-full bg-[#E9F4EE] text-[#14532D] flex items-center justify-center cursor-pointer hover:bg-[#14532D] hover:text-white transition-colors flex-shrink-0"
+                  aria-label={`Open ${scan.farm_name}`}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line bg-paper text-olive transition-colors hover:border-ink hover:bg-ink hover:text-cream"
                 >
-                  <MdArrowForward className="text-base" />
-                </span>
+                  <MdArrowForward className="text-base" aria-hidden="true" />
+                </button>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+    </Surface>
   );
 }

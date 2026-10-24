@@ -1,21 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MdPerson,
-  MdEmail,
   MdCalendarToday,
-  MdEdit,
-  MdSave,
   MdClose,
+  MdEdit,
+  MdEmail,
   MdLogout,
-  MdCheckCircle,
-  MdErrorOutline,
+  MdPerson,
+  MdRefresh,
+  MdSave,
 } from 'react-icons/md';
 
+import {
+  Button,
+  Notice,
+  PageHeader,
+  PoultraScanLoader,
+  Surface,
+  TextField,
+} from '../../../components/index';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileAPI } from '../api/profileApi';
-import { TopNav, Footer, BottomNav, PoultraScanLoader } from '../../../components/index';
-
 import { Avatar, AvatarModal, InfoRow } from '../components/index';
 
 export default function Profile() {
@@ -27,7 +32,6 @@ export default function Profile() {
   const [successMsg, setSuccessMsg] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Avatar modal state
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
@@ -47,8 +51,8 @@ export default function Profile() {
     });
   };
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (event) => {
+    setForm((previous) => ({ ...previous, [event.target.name]: event.target.value }));
   };
 
   const handleCancel = () => {
@@ -58,15 +62,15 @@ export default function Profile() {
     setIsEditing(false);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (event) => {
+    event.preventDefault();
     setSuccessMsg('');
     try {
       await updateProfile(form);
       setSuccessMsg('Profile updated successfully.');
       setIsEditing(false);
-    } catch (_) {
-      // saveError already set by hook
+    } catch {
+      // saveError already set by the hook
     }
   };
 
@@ -114,7 +118,7 @@ export default function Profile() {
     setLoggingOut(true);
     try {
       await ProfileAPI.logout();
-    } catch (_) {
+    } catch {
       // proceed to login regardless
     } finally {
       navigate('/login');
@@ -122,165 +126,178 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-dvh bg-[#F7FAF8] flex flex-col font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
-      <TopNav />
-      <div className="md:hidden">
-        <BottomNav />
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="Account"
+        title="Profile"
+        description="Manage your personal details and account photo."
+        actions={
+          <Button variant="danger-ghost" onClick={handleLogout} disabled={loggingOut}>
+            <MdLogout className="text-lg" aria-hidden="true" />
+            {loggingOut ? 'Logging out...' : 'Log out'}
+          </Button>
+        }
+      />
 
-      <main className="flex-grow pt-[calc(env(safe-area-inset-top)+6rem)] md:pt-24 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] md:pb-12 px-4 md:px-8 max-w-[1200px] mx-auto w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E9F4EE] text-[#14532D] text-[10px] font-bold uppercase tracking-widest mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15]" />
-              Account
-            </span>
-            <h1 className="text-2xl md:text-[28px] font-bold text-[#10231A] tracking-tight">Profile</h1>
-            <p className="text-[#4B6357] text-sm mt-1.5">Manage your account details.</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="bg-white text-[#EF4444] border border-[#FECACA] px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-[#FEF2F2] transition-colors active:scale-[0.98] w-full sm:w-auto justify-center disabled:opacity-60"
-          >
-            <MdLogout className="text-lg" />
-            {loggingOut ? 'Logging out...' : 'Log Out'}
-          </button>
+      {loading && (
+        <Surface className="mt-8 flex min-h-[320px] items-center justify-center">
+          <PoultraScanLoader label="Loading profile..." size={48} />
+        </Surface>
+      )}
+
+      {error && !loading && (
+        <Notice
+          tone="error"
+          title="Could not load profile"
+          className="mt-8"
+          action={
+            <Button variant="danger-ghost" size="sm" onClick={refetch}>
+              <MdRefresh className="text-base" aria-hidden="true" />
+              Try again
+            </Button>
+          }
+        >
+          {error}
+        </Notice>
+      )}
+
+      {!loading && !error && user && (
+        <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.5fr)]">
+          <Surface className="flex flex-col items-center text-center">
+            <Avatar
+              fullname={user.fullname}
+              avatarUrl={user.avatar_url}
+              size="h-24 w-24 sm:h-28 sm:w-28"
+              onClick={openAvatarModal}
+              uploading={uploadingAvatar}
+            />
+
+            <Button variant="ghost" size="sm" className="mt-2" onClick={openAvatarModal}>
+              Change photo
+            </Button>
+
+            <h2 className="mt-3 max-w-full truncate font-display text-[1.65rem] font-medium leading-tight tracking-[-0.025em] text-ink">
+              {user.fullname || 'Unnamed user'}
+            </h2>
+            <p className="mt-1 max-w-full truncate text-[12px] text-muted">{user.email}</p>
+
+            <div className="mt-5 w-full border-t border-ink/10 pt-4">
+              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
+                Member since
+              </p>
+              <p className="mt-1 text-[12.5px] font-semibold text-ink">
+                {formatDate(user.created_at)}
+              </p>
+            </div>
+          </Surface>
+
+          <Surface padding="none" className="overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-olive">
+                  Personal information
+                </p>
+                <h2 className="mt-1 font-display text-[1.35rem] font-medium tracking-[-0.02em] text-ink">
+                  Account details
+                </h2>
+              </div>
+              {!isEditing && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setSuccessMsg('');
+                    setIsEditing(true);
+                  }}
+                >
+                  <MdEdit className="text-base" aria-hidden="true" />
+                  Edit
+                </Button>
+              )}
+            </div>
+
+            <div className="p-5 sm:p-6">
+              {successMsg && (
+                <Notice tone="success" className="mb-4">
+                  {successMsg}
+                </Notice>
+              )}
+              {saveError && (
+                <Notice tone="error" title="Could not save changes" className="mb-4">
+                  {saveError}
+                </Notice>
+              )}
+
+              {!isEditing ? (
+                <div className="divide-y divide-ink/10">
+                  <InfoRow icon={MdPerson} label="Full name" value={user.fullname} />
+                  <InfoRow icon={MdEmail} label="Email address" value={user.email} />
+                  <InfoRow
+                    icon={MdCalendarToday}
+                    label="Member since"
+                    value={formatDate(user.created_at)}
+                  />
+                </div>
+              ) : (
+                <form onSubmit={handleSave} className="flex flex-col gap-4">
+                  <TextField
+                    label="Full name"
+                    id="fullname"
+                    name="fullname"
+                    type="text"
+                    icon={MdPerson}
+                    value={form.fullname}
+                    onChange={handleChange}
+                    required
+                    autoComplete="name"
+                  />
+
+                  <TextField
+                    label="Email address"
+                    id="email"
+                    name="email"
+                    type="email"
+                    icon={MdEmail}
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="email"
+                  />
+
+                  <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+                    <Button type="submit" disabled={saving} className="flex-1">
+                      {saving ? (
+                        <>
+                          <span
+                            className="h-4 w-4 animate-spin rounded-full border-2 border-cream/35 border-t-cream"
+                            aria-hidden="true"
+                          />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <MdSave className="text-lg" aria-hidden="true" />
+                          Save changes
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={handleCancel}
+                      disabled={saving}
+                    >
+                      <MdClose className="text-lg" aria-hidden="true" />
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </Surface>
         </div>
-
-        {loading && (
-          <div className="py-20">
-            <PoultraScanLoader label="Loading profile..." size={48} />
-          </div>
-        )}
-
-        {error && !loading && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-[#FECACA] shadow-card">
-            <p className="text-sm text-[#EF4444] font-medium">Couldn't load profile — {error}</p>
-          </div>
-        )}
-
-        {!loading && !error && user && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Left: Avatar / summary card */}
-            <div className="md:col-span-4 bg-white rounded-2xl p-6 border border-[#E4ECE7] shadow-card flex flex-col items-center text-center">
-              <Avatar
-                fullname={user.fullname}
-                avatarUrl={user.avatar_url}
-                onClick={openAvatarModal}
-              />
-              <button
-                onClick={openAvatarModal}
-                className="text-xs font-medium text-[#14532D] hover:text-[#166534] mt-3 transition-colors"
-              >
-                Change photo
-              </button>
-
-              <h2 className="text-lg font-bold text-[#10231A] mt-4 truncate max-w-full">{user.fullname || 'Unnamed User'}</h2>
-              <p className="text-sm text-[#4B6357] mt-1 truncate max-w-full">{user.email}</p>
-
-              <div className="w-full mt-6 pt-5 border-t border-[#E4ECE7]">
-                <p className="text-xs font-medium text-[#4B6357]">Member Since</p>
-                <p className="text-sm font-semibold text-[#10231A] mt-1">{formatDate(user.created_at)}</p>
-              </div>
-            </div>
-
-            {/* Right: Details / edit form card */}
-            <div className="md:col-span-8 bg-white rounded-2xl border border-[#E4ECE7] shadow-card overflow-hidden flex flex-col">
-              <div className="px-6 py-4 border-b border-[#E4ECE7] flex justify-between items-center">
-                <h3 className="text-[15px] font-semibold text-[#10231A]">Account Details</h3>
-                {!isEditing && (
-                  <button
-                    onClick={() => {
-                      setSuccessMsg('');
-                      setIsEditing(true);
-                    }}
-                    className="text-[#14532D] text-sm font-semibold hover:text-[#166534] transition-colors flex items-center gap-1.5"
-                  >
-                    <MdEdit className="text-base" />
-                    Edit
-                  </button>
-                )}
-              </div>
-
-              <div className="p-6 flex-1">
-                {successMsg && (
-                  <div className="mb-5 flex items-center gap-2 bg-[#D1FAE5] text-[#059669] text-sm font-medium px-4 py-3 rounded-xl">
-                    <MdCheckCircle className="text-lg flex-shrink-0" />
-                    {successMsg}
-                  </div>
-                )}
-                {saveError && (
-                  <div className="mb-5 flex items-center gap-2 bg-[#FEF2F2] text-[#EF4444] text-sm font-medium px-4 py-3 rounded-xl">
-                    <MdErrorOutline className="text-lg flex-shrink-0" />
-                    {saveError}
-                  </div>
-                )}
-
-                {!isEditing ? (
-                  <div>
-                    <InfoRow icon={MdPerson} label="Full Name" value={user.fullname} />
-                    <InfoRow icon={MdEmail} label="Email" value={user.email} />
-                    <InfoRow icon={MdCalendarToday} label="Member Since" value={formatDate(user.created_at)} />
-                  </div>
-                ) : (
-                  <form onSubmit={handleSave} className="flex flex-col gap-5">
-                    <div>
-                      <label htmlFor="fullname" className="block text-xs font-semibold text-[#4B6357] uppercase tracking-wide mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        id="fullname"
-                        name="fullname"
-                        type="text"
-                        value={form.fullname}
-                        onChange={handleChange}
-                        required
-                        className="w-full bg-[#F7FAF8] border border-[#E4ECE7] rounded-xl px-4 py-2.5 text-sm text-[#10231A] focus:ring-2 focus:ring-[#14532D]/20 focus:border-[#14532D] outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="email" className="block text-xs font-semibold text-[#4B6357] uppercase tracking-wide mb-2">
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full bg-[#F7FAF8] border border-[#E4ECE7] rounded-xl px-4 py-2.5 text-sm text-[#10231A] focus:ring-2 focus:ring-[#14532D]/20 focus:border-[#14532D] outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                      <button
-                        type="submit"
-                        disabled={saving}
-                        className="bg-gradient-to-br from-[#14532D] to-[#166534] text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-[#166534] hover:to-[#052E16] transition-all active:scale-[0.98] disabled:opacity-60 shadow-md shadow-[#14532D]/25"
-                      >
-                        <MdSave className="text-lg" />
-                        {saving ? 'Saving...' : 'Save Changes'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancel}
-                        disabled={saving}
-                        className="bg-white text-[#4B6357] border border-[#E4ECE7] px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#F7FAF8] transition-colors active:scale-[0.98] disabled:opacity-60"
-                      >
-                        <MdClose className="text-lg" />
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
+      )}
 
       {avatarModalOpen && (
         <AvatarModal
@@ -292,8 +309,6 @@ export default function Profile() {
           error={avatarError}
         />
       )}
-
-      <Footer />
     </div>
   );
 }

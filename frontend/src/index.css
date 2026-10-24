@@ -6,50 +6,67 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
 
-  /* PoultraScan AI brand palette — Deep Forest Green + Emerald + Gold on a soft green canvas */
-  --color-brand-50: #F2F8F4;
-  --color-brand-100: #E3F0E8;
-  --color-brand-200: #C7E2D2;
-  --color-brand-300: #9CCFB0;
-  --color-brand-400: #34B97C;
-  --color-brand-500: #10B981;
-  --color-brand-600: #166534;
-  --color-brand-700: #14532D;
-  --color-brand-800: #0E3D21;
-  --color-brand-900: #052E16;
+  /* PoultraScan AI — warm botanical palette shared with Home and Auth.
+     Cream canvas, ink type, sage + olive structure, muted gold details. */
+  --color-brand-50: #F4F8E5;
+  --color-brand-100: #E9EFDA;
+  --color-brand-200: #D6E0C2;
+  --color-brand-300: #B9C99C;
+  --color-brand-400: #8FA96F;
+  --color-brand-500: #6E8C56;
+  --color-brand-600: #56703F;
+  --color-brand-700: #3F5C2E;
+  --color-brand-800: #2E4522;
+  --color-brand-900: #1C2C15;
 
-  --color-accent: #FACC15;
-  --color-accent-soft: #FFF9DB;
-  --color-accent-deep: #EAB308;
+  --color-accent: #B1A03E;
+  --color-accent-soft: #F3EDCB;
+  --color-accent-deep: #8A7626;
 
-  --color-primary: #14532D;
-  --color-primary-dark: #052E16;
-  --color-primary-light: #FACC15;
-  --color-primary-lighter: #E9F4EE;
+  --color-primary: #101107;
+  --color-primary-dark: #000000;
+  --color-primary-light: #B1A03E;
+  --color-primary-lighter: #E9EFDA;
 
-  --color-canvas: #F7FAF8;
-  --color-ink: #10231A;
-  --color-soft: #4B6357;
-  --color-muted: #718279;
-  --color-line: #E4ECE7;
+  --color-canvas: #F4F8E5;
+  --color-paper: #FCFDF7;
+  --color-cream: #F4F8E5;
+  --color-cream-deep: #EBF0DC;
+  --color-ink: #101107;
+  --color-ink-soft: #2E3020;
+  --color-soft: #4C4E3E;
+  --color-muted: #6F7160;
+  --color-line: #DDE3CF;
+  --color-line-strong: #C8D1B9;
 
-  --color-warn: #F59E0B;
-  --color-critical: #EF4444;
-  --color-success: #10B981;
-  --color-info: #166534;
+  --color-sage: #6E8C56;
+  --color-sage-dark: #4D6938;
+  --color-sage-soft: #E9EFDA;
+  --color-olive: #564F1E;
+  --color-gold: #B1A03E;
+  --color-gold-soft: #F3EDCB;
+  --color-taupe: #CCB4A0;
 
-  --shadow-card: 0 1px 2px 0 rgb(16 35 26 / 0.04), 0 1px 3px 0 rgb(16 35 26 / 0.06);
-  --shadow-card-hover: 0 10px 26px -8px rgb(16 35 26 / 0.14);
-  --shadow-pop: 0 12px 32px -8px rgb(16 35 26 / 0.16);
-  --shadow-modal: 0 24px 48px -12px rgb(5 46 22 / 0.28);
+  --color-warn: #9E6726;
+  --color-warn-soft: #F7EFD9;
+  --color-critical: #B3261E;
+  --color-critical-soft: #FBEDEA;
+  --color-success: #4D6938;
+  --color-success-soft: #EDF3DF;
+  --color-info: #564F1E;
 
-  --radius-xl2: 1.25rem;
+  --shadow-card: 0 1px 2px 0 rgb(16 17 7 / 0.03), 0 8px 24px -20px rgb(16 17 7 / 0.28);
+  --shadow-card-hover: 0 18px 40px -24px rgb(16 17 7 / 0.32);
+  --shadow-pop: 0 18px 44px -18px rgb(16 17 7 / 0.24);
+  --shadow-modal: 0 32px 80px -24px rgb(16 17 7 / 0.38);
+
+  --radius-xl2: 1.5rem;
 }
 
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
-  background-color: #F7FAF8;
-  color: #10231A;
+  background-color: #F4F8E5;
+  color: #101107;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -66,44 +83,45 @@ textarea {
 }
 
 ::selection {
-  background-color: #C7E2D2;
-  color: #052E16;
-}
-
-/* The app styles inputs with explicit Tailwind classes; keep focus chrome clean.
-   Add a gentle brand border so every field reacts consistently on focus. */
-input:focus,
-input:focus-visible,
-input:active,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  --tw-ring-shadow: 0 0 #0000 !important;
-  --tw-ring-offset-shadow: 0 0 #0000 !important;
-  border-color: #9CCFB0;
+  background-color: #D6E0C2;
+  color: #101107;
 }
 
 :focus-visible {
-  outline: 2px solid rgba(20, 83, 45, 0.5);
+  outline: 2px solid rgba(110, 140, 86, 0.6);
   outline-offset: 2px;
+}
+
+/* Text fields use a border-color change instead of the browser outline.
+   This rule is intentionally unlayered so it also wins over the global
+   :focus-visible outline above. Checkboxes/radios keep their focus ring. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+.no-focus-ring:focus,
+.no-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Subtle native scrollbars that match the theme */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #C5D6CC transparent;
+  scrollbar-color: #C7D1B7 transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #C5D6CC;
+  background: #C7D1B7;
   border-radius: 8px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #718279;
+  background: #6E8C56;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -114,12 +132,15 @@ textarea:focus {
   scrollbar-width: none;
 }
 
-/* ---------- Design-system primitives ---------- */
+/* ---------- Design-system primitives ----------
+   These live in Tailwind's components layer so utility classes (pl-10,
+   h-11, bg-*, border-*) can override them without specificity fights. */
 
+@layer components {
 .card {
-  background: #ffffff;
+  background: var(--color-paper);
   border: 1px solid var(--color-line);
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   box-shadow: var(--shadow-card);
 }
 
@@ -128,44 +149,53 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
+  border-radius: 9999px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1rem;
-  padding: 0.625rem 1rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.1s ease;
+  padding: 0.75rem 1.25rem;
+  min-height: 2.75rem;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease,
+    box-shadow 0.18s ease, transform 0.1s ease;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
 }
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
 }
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   pointer-events: none;
 }
 .btn-primary {
-  background-image: linear-gradient(135deg, #14532D 0%, #166534 55%, #10B981 100%);
-  color: #ffffff;
-  box-shadow: var(--shadow-card);
+  background-color: var(--color-ink);
+  color: var(--color-cream);
+  box-shadow: 0 10px 24px -16px rgb(16 17 7 / 0.8);
 }
 .btn-primary:hover {
-  background-image: linear-gradient(135deg, #052E16 0%, #14532D 55%, #166534 100%);
+  background-color: var(--color-olive);
 }
 .btn-primary:focus-visible {
-  outline-color: var(--color-accent);
+  outline-color: var(--color-gold);
+}
+.btn-sage {
+  background-color: var(--color-sage);
+  color: var(--color-ink);
+}
+.btn-sage:hover {
+  background-color: var(--color-ink);
+  color: var(--color-cream);
 }
 .btn-secondary {
-  background-color: #ffffff;
-  border: 1px solid var(--color-line);
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-line-strong);
   color: var(--color-ink);
 }
 .btn-secondary:hover {
-  background-color: var(--color-canvas);
-  border-color: var(--color-brand-500);
-  color: var(--color-primary-dark);
+  background-color: var(--color-cream-deep);
+  border-color: var(--color-sage);
+  color: var(--color-ink);
 }
 .btn-ghost {
   background-color: transparent;
@@ -173,7 +203,7 @@ textarea:focus {
   color: var(--color-soft);
 }
 .btn-ghost:hover {
-  background-color: var(--color-canvas);
+  background-color: rgb(16 17 7 / 0.05);
   color: var(--color-ink);
 }
 .btn-danger {
@@ -181,27 +211,48 @@ textarea:focus {
   color: #ffffff;
 }
 .btn-danger:hover {
-  background-color: #DC2626;
+  background-color: #8F1D17;
+}
+.btn-danger-ghost {
+  background-color: var(--color-critical-soft);
+  border: 1px solid #E9C4BE;
+  color: var(--color-critical);
+}
+.btn-danger-ghost:hover {
+  background-color: #F6DDD8;
+}
+.btn-sm {
+  min-height: 2.25rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+}
+.btn-icon {
+  width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
 }
 
 .input-field {
   width: 100%;
   border: 1px solid var(--color-line);
-  border-radius: 0.75rem;
-  background-color: #ffffff;
+  border-radius: 0.875rem;
+  background-color: var(--color-paper);
   color: var(--color-ink);
-  padding: 0.625rem 0.875rem;
+  padding: 0.75rem 0.9375rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 .input-field::placeholder {
   color: var(--color-muted);
 }
+.input-field:hover {
+  border-color: var(--color-line-strong);
+}
 .input-field:focus {
   outline: none;
-  border-color: var(--color-brand-500);
-  box-shadow: 0 0 0 3px rgb(16 101 52 / 0.14);
+  border-color: var(--color-sage);
+  background-color: #ffffff;
 }
 
 .badge {
@@ -237,28 +288,88 @@ textarea:focus {
 }
 
 .skeleton {
-  border-radius: 0.5rem;
-  background: linear-gradient(90deg, #E3F0E8 25%, #F4F9F6 50%, #E3F0E8 75%);
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #E9EFDA 25%, #F7FAEE 50%, #E9EFDA 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
+}
 }
 
 /* ---------- PoultraScan gradient helpers ---------- */
 
 .bg-brand-gradient {
-  background-image: linear-gradient(135deg, #052E16 0%, #14532D 50%, #166534 100%);
+  background-image: linear-gradient(135deg, #101107 0%, #2E3020 52%, #564F1E 100%);
 }
 
 .bg-green-emerald-gradient {
-  background-image: linear-gradient(135deg, #14532D 0%, #166534 55%, #10B981 100%);
+  background-image: linear-gradient(135deg, #101107 0%, #4D6938 58%, #6E8C56 100%);
 }
 
 /* Subtle technical grid texture for dark gradient sections */
 .ps-grid-overlay {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(244, 248, 229, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 248, 229, 0.06) 1px, transparent 1px);
   background-size: 34px 34px;
+}
+
+/* ---------- App surface utilities ---------- */
+
+@layer components {
+.app-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+}
+
+.app-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--color-olive);
+}
+
+.app-eyebrow::before {
+  content: "";
+  display: block;
+  width: 1.75rem;
+  height: 1px;
+  background-color: var(--color-gold);
+}
+
+.app-paper {
+  background-color: var(--color-paper);
+  border: 1px solid rgb(16 17 7 / 0.1);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.app-dark {
+  background-color: var(--color-ink);
+  color: var(--color-cream);
+}
+
+.app-hairline {
+  border-color: rgb(16 17 7 / 0.1);
+}
+
+.app-soft-grid {
+  background-image:
+    linear-gradient(rgb(16 17 7 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(16 17 7 / 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.app-scroll-fade {
+  background: linear-gradient(to top, var(--color-canvas), rgb(244 248 229 / 0.82), transparent);
+}
 }
 
 /* ---------- Auth layout tuning ---------- */

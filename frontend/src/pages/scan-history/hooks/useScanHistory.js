@@ -31,10 +31,10 @@ export function useScanHistory() {
     fetchPage(page, filters);
   }, [page, filters, fetchPage]);
 
-  const updateFilters = (newFilters) => {
+  const updateFilters = useCallback((newFilters) => {
     setPage(1);
     setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
+  }, []);
 
   const nextPage = () => {
     if (hasMore) setPage((p) => p + 1);

@@ -9,11 +9,11 @@ import {
 } from 'react-icons/md';
 
 const TRIGGER_CLASSES =
-  'flex h-11 w-full items-center justify-between gap-2 rounded-xl border bg-white px-3.5 text-left text-sm transition-colors focus:outline-none';
+  'no-focus-ring flex h-11 w-full items-center justify-between gap-2 rounded-xl border bg-paper px-3.5 text-left text-sm transition-colors focus:outline-none';
 const TRIGGER_ENABLED =
-  'border-[#DFE6E0] text-[#1B2922] hover:border-[#B7CABE] focus:border-[#1E4A38]';
+  'border-line text-ink hover:border-line-strong focus:border-sage';
 const TRIGGER_DISABLED =
-  'border-[#DFE6E0] bg-[#ECF1ED] text-[#8F9B93] cursor-not-allowed';
+  'border-line bg-cream-deep text-muted cursor-not-allowed';
 
 const MENU_MAX_HEIGHT = 280;
 
@@ -200,16 +200,16 @@ export default function FarmLocationSelect({
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-[12px] font-semibold text-[#56665C]">{label}</span>
+      <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-olive">{label}</span>
 
       {error ? (
-        <div className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-3 text-[12px] font-medium text-[#B42318]">
+        <div className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-[#E9C4BE] bg-critical-soft px-3 text-[12px] font-medium text-critical">
           <span className="truncate">{error}</span>
           {onRetry && (
             <button
               type="button"
               onClick={onRetry}
-              className="flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#1E4A38] hover:underline"
+              className="flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-sage-dark hover:underline"
             >
               <MdRefresh className="text-base" />
               Retry
@@ -227,7 +227,7 @@ export default function FarmLocationSelect({
           aria-expanded={open}
           className={`${TRIGGER_CLASSES} ${
             disabled ? TRIGGER_DISABLED : TRIGGER_ENABLED
-          } ${open ? 'border-[#1E4A38]' : ''}`}
+          } ${open ? 'border-sage' : ''}`}
         >
           <span className={`truncate ${showValue ? 'font-medium' : ''}`}>
             {loading
@@ -253,7 +253,7 @@ export default function FarmLocationSelect({
                     onSelect(null);
                   }
                 }}
-                className="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#7D8B82] transition-colors hover:bg-[#ECF1ED] hover:text-[#B42318]"
+                className="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-cream-deep hover:text-critical"
               >
                 <MdClose className="text-sm" />
               </span>
@@ -273,9 +273,9 @@ export default function FarmLocationSelect({
             role="listbox"
             aria-label={label}
             style={{ ...menuStyle }}
-            className="z-[80] flex flex-col overflow-hidden rounded-xl border border-[#DFE6E0] bg-white shadow-[0_18px_45px_-16px_rgba(20,40,31,0.35)]"
+            className="z-[80] flex flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-pop"
           >
-            <div className="sticky top-0 border-b border-[#ECF1ED] bg-white p-2">
+            <div className="sticky top-0 border-b border-ink/10 bg-paper p-2">
               <input
                 ref={searchRef}
                 autoFocus
@@ -288,20 +288,20 @@ export default function FarmLocationSelect({
                 onKeyDown={handleSearchKey}
                 disabled={loading || !!error}
                 placeholder={`Search ${label.toLowerCase()}...`}
-                className="h-10 w-full rounded-lg border border-[#DFE6E0] bg-[#F4F6F2] px-3 text-[16px] text-[#1B2922] placeholder:text-[#8F9B93] transition-colors focus:border-[#1E4A38] sm:text-sm"
+                className="h-10 w-full rounded-xl border border-line bg-cream-deep px-3 text-[16px] text-ink placeholder:text-muted transition-colors focus:border-sage sm:text-sm"
               />
             </div>
 
             <div ref={listRef} className="overflow-y-auto py-1">
               {loading && !error && (
-                <div className="flex items-center gap-2 px-4 py-3 text-sm text-[#65746B]">
-                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#D9E3DD] border-t-[#1E4A38]" />
+                <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted">
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-line border-t-sage-dark" />
                   {loadingMessage}
                 </div>
               )}
 
               {!loading && !error && filtered.length === 0 && (
-                <div className="px-4 py-3 text-sm text-[#65746B]">
+                <div className="px-4 py-3 text-sm text-muted">
                   {query.trim()
                     ? 'No matching locations found'
                     : options?.length
@@ -326,10 +326,10 @@ export default function FarmLocationSelect({
                       onClick={() => handleSelect(option)}
                       className={`flex min-h-11 w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm transition-colors ${
                         selected
-                          ? 'bg-[#E6F1EA] font-semibold text-[#1E4A38]'
+                          ? 'bg-sage-soft font-semibold text-sage-dark'
                           : active
-                            ? 'bg-[#F4F6F2] text-[#1B2922]'
-                            : 'text-[#1B2922]'
+                            ? 'bg-cream-deep text-ink'
+                            : 'text-ink'
                       }`}
                     >
                       <span className="truncate">{option.name}</span>

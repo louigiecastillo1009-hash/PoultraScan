@@ -33,7 +33,7 @@ export default function ProductIntro() {
           </h2>
           <p className="ps-lead mt-5 max-w-[34rem]">
             PoultraScan turns a photo of your flock into a structured first look. See the
-            birds it detects, review possible health concerns, and check estimated weight
+            chickens it detects, review possible health concerns, and check estimated weight
             and market readiness — then keep the scan with the farm it belongs to.
           </p>
 

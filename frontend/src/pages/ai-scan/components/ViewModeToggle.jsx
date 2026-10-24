@@ -1,4 +1,4 @@
-import { MdTableView, MdGridView, MdViewList, MdViewCarousel } from 'react-icons/md';
+import { MdGridView, MdTableView, MdViewCarousel, MdViewList } from 'react-icons/md';
 
 const VIEWS = [
   { key: 'table', icon: MdTableView, label: 'Table view' },
@@ -12,7 +12,7 @@ export default function ViewModeToggle({ value, onChange }) {
     <div
       role="group"
       aria-label="View mode"
-      className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-[#E9F4EE] border border-[#DCF0E5]"
+      className="inline-flex items-center gap-0.5 rounded-full border border-line bg-cream-deep p-1"
     >
       {VIEWS.map(({ key, icon: Icon, label }) => {
         const isActive = value === key;
@@ -24,13 +24,13 @@ export default function ViewModeToggle({ value, onChange }) {
             aria-pressed={isActive}
             aria-label={label}
             title={label}
-            className={`flex items-center justify-center w-9 h-8 rounded-lg transition-all duration-150 ${
+            className={`flex h-8 w-9 items-center justify-center rounded-full transition-colors ${
               isActive
-                ? 'bg-white text-[#14532D] shadow-card'
-                : 'text-[#4B6357] hover:bg-white/70 hover:text-[#14532D]'
+                ? 'bg-paper text-ink shadow-card'
+                : 'text-muted hover:bg-paper/70 hover:text-ink'
             }`}
           >
-            <Icon className="text-lg" />
+            <Icon className="text-lg" aria-hidden="true" />
           </button>
         );
       })}

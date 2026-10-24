@@ -1,23 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
-import { MdClose, MdUpload } from 'react-icons/md';
+import { useEffect, useRef, useState } from 'react';
+import { MdPhotoCamera, MdUpload } from 'react-icons/md';
+
+import { Button, ModalShell, Notice } from '../../../components/index';
 import { AVATAR_ICONS, AVATAR_ICON_KEYS, getIconKey } from '../../../utils/avatarIcons';
 
-export default function AvatarModal({ currentAvatarUrl, onSaveFile, onSaveIcon, onCancel, saving, error }) {
+export default function AvatarModal({
+  currentAvatarUrl,
+  onSaveFile,
+  onSaveIcon,
+  onCancel,
+  saving,
+  error,
+}) {
   const [tab, setTab] = useState('upload'); // 'upload' | 'icon'
   const [pendingFile, setPendingFile] = useState(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
-  const [selectedIcon, setSelectedIcon] = useState(getIconKey(currentAvatarUrl) || AVATAR_ICON_KEYS[0]);
+  const [selectedIcon, setSelectedIcon] = useState(
+    getIconKey(currentAvatarUrl) || AVATAR_ICON_KEYS[0]
+  );
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
-    };
-  }, [pendingPreviewUrl]);
+    },
+    [pendingPreviewUrl]
+  );
 
-  const handleFilePicked = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
+  const handleFilePicked = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
     if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
     setPendingFile(file);
@@ -32,42 +44,74 @@ export default function AvatarModal({ currentAvatarUrl, onSaveFile, onSaveIcon, 
     }
   };
 
-  const canSave = (tab === 'upload' && !!pendingFile) || (tab === 'icon' && !!selectedIcon);
+  const canSave = (tab === 'upload' && Boolean(pendingFile)) || (tab === 'icon' && Boolean(selectedIcon));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#10231A]/50 backdrop-blur-sm" onClick={saving ? undefined : onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-modal w-full max-w-sm p-6 flex flex-col items-center max-h-[90dvh] overflow-y-auto no-scrollbar">
-        <button
-          onClick={onCancel}
-          disabled={saving}
-          className="absolute top-4 right-4 text-[#4B6357] hover:text-[#10231A] disabled:opacity-40 transition-colors"
-          aria-label="Close"
-        >
-          <MdClose className="text-xl" />
-        </button>
-
-        <h3 className="text-base font-semibold text-[#10231A] mb-4 self-start">Update Profile Photo</h3>
-
-        {/* Tabs */}
-        <div className="flex w-full mb-5 bg-[#F7FAF8] rounded-lg p-1 gap-1">
+    <ModalShell
+      open
+      onClose={() => {
+        if (!saving) onCancel();
+      }}
+      eyebrow="Account photo"
+      title="Update profile photo"
+      description="Upload a photo or choose an illustrated icon."
+      icon={<MdPhotoCamera className="text-lg" />}
+      size="sm"
+      footer={
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex-1"
+            onClick={onCancel}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className="flex-1"
+            onClick={handleSave}
+            disabled={saving || !canSave}
+          >
+            {saving ? (
+              <>
+                <span
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-cream/35 border-t-cream"
+                  aria-hidden="true"
+                />
+                Saving...
+              </>
+            ) : (
+              'Save'
+            )}
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col items-center">
+        <div className="mb-5 flex w-full gap-1 rounded-full border border-line bg-cream-deep p-1">
           <button
             type="button"
             onClick={() => setTab('upload')}
-            className={`flex-1 text-xs font-semibold py-2 rounded-md transition-colors ${
-              tab === 'upload' ? 'bg-white text-[#14532D] shadow-sm' : 'text-[#4B6357] hover:text-[#10231A]'
+            disabled={saving}
+            className={`flex-1 rounded-full px-4 py-2 text-[11px] font-semibold transition-colors ${
+              tab === 'upload'
+                ? 'bg-paper text-ink shadow-card'
+                : 'text-muted hover:text-ink'
             }`}
           >
-            Upload Photo
+            Upload photo
           </button>
           <button
             type="button"
             onClick={() => setTab('icon')}
-            className={`flex-1 text-xs font-semibold py-2 rounded-md transition-colors ${
-              tab === 'icon' ? 'bg-white text-[#14532D] shadow-sm' : 'text-[#4B6357] hover:text-[#10231A]'
+            disabled={saving}
+            className={`flex-1 rounded-full px-4 py-2 text-[11px] font-semibold transition-colors ${
+              tab === 'icon' ? 'bg-paper text-ink shadow-card' : 'text-muted hover:text-ink'
             }`}
           >
-            Choose Icon
+            Choose icon
           </button>
         </div>
 
@@ -83,30 +127,33 @@ export default function AvatarModal({ currentAvatarUrl, onSaveFile, onSaveIcon, 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-40 h-40 rounded-full overflow-hidden ring-1 ring-[#E4ECE7] bg-[#F7FAF8] flex items-center justify-center group relative"
+              disabled={saving}
+              className="group relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border border-dashed border-line-strong bg-cream-deep/45 transition-colors hover:border-sage hover:bg-cream-deep"
             >
               {pendingPreviewUrl ? (
-                <img src={pendingPreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                <img src={pendingPreviewUrl} alt="Preview" className="h-full w-full object-cover" />
               ) : (
-                <span className="flex flex-col items-center gap-1.5 text-[#718279]">
-                  <MdUpload className="text-2xl" />
-                  <span className="text-xs font-medium">Select a photo</span>
+                <span className="flex flex-col items-center gap-1.5 text-muted">
+                  <MdUpload className="text-2xl" aria-hidden="true" />
+                  <span className="text-[11px] font-medium">Select a photo</span>
                 </span>
               )}
-              <span className="absolute inset-0 bg-[#10231A]/0 group-hover:bg-[#10231A]/10 transition-colors" />
+              <span className="absolute inset-0 bg-ink/0 transition-colors group-hover:bg-ink/10" />
             </button>
             {pendingPreviewUrl && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs font-medium text-[#14532D] hover:text-[#166534] mt-3 transition-colors"
+                disabled={saving}
               >
                 Choose a different photo
-              </button>
+              </Button>
             )}
           </>
         ) : (
-          <div className="grid grid-cols-3 gap-3 w-full">
+          <div className="grid w-full grid-cols-3 gap-2.5">
             {AVATAR_ICON_KEYS.map((key) => {
               const { Icon, label } = AVATAR_ICONS[key];
               const isSelected = selectedIcon === key;
@@ -115,43 +162,29 @@ export default function AvatarModal({ currentAvatarUrl, onSaveFile, onSaveIcon, 
                   key={key}
                   type="button"
                   onClick={() => setSelectedIcon(key)}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                  disabled={saving}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-colors ${
                     isSelected
-                      ? 'border-[#14532D] bg-[#E9F4EE]'
-                      : 'border-[#E4ECE7] bg-white hover:border-[#14532D]/40'
+                      ? 'border-sage bg-sage-soft'
+                      : 'border-ink/10 bg-paper hover:border-line-strong'
                   }`}
                 >
-                  <span className="w-11 h-11 rounded-full bg-[#E9F4EE] flex items-center justify-center overflow-hidden">
-                    <Icon className="w-[70%] h-[70%]" />
+                  <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-paper">
+                    <Icon className="h-[70%] w-[70%]" />
                   </span>
-                  <span className="text-[11px] font-medium text-[#2C4238]">{label}</span>
+                  <span className="text-[10px] font-medium text-soft">{label}</span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {error && <p className="text-xs text-[#EF4444] mt-3 text-center">{error}</p>}
-
-        <div className="flex gap-3 mt-6 w-full">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-            className="flex-1 bg-white text-[#2C4238] border border-[#C5D6CC] px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#F7FAF8] transition-colors disabled:opacity-60"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving || !canSave}
-            className="flex-1 bg-gradient-to-r from-[#14532D] to-[#166534] text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:from-[#166534] hover:to-[#052E16] transition-all disabled:opacity-60"
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-        </div>
+        {error && (
+          <Notice tone="error" className="mt-4 w-full">
+            {error}
+          </Notice>
+        )}
       </div>
-    </div>
+    </ModalShell>
   );
 }

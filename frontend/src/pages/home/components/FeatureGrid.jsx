@@ -10,9 +10,9 @@ const features = [
   },
   {
     icon: FiActivity,
-    title: 'A per-bird readout',
+    title: 'A per-chicken readout',
     description:
-      'Review detected birds with health indicators, estimated weight and oil yield, and market-readiness status.',
+      'Review detected chickens with health indicators, estimated weight and oil yield, and market-readiness status.',
   },
   {
     icon: FiFolder,

@@ -1,7 +1,8 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { MdBiotech, MdCenterFocusStrong } from 'react-icons/md';
 
-import { MdBiotech } from 'react-icons/md';
 import { NotificationsMenu, ProfileMenu } from './index';
+import Button from './app/Button';
 
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
@@ -15,9 +16,7 @@ function getActiveFromPath(pathname) {
   const exact = navLinks.find((l) => pathname === l.path);
   if (exact) return exact.label;
   // then match nested routes like '/farm/123'
-  const match = navLinks.find(
-    (l) => pathname.startsWith(`${l.path}/`)
-  );
+  const match = navLinks.find((l) => pathname.startsWith(`${l.path}/`));
   return match ? match.label : null;
 }
 
@@ -26,46 +25,63 @@ function TopNav() {
   const location = useLocation();
   const active = getActiveFromPath(location.pathname);
 
-  const handleNavClick = (link) => {
-    navigate(link.path);
-  };
-
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-white/85 border-b border-[#E4ECE7]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
-      <div className="flex justify-between items-center px-4 md:px-8 min-h-16 max-w-[1200px] mx-auto w-full pt-[env(safe-area-inset-top)]">
-        <button
-          type="button"
-          onClick={() => handleNavClick({ path: '/dashboard' })}
-          aria-label="PoultraScan AI home"
-          className="flex items-center gap-2.5 active:scale-[0.98] transition-transform"
+    <header className="fixed left-0 top-0 z-50 w-full border-b border-ink/12 bg-cream/92 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[68px] w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-6 md:h-[76px] lg:px-10">
+        <Link
+          to="/dashboard"
+          aria-label="PoultraScan AI dashboard"
+          className="flex min-w-0 items-center gap-2.5 rounded-lg active:scale-[0.98]"
         >
-          <span className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#14532D] via-[#166534] to-[#10B981] flex items-center justify-center text-white shadow-md shadow-[#14532D]/30">
-            <MdBiotech className="text-lg" />
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#FACC15] to-[#EAB308] ring-2 ring-white shadow-sm shadow-[#FACC15]/40" />
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-cream">
+            <MdBiotech className="text-[20px]" aria-hidden="true" />
+            <span
+              className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-cream bg-gold"
+              aria-hidden="true"
+            />
           </span>
-          <span className="hidden lg:inline text-[17px] font-bold text-[#10231A] tracking-tight">
-            PoultraScan <span className="text-[#166534] font-extrabold">AI</span>
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate font-display text-[1.25rem] font-semibold leading-none tracking-[-0.025em] text-ink">
+              PoultraScan
+            </span>
+            <span className="mt-1 hidden text-[8px] font-bold uppercase tracking-[0.19em] text-muted sm:block">
+              Poultry intelligence
+            </span>
           </span>
-        </button>
+        </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex gap-1 items-center p-1 rounded-full bg-[#F0F5F2]">
-          {navLinks.map((link) => (
-            <button
-              key={link.label}
-              onClick={() => handleNavClick(link)}
-              className={`rounded-full px-4 py-1.5 text-sm transition-all duration-200 ${
-                active === link.label
-                  ? 'font-semibold text-white bg-gradient-to-r from-[#14532D] to-[#166534] shadow-sm shadow-[#14532D]/25'
-                  : 'font-medium text-[#4B6357] hover:text-[#10231A] hover:bg-white'
-              }`}
-            >
-              {link.label}
-            </button>
-          ))}
+        <nav
+          className="hidden items-center gap-1 rounded-full border border-ink/10 bg-paper/65 p-1 md:flex"
+          aria-label="Primary navigation"
+        >
+          {navLinks.map((link) => {
+            const isActive = active === link.label;
+            return (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => navigate(link.path)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`rounded-full px-4 py-2 text-[12.5px] transition-all duration-200 ${
+                  isActive
+                    ? 'bg-ink font-semibold text-cream shadow-[0_6px_14px_-10px_rgba(16,17,7,0.9)]'
+                    : 'font-semibold text-soft hover:bg-white/70 hover:text-ink'
+                }`}
+              >
+                {link.label}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <div className="hidden md:block">
+            <Button as={Link} to="/scan" size="sm" aria-label="Start a new scan">
+              <MdCenterFocusStrong className="text-base" aria-hidden="true" />
+              New scan
+            </Button>
+          </div>
           <NotificationsMenu />
           <ProfileMenu />
         </div>

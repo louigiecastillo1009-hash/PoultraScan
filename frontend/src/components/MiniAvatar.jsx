@@ -1,18 +1,16 @@
-import {resolveAvatarSrc} from '../utils/AvatarSrc'
-import {getInitials} from '../utils/getInitials'
-import { AVATAR_ICONS, getIconKey } from '../pages/profile/../../utils/avatarIcons'
-
+import { AVATAR_ICONS, getIconKey } from '../utils/avatarIcons';
+import { resolveAvatarSrc } from '../utils/AvatarSrc';
+import { getInitials } from '../utils/getInitials';
 
 export default function MiniAvatar({ fullname, avatarUrl, sizeClass }) {
   const iconKey = getIconKey(avatarUrl);
+  const baseClass = `${sizeClass} flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage-soft font-semibold text-sage-dark`;
 
   if (iconKey && AVATAR_ICONS[iconKey]) {
     const { Icon } = AVATAR_ICONS[iconKey];
     return (
-      <div
-        className={`${sizeClass} rounded-full bg-[#E9F4EE] text-[#14532D] flex items-center justify-center font-semibold overflow-hidden flex-shrink-0`}
-      >
-        <Icon className="w-[70%] h-[70%]" />
+      <div className={baseClass}>
+        <Icon className="h-[70%] w-[70%]" />
       </div>
     );
   }
@@ -20,16 +18,14 @@ export default function MiniAvatar({ fullname, avatarUrl, sizeClass }) {
   const src = resolveAvatarSrc(avatarUrl);
 
   return (
-    <div
-      className={`${sizeClass} rounded-full bg-[#E9F4EE] text-[#14532D] flex items-center justify-center font-semibold overflow-hidden flex-shrink-0`}
-    >
+    <div className={baseClass}>
       {src ? (
         <img
           alt="User profile avatar"
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
           src={src}
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
+          onError={(event) => {
+            event.currentTarget.style.display = 'none';
           }}
         />
       ) : (

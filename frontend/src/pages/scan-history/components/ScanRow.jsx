@@ -1,12 +1,9 @@
 import { useState } from 'react';
+import { MdDelete, MdHourglassEmpty, MdVisibility } from 'react-icons/md';
+
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
-import {
-  MdVisibility,
-  MdDelete,
-  MdHourglassEmpty,
-} from 'react-icons/md';
 import { formatDateTime } from '../../../utils/formatDateTime';
-import { HealthBreakdown, MarketReadyBar, StatusBadge, ConfirmDeleteModal } from './index';
+import { ConfirmDeleteModal, HealthBreakdown, MarketReadyBar, StatusBadge } from './index';
 
 export default function ScanRow({ scan, onDelete, onView }) {
   const { date, time } = formatDateTime(scan.started_at);
@@ -23,47 +20,55 @@ export default function ScanRow({ scan, onDelete, onView }) {
 
   return (
     <>
-      <tr className="hover:bg-[#F7FAF8] transition-colors group">
+      <tr className="group transition-colors hover:bg-cream-deep/40">
         <td className="py-4 pl-2">
-          <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#E4ECE7] bg-[#F7FAF8] flex items-center justify-center flex-shrink-0">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-cream-deep">
             {src ? (
-              <img className="w-full h-full object-cover" src={src} alt="Scan thumbnail" />
+              <img className="h-full w-full object-cover" src={src} alt="" />
             ) : (
-              <MdHourglassEmpty className="text-[#718279] text-lg animate-pulse" />
+              <MdHourglassEmpty className="animate-pulse text-lg text-muted" aria-hidden="true" />
             )}
           </div>
         </td>
-        <td className="py-4 px-3 whitespace-nowrap">
-          <p className="font-medium text-[#10231A] text-sm">{date}</p>
-          <p className="text-xs text-[#718279]">{time}</p>
+        <td className="whitespace-nowrap px-3 py-4">
+          <p className="text-[12.5px] font-semibold text-ink">{date}</p>
+          <p className="text-[10.5px] text-muted">{time}</p>
         </td>
-        <td className="py-4 px-3 max-w-[160px]">
-          <p className="font-medium text-[#10231A] text-sm truncate">{scan.farm_name}</p>
-          <p className="text-xs text-[#718279] truncate">{scan.location}</p>
+        <td className="max-w-[170px] px-3 py-4">
+          <p className="truncate text-[12.5px] font-semibold text-ink">{scan.farm_name}</p>
+          <p className="truncate text-[10.5px] text-muted">{scan.location}</p>
         </td>
-        <td className="py-4 px-3">
-          <HealthBreakdown healthy={scan.healthy_count} diseased={scan.diseased_count} total={scan.total_detected} />
+        <td className="px-3 py-4">
+          <HealthBreakdown
+            healthy={scan.healthy_count}
+            diseased={scan.diseased_count}
+            total={scan.total_detected}
+          />
         </td>
-        <td className="py-4 px-3">
+        <td className="px-3 py-4">
           <MarketReadyBar ready={scan.market_ready_count} total={scan.total_detected} />
         </td>
-        <td className="py-4 px-3 whitespace-nowrap">
+        <td className="whitespace-nowrap px-3 py-4">
           <StatusBadge status={scan.status} />
         </td>
         <td className="py-4 pr-2 text-right">
-          <div className="flex items-center justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
             <button
+              type="button"
               onClick={() => onView(scan)}
               disabled={scan.status === 'PROCESSING'}
-              className="p-1.5 text-[#4B6357] hover:text-[#14532D] hover:bg-[#E9F4EE] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label={`View scan for ${scan.farm_name}`}
+              className="rounded-full p-2 text-soft transition-colors hover:bg-cream-deep hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <MdVisibility className="text-lg" />
+              <MdVisibility className="text-lg" aria-hidden="true" />
             </button>
             <button
+              type="button"
               onClick={() => setConfirmOpen(true)}
-              className="p-1.5 text-[#4B6357] hover:text-[#EF4444] hover:bg-[#FEF2F2] rounded-md transition-colors"
+              aria-label={`Delete scan for ${scan.farm_name}`}
+              className="rounded-full p-2 text-soft transition-colors hover:bg-critical-soft hover:text-critical"
             >
-              <MdDelete className="text-lg" />
+              <MdDelete className="text-lg" aria-hidden="true" />
             </button>
           </div>
         </td>

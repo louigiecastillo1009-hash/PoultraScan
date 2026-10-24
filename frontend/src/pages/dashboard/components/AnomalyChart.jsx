@@ -1,63 +1,90 @@
-import {MdCheckCircle} from 'react-icons/md'
+import { MdCheckCircle } from 'react-icons/md';
 
-export default function AnomalyChart({ diseaseBreakdown, totalAnomalies }) {
-  const palette = ['#14532D', '#F59E0B', '#10B981', '#EF4444', '#4B6357'];
+import EmptyState from '../../../components/app/EmptyState';
+import Surface from '../../../components/app/Surface';
 
+const palette = ['#4D6938', '#B1A03E', '#6E8C56', '#B3261E', '#CCB4A0'];
+
+export default function AnomalyChart({ diseaseBreakdown = [], totalAnomalies = 0 }) {
   const topDiseases = diseaseBreakdown.slice(0, 4);
-  const otherCount = diseaseBreakdown.slice(4).reduce((sum, d) => sum + d.count, 0);
+  const otherCount = diseaseBreakdown.slice(4).reduce((sum, disease) => sum + disease.count, 0);
+
   const segments = [
-    ...topDiseases.map((d, i) => ({
-      label: d.disease.charAt(0) + d.disease.slice(1).toLowerCase(),
-      value: d.count,
-      color: palette[i % palette.length],
+    ...topDiseases.map((disease, index) => ({
+      label: disease.disease.charAt(0) + disease.disease.slice(1).toLowerCase(),
+      value: disease.count,
+      color: palette[index % palette.length],
     })),
-    ...(otherCount > 0 ? [{ label: 'Other', value: otherCount, color: '#C5D6CC' }] : []),
+    ...(otherCount > 0
+      ? [{ label: 'Other', value: otherCount, color: '#CCB4A0' }]
+      : []),
   ];
 
   let cumulative = 0;
-  const gradientStops = segments.map((seg) => {
+  const gradientStops = segments.map((segment) => {
     const start = (cumulative / totalAnomalies) * 360;
-    cumulative += seg.value;
+    cumulative += segment.value;
     const end = (cumulative / totalAnomalies) * 360;
-    return `${seg.color} ${start}deg ${end}deg`;
+    return `${segment.color} ${start}deg ${end}deg`;
   });
 
   return (
-    <div className="md:col-span-6 bg-white rounded-2xl p-6 border border-[#E4ECE7] flex flex-col shadow-card">
-      <h3 className="text-[15px] font-semibold text-[#10231A] mb-6">Anomaly Classification</h3>
+    <Surface className="flex flex-col lg:col-span-6">
+      <div>
+        <h2 className="font-display text-[1.25rem] font-medium tracking-[-0.02em] text-ink">
+          Anomaly classification
+        </h2>
+        <p className="mt-0.5 text-[10.5px] text-muted">Detected conditions across completed scans</p>
+      </div>
+
       {totalAnomalies === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[200px] text-center">
-          <MdCheckCircle className="text-3xl text-[#14532D] mb-2" />
-          <p className="text-sm text-[#4B6357]">No anomalies detected yet.</p>
+        <div className="mt-4 flex flex-1 items-center justify-center">
+          <EmptyState
+            icon={MdCheckCircle}
+            title="No anomalies detected"
+            description="Completed scans will be classified here when something needs attention."
+            className="w-full border-0 bg-transparent px-2 py-6"
+          />
         </div>
       ) : (
         <>
-          <div className="flex-1 flex items-center justify-center min-h-[200px]">
+          <div className="flex flex-1 items-center justify-center py-7">
             <div
-              className="w-40 h-40 rounded-full relative"
+              className="relative h-44 w-44 rounded-full"
               style={{ background: `conic-gradient(${gradientStops.join(', ')})` }}
+              role="img"
+              aria-label={`${totalAnomalies} total anomalies`}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-full m-[26px]">
-                <span className="text-3xl font-bold text-[#10231A] leading-none">{totalAnomalies}</span>
-                <span className="text-xs font-semibold text-[#4B6357] mt-1.5 uppercase tracking-wide">Total</span>
+              <div className="absolute inset-0 m-[24px] flex flex-col items-center justify-center rounded-full bg-paper">
+                <span className="font-display text-[2.5rem] font-medium leading-none tracking-[-0.03em] text-ink">
+                  {totalAnomalies}
+                </span>
+                <span className="mt-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
+                  Total
+                </span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-3 mt-6 pt-5 border-t border-[#E4ECE7]">
-            {segments.map((seg, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
-                  <span className="text-sm font-medium text-[#4B6357]">{seg.label}</span>
+
+          <div className="flex flex-col gap-2.5 border-t border-ink/10 pt-4">
+            {segments.map((segment) => (
+              <div key={segment.label} className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span
+                    className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                    style={{ backgroundColor: segment.color }}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate text-[11.5px] font-medium text-soft">{segment.label}</span>
                 </div>
-                <span className="text-sm font-semibold text-[#10231A]">
-                  {Math.round((seg.value / totalAnomalies) * 100)}%
+                <span className="text-[11.5px] font-bold text-ink">
+                  {Math.round((segment.value / totalAnomalies) * 100)}%
                 </span>
               </div>
             ))}
           </div>
         </>
       )}
-    </div>
+    </Surface>
   );
 }

@@ -1,29 +1,32 @@
-import {
-  MdChevronLeft,
-  MdChevronRight,
-} from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
 
 export default function Pagination({ page, hasMore, onPrev, onNext, count }) {
   return (
-    <div className="mt-5  pt-4 border-t border-[#E4ECE7] flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span className="text-[#718279] text-xs">Page {page} • {count} results</span>
+    <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-ink/10 pt-4 sm:flex-row">
+      <span className="text-[10.5px] text-muted">
+        Page {page} · {count} results
+      </span>
       <div className="flex items-center gap-1.5">
         <button
+          type="button"
           onClick={onPrev}
           disabled={page === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E4ECE7] text-[#4B6357] hover:bg-[#F7FAF8] transition-colors disabled:opacity-40"
+          aria-label="Previous page"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-soft transition-colors hover:border-line-strong hover:bg-cream-deep disabled:opacity-40"
         >
-          <MdChevronLeft className="text-lg" />
+          <MdChevronLeft className="text-lg" aria-hidden="true" />
         </button>
-        <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#14532D] text-white text-xs font-semibold">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-cream">
           {page}
         </span>
         <button
+          type="button"
           onClick={onNext}
           disabled={!hasMore}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E4ECE7] text-[#4B6357] hover:bg-[#F7FAF8] transition-colors disabled:opacity-40"
+          aria-label="Next page"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-soft transition-colors hover:border-line-strong hover:bg-cream-deep disabled:opacity-40"
         >
-          <MdChevronRight className="text-lg" />
+          <MdChevronRight className="text-lg" aria-hidden="true" />
         </button>
       </div>
     </div>

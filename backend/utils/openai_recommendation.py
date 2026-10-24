@@ -23,11 +23,14 @@ _cache_lock = threading.Lock()
 
 FALLBACK_RECOMMENDATION = (
     "AI-generated recommendations are temporarily unavailable. "
-    "Please consult a poultry veterinarian for guidance on this condition."
+    "Meanwhile, keep the coop and surroundings clean and dry, provide "
+    "clean fresh drinking water, and make sure the chickens are fed "
+    "properly."
 )
 FALLBACK_PREVENTION_TIPS = (
-    "Maintain good coop hygiene, proper ventilation, and a balanced diet "
-    "as general best practices while this feature is unavailable."
+    "Clean the coop regularly, replace drinking water with clean fresh "
+    "water every day, and provide the right amount of good-quality feed "
+    "to keep the flock healthy."
 )
 
 
@@ -98,8 +101,13 @@ Return ONLY valid JSON with these exact keys:
 }}
 
 Rules:
-- recommendation: 2-3 sentences.
-- prevention_tips: 2-3 sentences.
+- recommendation: 2-3 sentences of simple hygiene guidance only — keep
+  the coop/pen and surrounding area clean and dry, provide clean fresh
+  drinking water, and make sure the chicken gets proper, balanced
+  feeding. Do NOT mention medicines, drugs, treatments, or veterinarians.
+- prevention_tips: 2-3 sentences about a regular cleaning routine,
+  replacing water with clean fresh water daily, and feeding the right
+  amount of good-quality feed to keep the flock healthy.
 - breed: Best guess or "Unknown".
 - No markdown.
 - No code fences.
@@ -107,7 +115,12 @@ Rules:
 """
     else:
         prompt = f"""
-A chicken was diagnosed with {disease_name} with {confidence_score}% confidence.
+A chicken was flagged by the scanner as possibly showing signs of
+{disease_name} with {confidence_score}% confidence.
+
+IMPORTANT: Do NOT give any medical advice. Never mention medicines,
+drugs, dosages, vaccines, injections, supplements-as-treatment, or
+veterinary care. This app only gives general hygiene and care guidance.
 
 Return ONLY valid JSON:
 
@@ -120,13 +133,17 @@ Return ONLY valid JSON:
 
 Rules:
 - recommendation:
-    Explain immediate treatment,
-    isolation,
-    medication if commonly used,
-    and farm management.
+    2-3 sentences of hygiene and care steps only:
+    clean the coop/pen and surrounding area thoroughly and keep it dry,
+    replace drinking water with clean fresh water,
+    remove leftover or wet feed and provide proper balanced feeding,
+    and keep the area well ventilated.
+    No medicines and no treatment plans.
 
 - prevention_tips:
-    Explain how to prevent future outbreaks.
+    2-3 sentences about a regular cleaning routine for the place,
+    always providing clean drinking water, and feeding the correct
+    amount and quality of feed.
 
 - severity:
     Must be exactly one of:
@@ -149,7 +166,11 @@ Return JSON ONLY.
                 {
                     "role": "system",
                     "content": (
-                        "You are an expert poultry veterinarian. "
+                        "You are a poultry farm hygiene and husbandry "
+                        "assistant. You only give guidance about keeping the "
+                        "place clean, providing clean fresh drinking water, "
+                        "and proper feeding. Never suggest medicines, drugs, "
+                        "dosages, or veterinary treatments. "
                         "Always return valid JSON only."
                     ),
                 },

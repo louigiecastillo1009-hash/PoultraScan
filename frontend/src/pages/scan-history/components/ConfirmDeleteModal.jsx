@@ -1,51 +1,49 @@
-import { MdWarning, MdClose } from 'react-icons/md';
-import {PoultraScanLoader} from '../../../components/ui'
+import { MdWarning } from 'react-icons/md';
+
+import { Button, ModalShell } from '../../../components/index';
 
 export default function ConfirmDeleteModal({ open, onCancel, onConfirm, loading }) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-150">
-        <button
-          onClick={onCancel}
-          className="absolute top-3 right-3 p-1.5 text-[#718279] hover:text-[#10231A] hover:bg-[#F7FAF8] rounded-md transition-colors"
-        >
-          <MdClose className="text-lg" />
-        </button>
-
-        <div className="flex flex-col items-center text-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center">
-            <MdWarning className="text-2xl text-[#EF4444]" />
-          </div>
-          <h2 className="text-base font-semibold text-[#10231A]">Delete this scan?</h2>
-          <p className="text-sm text-[#4B6357]">
-            This will permanently remove the scan and its results. This action can't be undone.
-          </p>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg border border-[#E4ECE7] text-sm font-semibold text-[#10231A] hover:bg-[#F7FAF8] transition-colors"
-          >
+    <ModalShell
+      open={open}
+      onClose={onCancel}
+      title="Delete this scan?"
+      description="This will permanently remove the scan and its results. This action can't be undone."
+      icon={<MdWarning className="text-lg" />}
+      size="sm"
+      footer={
+        <div className="flex gap-3">
+          <Button type="button" variant="secondary" className="flex-1" onClick={onCancel}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            className="flex-1"
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 py-2.5 rounded-lg bg-[#EF4444] text-sm font-semibold text-white hover:bg-[#EF4444] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
-              <PoultraScanLoader size={18} label={null} className="gap-0" />
+              <>
+                <span
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                  aria-hidden="true"
+                />
+                Deleting...
+              </>
             ) : (
-              'Delete'
+              'Delete scan'
             )}
-          </button>
+          </Button>
         </div>
+      }
+    >
+      <div className="rounded-2xl border border-[#E9C4BE] bg-critical-soft p-4">
+        <p className="text-[12.5px] leading-5 text-[#8F1D17]">
+          The scan photo, health counts, and per-chicken results will all be removed from this
+          farm&apos;s history.
+        </p>
       </div>
-    </div>
+    </ModalShell>
   );
 }

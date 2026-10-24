@@ -1,4 +1,4 @@
-export default function ScanCorners({ color = '#FACC15', className = '' }) {
+export default function ScanCorners({ color = '#B1A03E', className = '' }) {
   return (
     <div className={`pointer-events-none absolute inset-0 ${className}`}>
       <span className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 rounded-tl-sm" style={{ borderColor: color }} />

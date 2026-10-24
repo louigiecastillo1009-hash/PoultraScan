@@ -1,13 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import {
-  
-  MdSettings,
-  
-  MdHelpOutline,
-  MdDarkMode,
-  MdLanguage,
-
-} from 'react-icons/md';
+import { MdSettings, MdHelpOutline, MdDarkMode, MdLanguage } from 'react-icons/md';
 
 export default function SettingsMenu() {
   const [open, setOpen] = useState(false);
@@ -33,38 +25,40 @@ export default function SettingsMenu() {
     <>
       {open && (
         <div
-          className="fixed inset-0 bg-[#10231A]/20 backdrop-blur-sm z-40 transition-opacity"
+          className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[2px] transition-opacity"
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
       )}
       <div className={`relative ${open ? 'z-50' : ''}`} ref={containerRef}>
         <button
+          type="button"
           onClick={() => setOpen((prev) => !prev)}
           aria-label="Settings"
           aria-expanded={open}
-          className="p-2 rounded-full text-[#4B6357] hover:bg-[#F7FAF8] hover:text-[#10231A] transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14532D]/40"
+          className="rounded-full p-2 text-soft transition-all hover:bg-ink/5 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 active:scale-95"
         >
-          <MdSettings className="text-xl" />
+          <MdSettings className="text-xl" aria-hidden="true" />
         </button>
 
         {open && (
-          <div className="fixed top-[calc(env(safe-area-inset-top)+4.25rem)] left-3 right-3 max-h-[calc(100dvh-6rem)] overflow-y-auto sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-64 sm:max-h-none bg-white rounded-xl border border-[#E9F4EE] shadow-[0_12px_32px_rgba(16, 35, 26,0.12)] z-50 animate-menu-pop">
-            <div className="px-4 py-3 border-b border-[#E9F4EE]">
-              <span className="text-sm font-bold text-[#10231A]">Settings</span>
+          <div className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+4.25rem)] z-50 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-line bg-paper shadow-pop animate-menu-pop sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-64">
+            <div className="border-b border-line px-4 py-3">
+              <span className="text-sm font-bold text-ink">Settings</span>
             </div>
-            <div className="py-1">
+            <div className="p-1.5">
               {settingsItems.map(({ id, label, icon: Icon }) => (
                 <button
+                  type="button"
                   key={id}
                   onClick={() => {
                     console.log(`Settings option clicked: ${label}`);
                     setOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-[#F7FAF8] transition-all"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-cream-deep"
                 >
-                  <Icon className="text-[#4B6357] text-base" />
-                  <span className="text-xs font-medium text-[#10231A]">{label}</span>
+                  <Icon className="text-base text-soft" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-ink">{label}</span>
                 </button>
               ))}
             </div>

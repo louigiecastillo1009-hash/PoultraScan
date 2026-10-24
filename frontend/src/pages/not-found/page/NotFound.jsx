@@ -1,54 +1,57 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdSearchOff, MdArrowBack, MdCenterFocusStrong } from 'react-icons/md';
+import { MdArrowBack, MdCenterFocusStrong } from 'react-icons/md';
 
-import { TopNav, Footer, BottomNav } from '../../../components/index';
+import { Button, Surface } from '../../../components/index';
 
 export default function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#F7FAF8] text-[#10231A] antialiased min-h-dvh flex flex-col font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
-      <TopNav />
-      <div className="md:hidden">
-        <BottomNav />
-      </div>
+    <div className="flex min-h-[calc(100dvh-14rem)] items-center justify-center py-4">
+      <Surface padding="none" className="grid w-full max-w-3xl overflow-hidden md:grid-cols-[1.05fr_0.95fr]">
+        <div className="flex flex-col justify-center p-7 sm:p-10">
+          <span className="app-eyebrow">Error 404</span>
 
-      <main className="flex-grow pt-[calc(env(safe-area-inset-top)+6rem)] md:pt-24 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] md:pb-12 px-4 md:px-8 max-w-[1200px] mx-auto w-full flex items-center justify-center">
-        <div className="w-full max-w-md bg-white rounded-2xl border border-[#E4ECE7] shadow-card p-8 sm:p-10 flex flex-col items-center text-center">
-          <span className="text-[64px] leading-none font-bold tracking-tight bg-gradient-to-br from-[#14532D] to-[#166534] bg-clip-text text-transparent">
+          <p className="mt-5 font-display text-[clamp(4rem,10vw,6rem)] font-medium leading-none tracking-[-0.04em] text-ink">
             404
-          </span>
-
-          <div className="w-14 h-14 rounded-2xl bg-[#E9F4EE] flex items-center justify-center mt-1 mb-5">
-            <MdSearchOff className="text-2xl text-[#14532D]" />
-          </div>
-
-          <h1 className="text-xl font-bold text-[#10231A] tracking-tight">Page not found</h1>
-          <p className="text-[#4B6357] text-sm mt-2 mb-7 leading-relaxed">
-            The page you're looking for doesn't exist or may have been moved.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex-1 h-11 bg-white text-[#10231A] border border-[#E4ECE7] rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#F7FAF8] transition-colors active:scale-[0.98]"
-            >
-              <MdArrowBack className="text-lg" />
+          <h1 className="mt-4 font-display text-[2rem] font-medium leading-tight tracking-[-0.025em] text-ink sm:text-[2.35rem]">
+            Page not found
+          </h1>
+          <p className="mt-2 max-w-sm text-[12.5px] leading-6 text-muted">
+            The page you&apos;re looking for doesn&apos;t exist or may have been moved.
+          </p>
+
+          <div className="mt-7 flex flex-col gap-2.5 sm:flex-row">
+            <Button variant="secondary" className="flex-1" onClick={() => navigate('/dashboard')}>
+              <MdArrowBack className="text-lg" aria-hidden="true" />
               Dashboard
-            </button>
-            <button
-              onClick={() => navigate('/scan')}
-              className="flex-1 h-11 bg-gradient-to-br from-[#14532D] to-[#166534] text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-[#166534] hover:to-[#052E16] transition-all active:scale-[0.98] shadow-md shadow-[#14532D]/25"
-            >
-              <MdCenterFocusStrong className="text-lg" />
-              Scan Poultry
-            </button>
+            </Button>
+            <Button className="flex-1" onClick={() => navigate('/scan')}>
+              <MdCenterFocusStrong className="text-lg" aria-hidden="true" />
+              Scan poultry
+            </Button>
           </div>
         </div>
-      </main>
 
-      <Footer />
+        <div className="relative hidden min-h-[420px] md:block">
+          <img
+            src="/img/poultry-farmer.jpg"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-cream/15 bg-ink/55 p-4 backdrop-blur-sm">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-cream/60">
+              Lost in the coop?
+            </p>
+            <p className="mt-1 text-[12px] leading-5 text-cream/85">
+              Let&apos;s get you back to the flock.
+            </p>
+          </div>
+        </div>
+      </Surface>
     </div>
   );
 }

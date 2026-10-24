@@ -12,7 +12,7 @@ import { HeroVisual, Reveal } from './index';
 const checks = [
   { icon: FiCamera, label: 'Phone camera or image upload' },
   { icon: FiFolder, label: 'Results saved to your farm' },
-  { icon: FiActivity, label: 'Per-bird scan results' },
+  { icon: FiActivity, label: 'Per-chicken scan results' },
 ];
 
 export default function Hero() {
@@ -42,7 +42,7 @@ export default function Hero() {
           <Reveal delay={140}>
             <p className="ps-lead mt-6 max-w-[36rem]">
               Photograph your flock and let PoultraScan&apos;s AI-assisted analysis
-              count the birds in view, flag possible health concerns, and estimate
+              count the chickens in view, flag possible health concerns, and estimate
               weight and market readiness — a simpler first look at your flock,
               right from your phone.
             </p>

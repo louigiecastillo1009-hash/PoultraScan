@@ -1,15 +1,16 @@
 import { MdCameraAlt } from 'react-icons/md';
-import { resolveAvatarSrc } from '../../../utils/AvatarSrc';
-import { AVATAR_ICONS, isIconAvatar, getIconKey } from '../../../utils/avatarIcons';
-import {PoultraScanLoader} from '../../../components/ui';
 
-export default function Avatar({ fullname, avatarUrl, size = 'w-24 h-24', onClick, uploading }) {
+import { PoultraScanLoader } from '../../../components/ui';
+import { resolveAvatarSrc } from '../../../utils/AvatarSrc';
+import { AVATAR_ICONS, getIconKey, isIconAvatar } from '../../../utils/avatarIcons';
+
+export default function Avatar({ fullname, avatarUrl, size = 'h-24 w-24', onClick, uploading }) {
   const initials = fullname
     ? fullname
         .trim()
         .split(/\s+/)
         .slice(0, 2)
-        .map((w) => w[0]?.toUpperCase())
+        .map((word) => word[0]?.toUpperCase())
         .join('')
     : '?';
 
@@ -23,17 +24,19 @@ export default function Avatar({ fullname, avatarUrl, size = 'w-24 h-24', onClic
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className={`${size} rounded-full bg-[#E9F4EE] text-[#14532D] flex items-center justify-center text-2xl font-semibold flex-shrink-0 ring-4 ring-white shadow-sm overflow-hidden relative ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`relative flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage-soft text-[1.6rem] font-semibold text-sage-dark shadow-card ring-4 ring-paper ${
+        size
+      } ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
       {IconEntry ? (
-        <IconEntry.Icon className="w-[70%] h-[70%]" />
+        <IconEntry.Icon className="h-[70%] w-[70%]" />
       ) : src ? (
         <img
           src={src}
           alt={fullname || 'Profile'}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
+          className="h-full w-full object-cover"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none';
           }}
         />
       ) : (
@@ -41,13 +44,13 @@ export default function Avatar({ fullname, avatarUrl, size = 'w-24 h-24', onClic
       )}
 
       {onClick && (
-        <span className="absolute inset-0 bg-[#10231A]/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-          <MdCameraAlt className="text-white text-xl" />
+        <span className="absolute inset-0 flex items-center justify-center bg-ink/40 opacity-0 transition-opacity hover:opacity-100">
+          <MdCameraAlt className="text-xl text-cream" aria-hidden="true" />
         </span>
       )}
 
       {uploading && (
-        <span className="absolute inset-0 bg-[#10231A]/50 flex items-center justify-center">
+        <span className="absolute inset-0 flex items-center justify-center bg-ink/50">
           <PoultraScanLoader size={20} label={null} className="gap-0" />
         </span>
       )}

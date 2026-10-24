@@ -38,13 +38,40 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class AIPredictionService:
 
+    # The AI alone is not accurate enough to alarm the farmer. A chicken is
+    # only shown as "Not Healthy" when a SPECIFIC condition was identified
+    # AND the model is reasonably confident. Anything uncertain (UNKNOWN,
+    # low confidence, failed classification) is shown as "Healthy" — the
+    # raw result is still stored in the DB for the record.
+    MIN_FLAG_CONFIDENCE = 50.0
+
     @staticmethod
-    def _display_status(disease_name: str) -> str:
+    def _is_healthy(disease_name: str, confidence_score) -> bool:
         """
-        UNKNOWN (classification failed) is treated as Not Healthy so a
-        failed scan never gets shown to the user as a clean bill of health.
+        Treats every uncertain outcome (UNKNOWN label, missing confidence,
+        or confidence below MIN_FLAG_CONFIDENCE) as Healthy so a healthy
+        chicken is never falsely flagged as not healthy.
         """
-        return "Healthy" if disease_name == "HEALTHY" else "Not Healthy"
+        if disease_name == "HEALTHY":
+            return True
+        if disease_name == "UNKNOWN":
+            return True
+        if confidence_score is None:
+            return True
+        if float(confidence_score) < AIPredictionService.MIN_FLAG_CONFIDENCE:
+            return True
+        return False
+
+    @staticmethod
+    def _display_status(disease_name: str, confidence_score) -> str:
+        """
+        The API response only ever says "Healthy" or "Not Healthy" — a
+        chicken counts as not healthy only when a specific condition was
+        identified with at least MIN_FLAG_CONFIDENCE confidence.
+        """
+        if AIPredictionService._is_healthy(disease_name, confidence_score):
+            return "Healthy"
+        return "Not Healthy"
 
     @staticmethod
     def _validate_file(file: UploadFile, contents: bytes):
@@ -100,7 +127,7 @@ class AIPredictionService:
         return [{
             "disease_name": "UNKNOWN",
             "confidence_score": 0.0,
-            "reasoning": "AI classification temporarily unavailable (rate limit).",
+            "reasoning": "AI classification was temporarily unavailable (rate limit), so this chicken could not be assessed.",
             "model_used": "n/a",
         } for _ in range(chicken_count)]
 
@@ -196,9 +223,9 @@ class AIPredictionService:
             "chicken_image_id": chicken_image.id,
             "image_url": image_url,
             "ai_prediction_id": ai_prediction.id,
-            "disease": AIPredictionService._display_status(disease_name),
+            "disease": AIPredictionService._display_status(disease_name, confidence_score),
             "confidence": confidence_score,
-            "healthy": disease_name == "HEALTHY",
+            "healthy": AIPredictionService._is_healthy(disease_name, confidence_score),
             "reasoning": reasoning,
             "estimated_weight": float(ai_prediction.estimated_weight),
             "estimated_oil_ml": float(ai_prediction.estimated_oil_ml),
@@ -350,15 +377,16 @@ class AIPredictionService:
 
         results = []
         for chicken, prediction, image in rows:
+            confidence = float(prediction.disease_confidence) if prediction.disease_confidence is not None else None
             results.append({
                 "detected_chicken_id": chicken.id,
                 "tracking_id": chicken.tracking_id,
                 "chicken_image_id": image.id if image else None,
                 "image_url": image.image_url if image else None,
                 "ai_prediction_id": prediction.id,
-                "disease": AIPredictionService._display_status(prediction.disease),
-                "confidence": float(prediction.disease_confidence) if prediction.disease_confidence is not None else None,
-                "healthy": prediction.disease == "HEALTHY",
+                "disease": AIPredictionService._display_status(prediction.disease, confidence),
+                "confidence": confidence,
+                "healthy": AIPredictionService._is_healthy(prediction.disease, confidence),
                 "reasoning": None,
                 "estimated_weight": float(prediction.estimated_weight) if prediction.estimated_weight is not None else None,
                 "estimated_oil_ml": float(prediction.estimated_oil_ml) if prediction.estimated_oil_ml is not None else None,

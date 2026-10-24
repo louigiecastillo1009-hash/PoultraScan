@@ -7,8 +7,9 @@ import {
   MdExpandMore,
   MdExpandLess,
 } from 'react-icons/md';
+
 import { useNotifications } from '../hooks/useNotification';
-import {PoultraScanLoader} from './ui';
+import { PoultraScanLoader } from './ui';
 
 const VISIBLE_LIMIT = 5;
 
@@ -51,35 +52,42 @@ export default function NotificationsMenu() {
     <>
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-[#10231A]/20 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[2px] transition-opacity"
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
       )}
       <div className={`relative ${open ? 'z-50' : ''}`} ref={containerRef}>
         <button
+          type="button"
           onClick={() => setOpen((prev) => !prev)}
           aria-label="Notifications"
           aria-expanded={open}
-          className="relative rounded-full p-2 text-[#4B6357] transition-all hover:bg-[#F7FAF8] hover:text-[#10231A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14532D]/40 active:scale-95"
+          className="relative rounded-full p-2 text-soft transition-all hover:bg-ink/5 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 active:scale-95"
         >
-          <MdNotifications className="text-xl" />
+          <MdNotifications className="text-xl" aria-hidden="true" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#14532D] px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink px-1 text-[9px] font-bold leading-none text-cream ring-2 ring-cream">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
 
         {open && (
-          <div className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+4.25rem)] max-h-[min(70vh,calc(100dvh-9.5rem))] z-50 flex flex-col overflow-hidden rounded-2xl border border-[#E9F4EE] bg-white shadow-[0_16px_40px_rgba(16,35,26,0.14)] animate-menu-pop sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[26rem] sm:w-80">
+          <div className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+4.25rem)] z-50 flex max-h-[min(70vh,calc(100dvh-9.5rem))] flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-pop animate-menu-pop sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[26rem] sm:w-80">
             {/* Header */}
-            <div className="flex flex-shrink-0 items-center justify-between border-b border-[#E9F4EE] px-4 py-3">
-              <span className="text-sm font-bold text-[#10231A]">Notifications</span>
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-line px-4 py-3">
+              <div>
+                <p className="text-sm font-bold text-ink">Notifications</p>
+                <p className="text-[10px] text-muted">
+                  {unreadCount > 0 ? `${unreadCount} unread update${unreadCount === 1 ? '' : 's'}` : 'You are all caught up'}
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close notifications"
-                className="rounded-full p-1 text-[#718279] transition-all hover:bg-[#F7FAF8] hover:text-[#10231A]"
+                className="rounded-full p-1 text-muted transition-all hover:bg-cream-deep hover:text-ink"
               >
                 <MdClose className="text-base" />
               </button>
@@ -94,15 +102,17 @@ export default function NotificationsMenu() {
               )}
 
               {!loading && error && (
-                <div className="px-4 py-10 text-center text-xs text-[#EF4444]">
+                <div className="px-4 py-10 text-center text-xs text-critical">
                   Couldn't load notifications.
                 </div>
               )}
 
               {!loading && !error && notifications.length === 0 && (
                 <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
-                  <MdNotificationsNone className="text-2xl text-[#718279]" />
-                  <span className="text-xs text-[#718279]">No notifications yet.</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-cream-deep text-muted">
+                    <MdNotificationsNone className="text-xl" aria-hidden="true" />
+                  </span>
+                  <span className="text-xs text-muted">No notifications yet.</span>
                 </div>
               )}
 
@@ -110,33 +120,36 @@ export default function NotificationsMenu() {
                 !error &&
                 visibleNotifications.map((n) => (
                   <button
+                    type="button"
                     key={n.id}
                     onClick={() => markAsRead(n.id)}
-                    className="flex w-full gap-2.5 border-b border-[#E9F4EE] px-4 py-3 text-left transition-all last:border-0 hover:bg-[#F7FAF8]"
+                    className="flex w-full gap-2.5 border-b border-line px-4 py-3 text-left transition-all last:border-0 hover:bg-cream-deep/55"
                   >
                     <span
                       className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-                        n.is_read ? 'bg-transparent' : 'bg-[#14532D]'
+                        n.is_read ? 'bg-transparent' : 'bg-gold'
                       }`}
+                      aria-hidden="true"
                     />
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span
                         className={`text-xs ${
-                          n.is_read ? 'font-medium text-[#4B6357]' : 'font-semibold text-[#10231A]'
+                          n.is_read ? 'font-medium text-soft' : 'font-semibold text-ink'
                         }`}
                       >
                         {n.title}
                       </span>
-                      <span className="text-[11px] leading-snug text-[#4B6357]">{n.message}</span>
-                      <span className="mt-0.5 text-[10px] text-[#718279]">{timeAgo(n.created_at)}</span>
+                      <span className="text-[11px] leading-snug text-soft">{n.message}</span>
+                      <span className="mt-0.5 text-[10px] text-muted">{timeAgo(n.created_at)}</span>
                     </div>
                   </button>
                 ))}
 
               {!loading && !error && hasMore && (
                 <button
+                  type="button"
                   onClick={() => setExpanded((prev) => !prev)}
-                  className="flex w-full items-center justify-center gap-1.5 border-b border-[#E9F4EE] py-2.5 text-xs font-semibold text-[#14532D] transition-all hover:bg-[#E9F4EE]"
+                  className="flex w-full items-center justify-center gap-1.5 border-b border-line py-2.5 text-xs font-semibold text-olive transition-all hover:bg-cream-deep"
                 >
                   {expanded ? (
                     <>
@@ -155,9 +168,10 @@ export default function NotificationsMenu() {
 
             {/* Footer */}
             <button
+              type="button"
               onClick={markAllAsRead}
               disabled={unreadCount === 0}
-              className="flex flex-shrink-0 items-center justify-center gap-1.5 border-t border-[#E9F4EE] py-2.5 text-xs font-semibold text-[#14532D] transition-all hover:bg-[#E9F4EE] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex flex-shrink-0 items-center justify-center gap-1.5 border-t border-line py-2.5 text-xs font-semibold text-olive transition-all hover:bg-cream-deep disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MdDoneAll className="text-sm" />
               Mark all as read

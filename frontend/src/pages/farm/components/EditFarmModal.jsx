@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react';
 import { MdEdit, MdImage, MdRefresh } from 'react-icons/md';
 
+import { Button, Notice, TextField } from '../../../components/index';
 import FarmLocationSelect from './FarmLocationSelect';
 import FarmModalShell from './FarmModalShell';
 import { useFarmLocation, composeFarmAddress } from '../hooks/useFarmLocation';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 
 const FORM_ID = 'farm-details-form';
-
-const FIELD_CLASSES =
-  'h-11 w-full rounded-xl border border-[#DFE6E0] bg-white px-3.5 text-sm text-[#1B2922] placeholder:text-[#8F9B93] transition-colors focus:border-[#1E4A38]';
-
-const LABEL_CLASSES = 'text-[12px] font-semibold text-[#56665C]';
 
 export default function EditFarmModal({ farm, onClose, onSave, saving, error }) {
   const existingPreview = farm?.image_url ? thumbnailSrc(farm.image_url) : null;
@@ -33,15 +29,15 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
     [previewUrl]
   );
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
     if (!file) return;
     setImageFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
     let locationValue;
     setLocationError(null);
@@ -71,8 +67,7 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
     });
   };
 
-  const provinceKnown =
-    !location.regionDataState.loading && !location.regionDataState.error;
+  const provinceKnown = !location.regionDataState.loading && !location.regionDataState.error;
   const provinceNotApplicable = Boolean(
     location.region && provinceKnown && !location.provincesApplicable
   );
@@ -92,30 +87,19 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
       footer={
         <div className="flex flex-col gap-3">
           {footerError && (
-            <p
-              role="alert"
-              className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium leading-relaxed text-[#B42318]"
-            >
-              {footerError}
-            </p>
+            <Notice tone="error" title={footerError} />
           )}
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#DFE6E0] bg-white px-4 text-sm font-semibold text-[#56665C] transition-colors hover:bg-[#ECF1ED] hover:text-[#1B2922] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4A38]/35"
-            >
+            <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              form={FORM_ID}
-              disabled={saving}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E4A38] px-4 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(40,92,69,0.65)] transition-colors hover:bg-[#173D2D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4A38]/35 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            </Button>
+            <Button type="submit" form={FORM_ID} disabled={saving} className="flex-1">
               {saving ? (
                 <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                  <span
+                    className="h-4 w-4 animate-spin rounded-full border-2 border-cream/35 border-t-cream"
+                    aria-hidden="true"
+                  />
                   Saving...
                 </>
               ) : farm ? (
@@ -123,46 +107,43 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
               ) : (
                 'Add farm'
               )}
-            </button>
+            </Button>
           </div>
         </div>
       }
     >
-      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-5">
+      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-6">
         <section aria-labelledby="farm-photo-heading" className="space-y-2.5">
           <div className="flex items-center justify-between gap-3">
-            <span id="farm-photo-heading" className={LABEL_CLASSES}>
+            <span
+              id="farm-photo-heading"
+              className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-olive"
+            >
               Farm photo
             </span>
-            <span className="text-[11px] text-[#65746B]">Optional</span>
+            <span className="text-[10.5px] text-muted">Optional</span>
           </div>
 
           <label
             htmlFor="farm-image-input"
-            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#C9D7CE] bg-[#FBFCFA] p-3 transition-colors hover:border-[#1E4A38] hover:bg-[#F4F6F2] focus-within:border-[#1E4A38]"
+            className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-line-strong bg-cream-deep/35 p-3 transition-colors hover:border-sage hover:bg-cream-deep/60 focus-within:border-sage"
           >
             {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt=""
-                className="h-12 w-12 shrink-0 rounded-lg object-cover"
-              />
+              <img src={previewUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
             ) : (
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#E6F1EA] text-[#1E4A38]">
-                <MdImage className="text-xl" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-sage-dark">
+                <MdImage className="text-xl" aria-hidden="true" />
               </span>
             )}
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold text-[#1B2922]">
+              <span className="block truncate text-[12.5px] font-semibold text-ink">
                 {imageFile ? imageFile.name : previewUrl ? 'Change farm photo' : 'Upload a farm photo'}
               </span>
-              <span className="mt-0.5 block text-[11px] text-[#65746B]">
-                PNG, JPG or WebP
-              </span>
+              <span className="mt-0.5 block text-[10.5px] text-muted">PNG, JPG or WebP</span>
             </span>
 
-            <span className="hidden shrink-0 rounded-lg border border-[#DFE6E0] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#56665C] group-hover:border-[#C2D2C8] sm:block">
+            <span className="hidden shrink-0 rounded-full border border-line bg-paper px-3 py-1.5 text-[10.5px] font-semibold text-soft group-hover:border-line-strong sm:block">
               Browse
             </span>
           </label>
@@ -176,62 +157,54 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
         </section>
 
         <section aria-labelledby="farm-details-heading" className="space-y-4">
-          <h3 id="farm-details-heading" className="text-[13px] font-bold text-[#1B2922]">
+          <h3 id="farm-details-heading" className="font-display text-lg font-medium text-ink">
             Farm details
           </h3>
 
-          <div className="space-y-1.5">
-            <label htmlFor="farm-name" className={LABEL_CLASSES}>
-              Farm name <span className="text-[#B42318]">*</span>
-            </label>
-            <input
-              id="farm-name"
-              type="text"
-              value={farmName}
-              onChange={(e) => setFarmName(e.target.value)}
-              required
-              autoComplete="organization"
-              placeholder="e.g. San Isidro Poultry Farm"
-              className={FIELD_CLASSES}
-            />
-          </div>
+          <TextField
+            label={
+              <>
+                Farm name <span className="text-critical">*</span>
+              </>
+            }
+            id="farm-name"
+            type="text"
+            value={farmName}
+            onChange={(event) => setFarmName(event.target.value)}
+            required
+            autoComplete="organization"
+            placeholder="e.g. San Isidro Poultry Farm"
+          />
 
-          <div className="space-y-1.5">
-            <label htmlFor="farm-capacity" className={LABEL_CLASSES}>
-              Capacity
-            </label>
-            <input
-              id="farm-capacity"
-              type="number"
-              min="0"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              inputMode="numeric"
-              placeholder="Number of birds"
-              className={FIELD_CLASSES}
-            />
-            <p className="text-[11px] leading-relaxed text-[#65746B]">
-              Optional. You can update this as your flock grows.
-            </p>
-          </div>
+          <TextField
+            label="Capacity"
+            id="farm-capacity"
+            type="number"
+            min="0"
+            value={capacity}
+            onChange={(event) => setCapacity(event.target.value)}
+            inputMode="numeric"
+            placeholder="Number of chickens"
+            hint="Optional. You can update this as your flock grows."
+          />
         </section>
 
         <section
           aria-labelledby="farm-location-heading"
-          className="space-y-3 border-t border-[#ECF1ED] pt-5"
+          className="space-y-3 border-t border-ink/10 pt-5"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h3 id="farm-location-heading" className="text-[13px] font-bold text-[#1B2922]">
-                Location <span className="text-[#B42318]">*</span>
+              <h3 id="farm-location-heading" className="font-display text-lg font-medium text-ink">
+                Location <span className="text-critical">*</span>
               </h3>
-              <p className="mt-0.5 text-[11px] text-[#65746B]">
+              <p className="mt-0.5 text-[10.5px] text-muted">
                 Select from region down to barangay.
               </p>
             </div>
             {farm?.location && (
               <p
-                className="max-w-full rounded-lg bg-[#ECF1ED] px-2.5 py-1.5 text-[11px] leading-relaxed text-[#56665C] sm:max-w-[19rem]"
+                className="max-w-full rounded-xl bg-cream-deep px-2.5 py-1.5 text-[10.5px] leading-relaxed text-soft sm:max-w-[19rem]"
                 title={farm.location}
               >
                 Current: {farm.location}
@@ -273,9 +246,7 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
             <FarmLocationSelect
               label="City / Municipality"
               placeholder={
-                cityNeedsProvince
-                  ? 'Select a province first'
-                  : 'Select city / municipality'
+                cityNeedsProvince ? 'Select a province first' : 'Select city / municipality'
               }
               options={location.cityList}
               value={location.city}
@@ -310,48 +281,41 @@ export default function EditFarmModal({ farm, onClose, onSave, saving, error }) 
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="farm-street" className={LABEL_CLASSES}>
-              Street, purok, or subdivision
-            </label>
-            <input
-              id="farm-street"
-              type="text"
-              value={location.details}
-              onChange={(e) => location.setDetails(e.target.value)}
-              placeholder="House no., street, sitio / purok, etc. (optional)"
-              className={FIELD_CLASSES}
-            />
-          </div>
+          <TextField
+            label="Street, purok, or subdivision"
+            id="farm-street"
+            type="text"
+            value={location.details}
+            onChange={(event) => location.setDetails(event.target.value)}
+            placeholder="House no., street, sitio / purok, etc. (optional)"
+          />
 
           {location.regionsState.error && !location.region && (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2">
-              <p className="text-[12px] font-medium text-[#B42318]">
-                Unable to load regions. Please retry.
-              </p>
-              <button
-                type="button"
-                onClick={location.retryRegionData}
-                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#1E4A38] hover:underline"
-              >
-                <MdRefresh className="text-sm" />
-                Retry
-              </button>
-            </div>
+            <Notice
+              tone="error"
+              action={
+                <Button variant="danger-ghost" size="sm" onClick={location.retryRegionData}>
+                  <MdRefresh className="text-sm" aria-hidden="true" />
+                  Retry
+                </Button>
+              }
+            >
+              Unable to load regions. Please retry.
+            </Notice>
           )}
 
           {location.region && location.regionDataState.error && (
-            <p className="flex flex-wrap items-center gap-1.5 text-[12px] font-medium text-[#B42318]">
+            <Notice
+              tone="error"
+              action={
+                <Button variant="danger-ghost" size="sm" onClick={location.retryRegionData}>
+                  <MdRefresh className="text-sm" aria-hidden="true" />
+                  Retry
+                </Button>
+              }
+            >
               {location.regionDataState.error}
-              <button
-                type="button"
-                onClick={location.retryRegionData}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#1E4A38] hover:underline"
-              >
-                <MdRefresh className="text-sm" />
-                Retry
-              </button>
-            </p>
+            </Notice>
           )}
         </section>
       </form>

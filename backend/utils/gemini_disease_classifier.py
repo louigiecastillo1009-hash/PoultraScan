@@ -99,11 +99,14 @@ is not limited to) any of the following common poultry diseases:
 - NUTRITIONAL_DEFICIENCY — poor feather quality, weakness, leg deformities,
   slow growth without other infection signs
 
-If the bird clearly shows disease signs but they don't cleanly match any
+If the bird clearly shows definite disease signs but they don't cleanly match any
 known condition, use "UNKNOWN" rather than forcing a mismatched label — but
-only after ruling out the conditions above. If you observe ANY concrete signs
-of illness, do not classify as HEALTHY even if you're unsure exactly which
-disease it is — use UNKNOWN in that case instead.
+only AFTER ruling out the conditions above and only for signs that are
+unmistakable (e.g. visible lesions, obvious discharge, paralysis, bloody
+diarrhoea). Because this is an AI-only system with limited accuracy, when
+in doubt ALWAYS choose HEALTHY: mild, possible, or ambiguous signs (a
+slightly pale comb, slightly ruffled feathers, an odd camera angle, dim
+lighting) are never enough to flag a bird as sick.
 
 HEALTHY — choose this when the bird shows NO concrete sign of illness:
 reasonably upright/alert posture, feathers that are not severely ruffled or

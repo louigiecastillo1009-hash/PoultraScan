@@ -14,13 +14,13 @@ const steps = [
     number: '02',
     title: 'Run the scan',
     description:
-      'PoultraScan detects the birds in the frame and runs its AI-assisted health and size estimates.',
+      'PoultraScan detects the chickens in the frame and runs its AI-assisted health and size estimates.',
   },
   {
     number: '03',
     title: 'Review and keep',
     description:
-      'Open the per-bird results and flock summary, then return to the saved scan from history whenever you need it.',
+      'Open the per-chicken results and flock summary, then return to the saved scan from history whenever you need it.',
   },
 ];
 

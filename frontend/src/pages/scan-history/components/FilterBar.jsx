@@ -1,12 +1,17 @@
-import {useState,useEffect} from 'react'
-import { MdSearch,MdCalendarMonth} from 'react-icons/md';
-import { getMyFarms } from '../../../pages/farm/api/farmApi';
+import { useEffect, useState } from 'react';
+import { MdCalendarMonth, MdSearch } from 'react-icons/md';
+
+import { Button, Surface } from '../../../components/index';
+import { getMyFarms } from '../../farm/api/farmApi';
+
 export default function FilterBar({ filters, onChange }) {
   const [search, setSearch] = useState(filters.search);
   const [farms, setFarms] = useState([]);
 
   useEffect(() => {
-    getMyFarms().then(setFarms).catch(() => setFarms([]));
+    getMyFarms()
+      .then(setFarms)
+      .catch(() => setFarms([]));
   }, []);
 
   useEffect(() => {
@@ -14,54 +19,69 @@ export default function FilterBar({ filters, onChange }) {
       if (search !== filters.search) onChange({ search });
     }, 400);
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [search, filters.search, onChange]);
+
+  const hasFilters = filters.search || filters.farmId || filters.dateFrom || filters.dateTo;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E4ECE7] p-3 sm:p-4 mb-5 flex flex-col sm:flex-row sm:flex-wrap gap-2.5 sm:gap-3 sm:items-center shadow-card">
-      <div className="w-full sm:flex-1 sm:min-w-[200px] h-11 border border-[#E4ECE7] rounded-lg flex items-center px-4 bg-[#F7FAF8] focus-within:ring-2 focus-within:ring-[#14532D]/20 focus-within:border-[#14532D]/40 transition-all">
-        <MdSearch className="text-[#718279] mr-2 text-lg flex-shrink-0" />
+    <Surface padding="sm" className="mb-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="relative w-full sm:min-w-[200px] sm:flex-1">
+        <MdSearch
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-muted"
+          aria-hidden="true"
+        />
         <input
-          className="w-full bg-transparent border-none outline-none text-[#10231A] placeholder:text-[#718279] text-sm focus:ring-0"
-          placeholder="Search by farm name..."
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search by farm name..."
+          aria-label="Search scans by farm name"
+          className="input-field h-11 pl-10 text-[16px] sm:text-sm"
         />
       </div>
 
-     
-     <div className="h-11 border border-[#E4ECE7] rounded-lg flex items-center px-3 bg-[#F7FAF8] w-full sm:min-w-[150px] sm:w-auto text-[#4B6357] text-sm gap-2">
-        <MdCalendarMonth className="text-lg flex-shrink-0" />
+      <div className="relative w-full sm:w-[190px]">
+        <MdCalendarMonth
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-muted"
+          aria-hidden="true"
+        />
         <input
           type="date"
           value={filters.dateTo}
-          onChange={(e) => onChange({ dateTo: e.target.value })}
-          className="flex-1 min-w-0 bg-transparent border-none outline-none text-[#10231A] text-sm"
+          onChange={(event) => onChange({ dateTo: event.target.value })}
+          aria-label="Show scans up to this date"
+          className="input-field h-11 pl-10 pr-2 text-[16px] sm:text-sm"
         />
       </div>
 
-     <select
+      <select
         value={filters.farmId}
-        onChange={(e) => onChange({ farmId: e.target.value })}
-        className="h-11 border border-[#E4ECE7] rounded-lg px-4 bg-[#F7FAF8] w-full sm:w-[180px] text-[#10231A] text-sm outline-none cursor-pointer uppercase"
+        onChange={(event) => onChange({ farmId: event.target.value })}
+        aria-label="Filter by farm"
+        className="input-field h-11 w-full cursor-pointer sm:w-[180px]"
       >
-        <option value="">All Farms</option>
+        <option value="">All farms</option>
         {farms.map((farm) => (
-          <option key={farm.id} value={farm.id}>{farm.farm_name}</option>
+          <option key={farm.id} value={farm.id}>
+            {farm.farm_name}
+          </option>
         ))}
       </select>
 
-      {(filters.search || filters.farmId || filters.dateFrom || filters.dateTo) && (
-        <button
+      {hasFilters && (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="h-11 w-full sm:w-auto"
           onClick={() => {
             setSearch('');
             onChange({ search: '', farmId: '', dateFrom: '', dateTo: '' });
           }}
-          className="h-11 px-4 border border-[#E4ECE7] text-[#2C4238] rounded-lg text-sm font-semibold hover:bg-[#F7FAF8] transition-colors w-full sm:w-auto"
         >
-          Clear
-        </button>
+          Clear filters
+        </Button>
       )}
-    </div>
+    </Surface>
   );
 }

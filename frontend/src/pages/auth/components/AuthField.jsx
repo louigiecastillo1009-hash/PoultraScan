@@ -32,7 +32,7 @@ export default function AuthField({
     <div
       className={`relative flex h-[58px] items-center rounded-2xl border px-4 transition-all duration-200 ${
         focused
-          ? "border-[#6E8C56] bg-white shadow-[0_0_0_4px_rgba(110,140,86,0.13)]"
+          ? "border-[#6E8C56] bg-white"
           : "border-[#101107]/12 bg-[#F8FAEF] hover:border-[#101107]/20"
       }`}
     >

@@ -26,7 +26,7 @@ export default function ProductPreview() {
           </Reveal>
           <Reveal delay={130}>
             <p className="ps-lead mt-5">
-              From the scan screen to the per-bird results, the interface stays focused on
+              From the scan screen to the per-chicken results, the interface stays focused on
               the next useful detail.
             </p>
           </Reveal>
@@ -130,12 +130,12 @@ export default function ProductPreview() {
                     </p>
                   </div>
                   <span className="rounded-full border border-[#101107]/15 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-[#6B6D57]">
-                    Per bird
+                    Per chicken
                   </span>
                 </div>
 
                 <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.13em] text-[#564F1E]">
-                  Each bird card can include
+                  Each chicken card can include
                 </p>
                 <ul className="mt-2 divide-y divide-[#101107]/10 border-y border-[#101107]/12">
                   {resultItems.map((item) => (

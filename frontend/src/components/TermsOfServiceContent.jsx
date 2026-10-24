@@ -1,10 +1,10 @@
 export default function TermsOfServiceContent() {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-[#718279]">Last Updated: July 9, 2026</p>
+      <p className="text-xs text-[#6F7160]">Last Updated: July 9, 2026</p>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">1. Acceptance of Terms</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">1. Acceptance of Terms</h3>
         <p>
           By creating an account or using PoultraScan AI ("the Service," "we," "us," or "our"), you
           agree to be bound by these Terms of Service. If you do not agree to these terms, please do
@@ -13,7 +13,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">2. Description of Service</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">2. Description of Service</h3>
         <p className="mb-2">PoultraScan AI is a poultry health diagnostic and farm management application. The Service allows users to:</p>
         <ul className="list-disc pl-5 flex flex-col gap-1">
           <li>Create and manage one or more poultry farms</li>
@@ -24,7 +24,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">3. Eligibility and Accounts</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">3. Eligibility and Accounts</h3>
         <p>
           You must provide accurate and complete information when registering for an account,
           including a valid email address. You are responsible for maintaining the confidentiality
@@ -39,8 +39,8 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">4. AI-Generated Results Are Estimates, Not Veterinary Diagnoses</h3>
-        <p className="font-semibold text-[#10231A] mb-2">This is the most important section of these Terms.</p>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">4. AI-Generated Results Are Estimates, Not Veterinary Diagnoses</h3>
+        <p className="font-semibold text-[#101107] mb-2">This is the most important section of these Terms.</p>
         <p className="mb-2">
           PoultraScan AI uses artificial intelligence to analyze images of poultry and generate
           estimates related to disease indicators, weight, oil yield, and market readiness. These
@@ -60,7 +60,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">5. User Content</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">5. User Content</h3>
         <p>
           "User Content" includes images, farm data, journal entries, and any other information you
           upload or input into the Service. You retain ownership of your User Content. By uploading
@@ -75,7 +75,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">6. Acceptable Use</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">6. Acceptable Use</h3>
         <p className="mb-2">You agree not to:</p>
         <ul className="list-disc pl-5 flex flex-col gap-1">
           <li>Use the Service for any unlawful purpose or in violation of applicable agricultural, food safety, or animal welfare regulations</li>
@@ -86,7 +86,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">7. Data Storage and Farm/Account Scoping</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">7. Data Storage and Farm/Account Scoping</h3>
         <p>
           Scan results, images, and cached data are associated with your specific user account and
           the farm you select at the time of scanning. Deleting a farm or account may result in
@@ -96,7 +96,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">8. Service Availability</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">8. Service Availability</h3>
         <p>
           The Service, including AI analysis features, depends on third-party infrastructure and may
           occasionally be unavailable, degraded, or rate-limited. We do not guarantee uninterrupted
@@ -106,7 +106,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">9. Limitation of Liability</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">9. Limitation of Liability</h3>
         <p>
           To the maximum extent permitted by law, PoultraScan AI and its developers shall not be
           liable for any indirect, incidental, special, or consequential damages — including loss of
@@ -116,7 +116,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">10. Changes to the Service and Terms</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">10. Changes to the Service and Terms</h3>
         <p>
           We may update these Terms from time to time. Continued use of the Service after changes
           are posted constitutes acceptance of the revised Terms. We may also modify, suspend, or
@@ -125,7 +125,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">11. Termination</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">11. Termination</h3>
         <p>
           We reserve the right to suspend or terminate accounts that violate these Terms, engage in
           abusive behavior, or misuse the Service in a way that harms other users or the platform.
@@ -133,7 +133,7 @@ export default function TermsOfServiceContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">12. Contact</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">12. Contact</h3>
         <p>
           If you have questions about these Terms, please reach out through the Contact Support
           option within the app.

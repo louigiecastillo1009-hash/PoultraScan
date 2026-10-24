@@ -1,16 +1,19 @@
 export default function HealthBreakdown({ healthy, diseased, total }) {
   if (total == null) {
-    return <span className="text-[#718279] italic text-sm">--</span>;
+    return <span className="text-[11px] italic text-muted">--</span>;
   }
+
   const allHealthy = diseased === 0;
+
   return (
     <div className="flex items-center gap-2">
       <span
-        className="w-2 h-2 rounded-full flex-shrink-0"
-        style={{ backgroundColor: allHealthy ? '#14532D' : '#EF4444' }}
+        className="h-2 w-2 flex-shrink-0 rounded-full"
+        style={{ backgroundColor: allHealthy ? '#4D6938' : '#B3261E' }}
+        aria-hidden="true"
       />
-      <span className="font-medium text-[#10231A] text-sm">
-        {healthy ?? 0} Healthy / {diseased ?? 0} Diseased
+      <span className="text-[11.5px] font-medium text-ink">
+        {healthy ?? 0} Healthy <span className="text-muted">/ {diseased ?? 0} Not Healthy</span>
       </span>
     </div>
   );

@@ -2,10 +2,10 @@
 export default function PrivacyPolicyContent() {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-[#718279]">Last Updated: July 9, 2026</p>
+      <p className="text-xs text-[#6F7160]">Last Updated: July 9, 2026</p>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">1. Introduction</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">1. Introduction</h3>
         <p>
           This Privacy Policy explains how PoultraScan AI ("the Service," "we," "us," or "our")
           collects, uses, stores, and protects your information when you use our poultry health
@@ -15,7 +15,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">2. Information We Collect</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">2. Information We Collect</h3>
         <p className="mb-2">
           <strong>Account Information.</strong> When you register, we collect your full name,
           username, email address, and password (stored as a securely hashed value, never in plain
@@ -43,7 +43,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">3. How We Use Your Information</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">3. How We Use Your Information</h3>
         <p className="mb-2">We use the information we collect to:</p>
         <ul className="list-disc pl-5 flex flex-col gap-1">
           <li>Create and maintain your account</li>
@@ -56,7 +56,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">4. How Your Images Are Processed</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">4. How Your Images Are Processed</h3>
         <p>
           Images submitted for scanning are processed through our detection and prediction pipeline,
           which may include analysis by third-party AI services for disease classification. Images
@@ -67,7 +67,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">5. Data Storage and Retention</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">5. Data Storage and Retention</h3>
         <p className="mb-2">
           Your account information, farm data, scan history, and journal entries are stored in our
           database and remain associated with your account until you delete them or close your
@@ -83,7 +83,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">6. Data Sharing</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">6. Data Sharing</h3>
         <p className="mb-2">
           We do not sell your personal information or farm data. We may share limited information
           with third-party service providers strictly to operate the Service, such as:
@@ -98,7 +98,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">7. Data Security</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">7. Data Security</h3>
         <p>
           We take reasonable technical measures to protect your information, including password
           hashing, HTTP-only authentication cookies, and access controls that scope your data to your
@@ -108,7 +108,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">8. Your Choices and Rights</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">8. Your Choices and Rights</h3>
         <p className="mb-2">
           You may update your account information, delete farms, scans, or journal entries, or
           request account deletion at any time through the app or by contacting support. If you
@@ -122,7 +122,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">9. Children's Privacy</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">9. Children's Privacy</h3>
         <p>
           The Service is not intended for use by children, and we do not knowingly collect personal
           information from children. If we become aware that a child has provided us with personal
@@ -131,7 +131,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">10. Third-Party Sign-In</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">10. Third-Party Sign-In</h3>
         <p>
           If you use "Sign in with Google," Google's own privacy policy governs the information
           Google collects during that process. We only receive and store the specific profile fields
@@ -140,7 +140,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">11. Changes to This Privacy Policy</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">11. Changes to This Privacy Policy</h3>
         <p>
           We may update this Privacy Policy from time to time to reflect changes in our practices or
           for legal and operational reasons. Continued use of the Service after changes are posted
@@ -149,7 +149,7 @@ export default function PrivacyPolicyContent() {
       </section>
 
       <section>
-        <h3 className="text-sm font-bold text-[#10231A] mb-1">12. Contact Us</h3>
+        <h3 className="text-sm font-bold text-[#101107] mb-1">12. Contact Us</h3>
         <p>
           If you have questions or concerns about this Privacy Policy or how your data is handled,
           please reach out through the Contact Support option within the app.

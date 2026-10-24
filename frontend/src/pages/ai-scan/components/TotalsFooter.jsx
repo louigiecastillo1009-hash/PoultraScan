@@ -1,63 +1,80 @@
 import { GiChicken } from 'react-icons/gi';
 import { MdInfoOutline } from 'react-icons/md';
 
+import { Surface } from '../../../components/index';
+
 function MarketReadyBar({ ready, total }) {
   if (!total) return null;
-  const pct = Math.round((ready / total) * 100);
+  const percentage = Math.round((ready / total) * 100);
+
   return (
     <div className="mt-3 flex items-center gap-3">
-      <div className="flex-1 h-1.5 bg-[#E4ECE7] rounded-full overflow-hidden">
-        <div className="h-full bg-[#14532D] rounded-full" style={{ width: `${pct}%` }} />
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream-deep">
+        <div
+          className="h-full rounded-full bg-sage-dark"
+          style={{ width: `${percentage}%` }}
+          aria-hidden="true"
+        />
       </div>
-      <span className="text-xs font-bold text-[#14532D]">{pct}%</span>
+      <span className="text-[10.5px] font-bold text-sage-dark">{percentage}%</span>
     </div>
   );
 }
 
 export default function TotalsFooter({ chickens, totalWeight, totalOilMl, marketReadyCount }) {
   return (
-    <section className="bg-white rounded-2xl border border-[#E4ECE7] shadow-card overflow-hidden">
-      <div className="px-5 py-4 border-b border-[#E4ECE7] flex items-center justify-between gap-3">
+    <Surface padding="none" className="overflow-hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-ink/10 px-5 py-4">
         <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-lg bg-[#E9F4EE] flex items-center justify-center">
-            <GiChicken className="text-lg text-[#14532D]" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sage-soft text-sage-dark">
+            <GiChicken className="text-lg" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-[#10231A]">Flock Summary</h2>
-            <p className="text-xs text-[#4B6357] mt-0.5">
-              {chickens.length} {chickens.length === 1 ? 'chicken' : 'chickens'} scanned in this run
+            <h2 className="font-display text-[1.15rem] font-medium tracking-[-0.02em] text-ink">
+              Flock summary
+            </h2>
+            <p className="mt-0.5 text-[11px] text-muted">
+              {chickens.length} {chickens.length === 1 ? 'chicken' : 'chickens'} scanned in this
+              run
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#E4ECE7]">
-        <div className="py-4 sm:py-5 sm:px-6 first:sm:pl-5 last:sm:pr-5">
-          <p className="text-[10px] text-[#718279] uppercase tracking-wider font-semibold">Total Weight</p>
-          <p className="mt-1.5 text-2xl font-bold text-[#10231A] leading-none">
-            {totalWeight}<span className="ml-1 text-sm font-medium text-[#4B6357]">kg</span>
+      <div className="grid grid-cols-1 divide-y divide-ink/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="px-5 py-4 sm:py-5">
+          <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
+            Total weight
+          </p>
+          <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
+            {totalWeight}
+            <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
           </p>
         </div>
-        <div className="py-4 sm:py-5 sm:px-6 first:sm:pl-5 last:sm:pr-5">
-          <p className="text-[10px] text-[#718279] uppercase tracking-wider font-semibold flex items-center gap-1 whitespace-nowrap">
-            Total Estimated Oil Yield
+        <div className="px-5 py-4 sm:py-5">
+          <p className="flex items-center gap-1 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
+            Total estimated oil yield
             <MdInfoOutline
-              className="text-xs text-[#B3C4BA] cursor-help"
+              className="cursor-help text-xs text-muted"
               title="Estimated from body weight using an assumed fat percentage and rendering efficiency. Actual oil yield may vary depending on breed, age, sex, body condition, and rendering method."
             />
           </p>
-          <p className="mt-1.5 text-2xl font-bold text-[#10231A] leading-none">
-            ~{Math.round(totalOilMl ?? 0)}<span className="ml-1 text-sm font-medium text-[#4B6357]">mL</span>
+          <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
+            ~{Math.round(totalOilMl ?? 0)}
+            <span className="ml-1 text-[12px] font-medium text-muted">mL</span>
           </p>
         </div>
-        <div className="py-4 sm:py-5 sm:px-6 first:sm:pl-5 last:sm:pr-5">
-          <p className="text-[10px] text-[#718279] uppercase tracking-wider font-semibold">Market Ready</p>
-          <p className="mt-1.5 text-2xl font-bold text-[#10231A] leading-none">
-            {marketReadyCount}<span className="ml-1 text-sm font-medium text-[#4B6357]">of {chickens.length}</span>
+        <div className="px-5 py-4 sm:py-5">
+          <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
+            Market ready
+          </p>
+          <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
+            {marketReadyCount}
+            <span className="ml-1 text-[12px] font-medium text-muted">of {chickens.length}</span>
           </p>
           <MarketReadyBar ready={marketReadyCount} total={chickens.length} />
         </div>
       </div>
-    </section>
+    </Surface>
   );
 }

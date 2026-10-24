@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { MdClose, MdCameraAlt, MdStayCurrentPortrait, MdStayCurrentLandscape } from 'react-icons/md';
+import { useEffect, useRef, useState } from 'react';
+import {
+  MdCameraAlt,
+  MdClose,
+  MdStayCurrentLandscape,
+  MdStayCurrentPortrait,
+} from 'react-icons/md';
+
+import { Button } from '../../../components/index';
 
 export default function CameraCaptureModal({ onCapture, onClose }) {
   const videoRef = useRef(null);
@@ -18,7 +25,7 @@ export default function CameraCaptureModal({ onCapture, onClose }) {
           audio: false,
         });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((track) => track.stop());
           return;
         }
         streamRef.current = stream;
@@ -35,7 +42,7 @@ export default function CameraCaptureModal({ onCapture, onClose }) {
 
     return () => {
       cancelled = true;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
@@ -46,87 +53,107 @@ export default function CameraCaptureModal({ onCapture, onClose }) {
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      onCapture(file);
-    }, 'image/jpeg', 0.92);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        onCapture(file);
+      },
+      'image/jpeg',
+      0.92
+    );
   };
 
   const handleClose = () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((track) => track.stop());
     onClose();
   };
 
   const toggleOrientation = () => {
-    setOrientation((prev) => (prev === 'landscape' ? 'portrait' : 'landscape'));
+    setOrientation((previous) => (previous === 'landscape' ? 'portrait' : 'landscape'));
   };
 
   const isPortrait = orientation === 'portrait';
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[#10231A]/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-3xl bg-[#10231A] rounded-2xl overflow-hidden shadow-2xl">
-        <button
-          onClick={handleClose}
-          aria-label="Close camera"
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-all"
-        >
-          <MdClose className="text-xl" />
-        </button>
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/85 p-3 backdrop-blur-md sm:p-6">
+      <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-[1.75rem] border border-cream/10 bg-[#0B0C04] shadow-modal">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-cream/10 px-4 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={toggleOrientation}
+            aria-label="Toggle camera orientation"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-cream/15 bg-cream/10 px-3 text-[10.5px] font-semibold text-cream transition-colors hover:bg-cream/15"
+          >
+            {isPortrait ? (
+              <MdStayCurrentLandscape className="text-lg" aria-hidden="true" />
+            ) : (
+              <MdStayCurrentPortrait className="text-lg" aria-hidden="true" />
+            )}
+            {isPortrait ? 'Landscape' : 'Portrait'}
+          </button>
 
-        <button
-          onClick={toggleOrientation}
-          aria-label="Toggle camera orientation"
-          className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/40 text-white text-xs font-semibold hover:bg-black/60 transition-all"
-        >
-          {isPortrait ? (
-            <MdStayCurrentLandscape className="text-lg" />
-          ) : (
-            <MdStayCurrentPortrait className="text-lg" />
-          )}
-          {isPortrait ? 'Landscape' : 'Portrait'}
-        </button>
+          <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-cream/50">
+            Camera capture
+          </p>
 
-        {/*
-          Only this container changes size/aspect-ratio when toggling —
-          everything else (modal shell, button bar, backdrop) stays fixed.
-          Using a max-h so portrait mode doesn't blow past the viewport.
-        */}
-        <div className="flex items-center justify-center bg-black py-6 px-4 sm:px-6">
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Close camera"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-cream/15 bg-cream/10 text-cream transition-colors hover:bg-cream/15"
+          >
+            <MdClose className="text-lg" aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className="flex items-center justify-center px-4 py-5 sm:px-6">
           <div
-            className={`relative bg-black flex items-center justify-center transition-all duration-300 ease-out overflow-hidden rounded-xl ${
+            className={`relative flex items-center justify-center overflow-hidden rounded-xl bg-black transition-all duration-300 ease-out ${
               isPortrait
-                ? 'aspect-[3/4] h-[55dvh] max-h-[600px] w-auto'
-                : 'aspect-video w-full max-h-[62dvh]'
+                ? 'aspect-[3/4] h-[52dvh] max-h-[560px] w-auto'
+                : 'aspect-video max-h-[58dvh] w-full'
             }`}
           >
             {error ? (
-              <p className="text-[#FCA5A5] text-sm px-6 text-center">{error}</p>
+              <p className="px-6 text-center text-[12.5px] text-[#F3B4AE]">{error}</p>
             ) : (
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             )}
+
+            <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-cream/15 bg-ink/45 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-cream backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden="true" />
+              Live
+            </span>
+
+            <div className="pointer-events-none absolute inset-4">
+              <span className="absolute left-0 top-0 h-5 w-5 rounded-tl border-l-2 border-t-2 border-gold/85" />
+              <span className="absolute right-0 top-0 h-5 w-5 rounded-tr border-r-2 border-t-2 border-gold/85" />
+              <span className="absolute bottom-0 left-0 h-5 w-5 rounded-bl border-b-2 border-l-2 border-gold/85" />
+              <span className="absolute bottom-0 right-0 h-5 w-5 rounded-br border-b-2 border-r-2 border-gold/85" />
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-center py-5 bg-[#10231A]">
-          <button
+        <div className="flex shrink-0 justify-center border-t border-cream/10 px-4 py-4">
+          <Button
+            type="button"
             onClick={handleSnap}
-            disabled={!ready || !!error}
-            className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#14532D] to-[#166534] text-white text-base font-semibold hover:from-[#166534] hover:to-[#052E16] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!ready || Boolean(error)}
+            className="h-12 w-full bg-gold text-ink hover:bg-cream sm:w-auto sm:px-10"
           >
-            <MdCameraAlt className="text-xl" />
-            Take Photo
-          </button>
+            <MdCameraAlt className="text-xl" aria-hidden="true" />
+            Take photo
+          </Button>
         </div>
       </div>
     </div>

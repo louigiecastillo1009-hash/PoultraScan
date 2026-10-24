@@ -14,6 +14,7 @@ import Profile from '../pages/profile/page/Profile';
 import HomeRedirect from '../middleware/HomeRedirect'
 import NotFound from '../pages/not-found/page/NotFound';
 import HomePage from '../pages/home/page/Home';
+import { AppLayout } from '../components/index';
 
 export default function AppRoutes(){
     return (
@@ -26,14 +27,18 @@ export default function AppRoutes(){
             <Route path='/reset-password' element={<ResetPassword/>}/>
             <Route path='home' element={<HomePage/>} />
             <Route element={<ProtectedRoute/>}>
-                <Route path='/dashboard' element={<Dashboard/>}/>
-                <Route path='/farm/:farmId' element={<FarmDetails/>}/>
-                <Route path='/farm' element={<FarmList/>}/>
-                <Route path='scan/history' element={<ScanHistory/>}/>
-                <Route path='/scan' element={<AiScan/>}/>
-                <Route path='/profile' element={<Profile/>}/>
+                <Route element={<AppLayout/>}>
+                    <Route path='/dashboard' element={<Dashboard/>}/>
+                    <Route path='/farm/:farmId' element={<FarmDetails/>}/>
+                    <Route path='/farm' element={<FarmList/>}/>
+                    <Route path='scan/history' element={<ScanHistory/>}/>
+                    <Route path='/scan' element={<AiScan/>}/>
+                    <Route path='/profile' element={<Profile/>}/>
+                </Route>
             </Route>
-             <Route path='*' element={<NotFound/>}/>
+            <Route element={<AppLayout/>}>
+                <Route path='*' element={<NotFound/>}/>
+            </Route>
         </Routes>
     )
 }

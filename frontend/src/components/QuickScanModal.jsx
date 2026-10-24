@@ -1,20 +1,19 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MdClose,
-  MdCameraAlt,
-  MdUpload,
-  MdCheckCircle,
   MdArrowForward,
-  MdWarningAmber,
+  MdCameraAlt,
+  MdCheckCircle,
   MdHealthAndSafety,
   MdOutlineAgriculture,
+  MdUpload,
 } from 'react-icons/md';
-import { useQuickScan } from '../hooks/useQuickScan';
-import {CameraCaptureModal} from '../pages/ai-scan/components/index'
-import {SEVERITY_STYLES} from '../constant/severity'
-import {PoultraScanLoader} from './ui'
 
+import { Button, ModalShell, Notice } from './app/index';
+import { PoultraScanLoader } from './ui';
+import { useQuickScan } from '../hooks/useQuickScan';
+import { CameraCaptureModal } from '../pages/ai-scan/components/index';
+import { SEVERITY_STYLES } from '../constant/severity';
 
 export default function QuickScanModal({ isOpen, onClose, farmId }) {
   const navigate = useNavigate();
@@ -39,9 +38,9 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
+  const handleFileSelected = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
     if (!hasFarm) return;
     if (file) runQuickScan(file, 'UPLOAD');
   };
@@ -59,15 +58,16 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
 
   const handleMoreInfo = () => {
     handleClose();
-    navigate('/scan'); // TODO: adjust to your actual scan route
+    navigate('/scan');
   };
 
   const handleGoToFarms = () => {
     handleClose();
-    navigate('/farm'); // TODO: adjust to your actual farm creation/list route
+    navigate('/farm');
   };
 
-  const sev = SEVERITY_STYLES[summary?.topSeverity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
+  const severity =
+    SEVERITY_STYLES[summary?.topSeverity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
 
   // While the camera is open, render ONLY the camera modal — hide the
   // sheet + backdrop entirely instead of stacking both overlays, which
@@ -82,124 +82,107 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
-      
+    <ModalShell
+      open
+      onClose={handleClose}
+      eyebrow="Instant check"
+      title="Quick scan"
+      description="Capture or upload a photo to get an instant read on your flock."
+      icon={<MdCameraAlt className="text-lg" />}
+      size="sm"
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelected}
+        className="hidden"
+      />
 
-      <div className="qs-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+      {!hasFarm && (
+        <div className="flex flex-col gap-3">
+          <Notice tone="warning" title="Select a farm first">
+            Please create a farm before running a scan.
+          </Notice>
+          <Button className="w-full" onClick={handleGoToFarms}>
+            <MdOutlineAgriculture className="text-lg" aria-hidden="true" />
+            Create a farm
+            <MdArrowForward className="text-lg" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
 
-      <div className="qs-sheet relative w-full sm:max-w-sm max-h-[92dvh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:pb-5 overflow-y-auto no-scrollbar">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-[#10231A]">Quick Scan</h2>
+      {hasFarm && status === 'idle' && (
+        <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={handleClose}
-            aria-label="Close"
-            className="p-1.5 rounded-full text-[#718279] hover:bg-[#F7FAF8] hover:text-[#10231A] transition-colors"
+            type="button"
+            onClick={handleCaptureClick}
+            className="flex flex-col items-center gap-2 rounded-2xl border border-ink bg-ink px-4 py-7 text-cream transition-colors hover:bg-olive"
           >
-            <MdClose className="text-lg" />
+            <MdCameraAlt className="text-2xl text-gold" aria-hidden="true" />
+            <span className="text-[12.5px] font-semibold">Capture</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleUploadClick}
+            className="flex flex-col items-center gap-2 rounded-2xl border border-line-strong bg-paper px-4 py-7 text-ink transition-colors hover:border-sage hover:bg-cream-deep"
+          >
+            <MdUpload className="text-2xl text-sage-dark" aria-hidden="true" />
+            <span className="text-[12.5px] font-semibold">Upload</span>
           </button>
         </div>
+      )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelected}
-          className="hidden"
-        />
+      {hasFarm && status === 'processing' && (
+        <div className="py-10">
+          <PoultraScanLoader size={48} label="Analyzing flock..." />
+        </div>
+      )}
 
-        {/* No farm selected — block scanning entirely */}
-        {!hasFarm && (
-          <div className="flex flex-col items-center gap-3 py-6">
-            <div className="flex items-start gap-2 bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-3 w-full">
-              <MdOutlineAgriculture className="text-[#D97706] flex-shrink-0 mt-0.5 text-lg" />
-              <p className="text-sm text-[#D97706]">
-                Please create a farm first before running a scan.
-              </p>
-            </div>
-            <button
-              onClick={handleGoToFarms}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-gradient-to-r from-[#14532D] to-[#166534] text-white font-semibold hover:from-[#166534] hover:to-[#052E16] active:scale-[0.98] transition-all shadow-sm w-full"
-            >
-              Create a Farm
-              <MdArrowForward className="text-lg" />
-            </button>
+      {hasFarm && status === 'error' && (
+        <div className="flex flex-col gap-3">
+          <Notice tone="error" title="Quick scan failed">
+            {error}
+          </Notice>
+          <Button variant="secondary" className="w-full" onClick={reset}>
+            Try again
+          </Button>
+        </div>
+      )}
+
+      {hasFarm && status === 'done' && summary && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFDDB8] bg-success-soft px-3 py-2.5">
+            <MdCheckCircle className="flex-shrink-0 text-lg text-sage-dark" aria-hidden="true" />
+            <span className="text-[12px] font-semibold text-sage-dark">
+              {summary.chickenCount} {summary.chickenCount === 1 ? 'chicken' : 'chickens'} scanned ·{' '}
+              {summary.healthyCount}/{summary.chickenCount} healthy
+            </span>
           </div>
-        )}
 
-        {hasFarm && status === 'idle' && (
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={handleCaptureClick}
-              className="flex flex-col items-center gap-2 py-6 rounded-xl bg-gradient-to-br from-[#14532D] via-[#166534] to-[#10B981] text-white font-semibold hover:from-[#052E16] hover:via-[#14532D] hover:to-[#166534] active:scale-[0.97] transition-all shadow-md shadow-[#14532D]/25"
-            >
-              <MdCameraAlt className="text-2xl" />
-              <span className="text-sm">Capture</span>
-            </button>
-            <button
-              onClick={handleUploadClick}
-              className="flex flex-col items-center gap-2 py-6 rounded-xl bg-white border border-[#E4ECE7] text-[#10231A] font-semibold hover:bg-[#F7FAF8] hover:border-[#9CCFB0] hover:text-[#14532D] active:scale-[0.97] transition-all"
-            >
-              <MdUpload className="text-2xl text-[#166534]" />
-              <span className="text-sm">Upload</span>
-            </button>
-          </div>
-        )}
-
-        {hasFarm && status === 'processing' && (
-          <div className="py-10">
-            <PoultraScanLoader size={48} label="Analyzing flock..." />
-          </div>
-        )}
-
-        {hasFarm && status === 'error' && (
-          <div className="flex flex-col items-center gap-3 py-6">
-            <div className="flex items-start gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-3 w-full">
-              <MdWarningAmber className="text-[#EF4444] flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-[#EF4444]">{error}</p>
-            </div>
-            <button
-              onClick={reset}
-              className="text-sm font-semibold text-[#14532D] hover:underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {hasFarm && status === 'done' && summary && (
-          <div className="flex flex-col gap-4">
-<div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E9F4EE] border border-[#DCF0E5]">
-              <MdCheckCircle className="text-[#166534] text-lg flex-shrink-0" />
-              <span className="text-sm font-semibold text-[#14532D]">
-                {summary.chickenCount} {summary.chickenCount === 1 ? 'chicken' : 'chickens'} scanned · {summary.healthyCount}/{summary.chickenCount} healthy
-              </span>
-            </div>
-
-            {summary.topDisease && (
-              <div className={`flex items-center justify-between px-3 py-2.5 rounded-lg border ${sev.bg}`}>
-                <div className="flex items-center gap-2">
-                  <MdHealthAndSafety className={`text-lg ${sev.text}`} />
-                  <span className={`text-sm font-bold ${sev.text}`}>{summary.topDisease}</span>
-                </div>
-                <span className="flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${sev.dot}`} />
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${sev.text}`}>
-                    {summary.topSeverity}
-                  </span>
+          {summary.topDisease && (
+            <div className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${severity.bg}`}>
+              <div className="flex items-center gap-2">
+                <MdHealthAndSafety className={`text-lg ${severity.text}`} aria-hidden="true" />
+                <span className={`text-[12.5px] font-bold ${severity.text}`}>
+                  {summary.topDisease}
                 </span>
               </div>
-            )}
+              <span className="flex items-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${severity.dot}`} aria-hidden="true" />
+                <span className={`text-[9px] font-bold uppercase tracking-[0.12em] ${severity.text}`}>
+                  {summary.topSeverity}
+                </span>
+              </span>
+            </div>
+          )}
 
-            <button
-              onClick={handleMoreInfo}
-              className="flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-[#14532D] to-[#166534] text-white font-semibold hover:from-[#166534] hover:to-[#052E16] active:scale-[0.98] transition-all shadow-sm"
-            >
-              More Info
-              <MdArrowForward className="text-lg" />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+          <Button className="w-full" onClick={handleMoreInfo}>
+            More info
+            <MdArrowForward className="text-lg" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+    </ModalShell>
   );
 }
