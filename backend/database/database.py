@@ -61,6 +61,9 @@ def _resolve_ssl_ca_path(ca_value: str) -> str:
     PyMySQL's ssl.ca option requires a real file path, so if we were given raw
     PEM content, write it to a temp file and return that path instead.
     """
+    if not ca_value:
+        return ""  # No CA configured; SSL detection will skip the "ca" mode.
+
     if os.path.isfile(ca_value):
         return ca_value
 
@@ -97,22 +100,26 @@ def _detect_ssl_mode() -> str | None:
         connect_timeout=10,
     )
 
-    # 1) Prefer the configured custom CA when it actually validates.
-    try:
-        pymysql.connect(ssl={"ca": ssl_ca_path}, **kwargs).close()
-        return "ca"
-    except pymysql.err.OperationalError:
-        pass
+    # Build the ladder of SSL strategies to try, in order of preference.
+    candidates = []
+    if DB_SSL_CA.strip():
+        # Only consult the custom CA when a CA was actually provided —
+        # an empty/missing CA must NOT be passed (invalid empty PEM file).
+        candidates.append(("ca", {"ca": ssl_ca_path}))
+    candidates.append(("system", ssl.create_default_context()))
 
-    # 2) Fall back to the system trust store (publicly trusted provider).
-    try:
-        pymysql.connect(ssl=ssl.create_default_context(), **kwargs).close()
-        return "system"
-    except pymysql.err.OperationalError as exc:
-        raise RuntimeError(
-            f"Could not connect to MySQL at {DB_HOST} with either the "
-            f"configured DB_SSL_CA or the system trust store: {exc}"
-        ) from exc
+    last_exc: Exception | None = None
+    for mode, ssl_arg in candidates:
+        try:
+            pymysql.connect(ssl=ssl_arg, **kwargs).close()
+            return mode
+        except Exception as exc:  # OperationalError, ssl.SSLError, etc.
+            last_exc = exc
+
+    raise RuntimeError(
+        f"Could not connect to MySQL at {DB_HOST} with any SSL strategy; "
+        f"last error: {last_exc}"
+    ) from last_exc
 
 
 _ssl_mode = _detect_ssl_mode()
