@@ -9,7 +9,21 @@ DB_PORT = os.environ["DB_PORT"]
 DB_USER = os.environ["DB_USER"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
 DB_NAME = os.environ["DB_NAME"]
-DB_SSL_CA = os.environ["DB_SSL_CA"]  # this holds the PEM content pasted into Render's env vars
+# DB_SSL_CA may be omitted on Render/local deployments whose DB uses a
+# publicly trusted certificate (system trust store works).
+DB_SSL_CA = os.environ.get("DB_SSL_CA", "")  # PEM path or raw certificate content
+
+if not DB_PORT.strip().isdigit():
+    raise RuntimeError(
+        f"CONFIG ERROR: DB_PORT must be a number, got {DB_PORT!r}. "
+        "Check your environment variables (Render dashboard / .env file)."
+    )
+
+if not DB_PASSWORD:
+    # Local MySQL (e.g. Laragon root) legitimately uses an empty password.
+    # A remote provider should never accept an empty password though.
+    if DB_HOST not in ("localhost", "127.0.0.1"):
+        print("WARNING: DB_PASSWORD is empty for a remote DB — check your environment variables.")
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
