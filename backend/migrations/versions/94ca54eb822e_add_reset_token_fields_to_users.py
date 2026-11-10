@@ -22,9 +22,10 @@ def upgrade() -> None:
     from sqlalchemy import inspect
 
     inspector = inspect(op.get_bind())
-    if not inspector.has_column('users', 'reset_token'):
+    column_names = [c['name'] for c in inspector.get_columns('users')]
+    if 'reset_token' not in column_names:
         op.add_column('users', sa.Column('reset_token', sa.String(length=255), nullable=True))
-    if not inspector.has_column('users', 'reset_token_expiry'):
+    if 'reset_token_expiry' not in column_names:
         op.add_column('users', sa.Column('reset_token_expiry', sa.DateTime(timezone=True), nullable=True))
 
 

@@ -1,5 +1,6 @@
 import os
 import tempfile
+import ssl
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -24,9 +25,7 @@ def _ensure_database_exists() -> None:
     """
     bootstrap_engine = create_engine(
         _SERVER_URL,
-        connect_args={
-            "ssl": {"ca": ssl_ca_path}
-        },
+        connect_args=_ssl_connect_args,
     )
     try:
         with bootstrap_engine.connect() as conn:
@@ -59,15 +58,66 @@ def _resolve_ssl_ca_path(ca_value: str) -> str:
 
 ssl_ca_path = _resolve_ssl_ca_path(DB_SSL_CA)
 
+
+def _detect_ssl_mode() -> str | None:
+    """
+    Decide which SSL strategy the current DB_HOST actually accepts:
+      - "ca"      : our custom DB_SSL_CA validates the server chain (Aiven)
+      - "system"  : the server cert is publicly trusted (e.g. Let's Encrypt
+                    via a custom domain) -> use the OS trust store
+      - None      : local MySQL (localhost/127.0.0.1) -> no SSL at all
+
+    Probed with a short-lived PyMySQL connection, so it keeps working when
+    the provider changes, as long as the server itself is reachable.
+    """
+    if DB_HOST in ("localhost", "127.0.0.1"):
+        return None
+
+    import pymysql
+
+    kwargs = dict(
+        host=DB_HOST,
+        port=int(DB_PORT),
+        user=DB_USER,
+        password=DB_PASSWORD,
+        connect_timeout=10,
+    )
+
+    # 1) Prefer the configured custom CA when it actually validates.
+    try:
+        pymysql.connect(ssl={"ca": ssl_ca_path}, **kwargs).close()
+        return "ca"
+    except pymysql.err.OperationalError:
+        pass
+
+    # 2) Fall back to the system trust store (publicly trusted provider).
+    try:
+        pymysql.connect(ssl=ssl.create_default_context(), **kwargs).close()
+        return "system"
+    except pymysql.err.OperationalError as exc:
+        raise RuntimeError(
+            f"Could not connect to MySQL at {DB_HOST} with either the "
+            f"configured DB_SSL_CA or the system trust store: {exc}"
+        ) from exc
+
+
+_ssl_mode = _detect_ssl_mode()
+
+if _ssl_mode == "ca":
+    # Configured CA validated the server (e.g. Aiven).
+    _ssl_connect_args = {"ssl": {"ca": ssl_ca_path}}
+elif _ssl_mode == "system":
+    # Server cert is publicly trusted -> OS trust store.
+    _ssl_connect_args = {"ssl": ssl.create_default_context()}
+else:
+    # Local MySQL -> no SSL.
+    _ssl_connect_args = {}
+
 _ensure_database_exists()
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={
-        "ssl": {
-            "ca": ssl_ca_path
-        }
-    },
+    connect_args=_ssl_connect_args,
     pool_pre_ping=True,
 )
 

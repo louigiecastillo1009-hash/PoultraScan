@@ -56,7 +56,9 @@ def ensure_migrated() -> None:
         logger.info("Running database migrations (alembic upgrade head)...")
         command.upgrade(cfg, "head")
         logger.info("Database migrations up to date.")
-    except SQLAlchemyError as exc:
+    except Exception as exc:
         # Never let a migration failure crash the whole app; it is already
         # logged loudly so the issue shows up in the Render logs.
+        # (Catches AttributeError etc. from buggy migration files too,
+        # not just SQLAlchemyError, so startup can never silently hang.)
         logger.error(f"Database migration failed: {exc}")

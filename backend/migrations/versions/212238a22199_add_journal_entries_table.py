@@ -22,7 +22,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     from sqlalchemy import inspect
 
-    if inspect(op.get_bind()).has_table('journal_entries'):
+    if 'journal_entries' in inspect(op.get_bind()).get_table_names():
         return
 
     op.create_table(
