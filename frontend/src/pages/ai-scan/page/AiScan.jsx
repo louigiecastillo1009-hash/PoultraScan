@@ -19,6 +19,7 @@ import {
 } from '../components/index';
 
 const DEFAULT_IMAGE_TYPE = 'FRONT';
+const ANGLES = ['FRONT', 'BACK', 'LEFT', 'RIGHT'];
 
 export default function AiScan() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function AiScan() {
   const [photos, setPhotos] = useState([]);
   const [busy, setBusy] = useState(false);
   const [providerNotice, setProviderNotice] = useState(null);
+  const [stageNotice, setStageNotice] = useState(null);
   const submitting = useRef(false);
 
   const uploadInputRef = useRef(null);
@@ -54,9 +56,39 @@ export default function AiScan() {
 
   const isProcessing = busy || detectionLoading || predictionLoading;
 
-  const stageOrScan = (file, scanType) => {
-    if (!multiAngle) return runFullScan(file, scanType);
-    setPhotos((previous) => [...previous.filter((p) => p.angle !== angle), { file, angle, scanType }]);
+  // Stages one or many files. In multi-angle mode each file takes the next
+  // free angle, so a single multi-select can fill FRONT/BACK/LEFT/RIGHT.
+  const stageFiles = (files, scanType) => {
+    if (!multiAngle) {
+      if (files[0]) runFullScan(files[0], scanType);
+      return;
+    }
+
+    const used = new Set(photos.map((photo) => photo.angle));
+    const staged = [...photos];
+    let skipped = 0;
+
+    for (const file of files) {
+      const nextAngle = [angle, ...ANGLES].find((value) => !used.has(value));
+      if (!nextAngle) {
+        skipped += 1;
+        continue;
+      }
+      used.add(nextAngle);
+      const existingIndex = staged.findIndex((photo) => photo.angle === nextAngle);
+      const entry = { file, angle: nextAngle, scanType };
+      if (existingIndex >= 0) staged[existingIndex] = entry;
+      else staged.push(entry);
+    }
+
+    setPhotos(staged);
+    const freeAngle = ANGLES.find((value) => !used.has(value));
+    if (freeAngle) setAngle(freeAngle);
+    setStageNotice(
+      skipped
+        ? `Only ${ANGLES.length} angles (${ANGLES.join(', ')}) are supported. ${skipped} extra photo${skipped === 1 ? '' : 's'} skipped — remove one first.`
+        : null
+    );
   };
 
   const runAngles = async () => {
@@ -65,7 +97,10 @@ export default function AiScan() {
     setBusy(true);
     setErrorMsg(null);
     try {
-      const { session } = await createScanSession({ farmId, scanType: photos[0].scanType });
+      const { session } = await createScanSession({
+        farmId,
+        scanType: photos.some((photo) => photo.scanType === 'WEBCAM') ? 'WEBCAM' : 'UPLOAD',
+      });
       const detected = [];
       const failures = [];
       for (const photo of photos) {
@@ -156,8 +191,8 @@ export default function AiScan() {
   };
 
   const handleFileSelected = (event) => {
-    const file = event.target.files?.[0];
-    if (file) stageOrScan(file, 'UPLOAD');
+    const files = Array.from(event.target.files || []);
+    if (files.length) stageFiles(files, 'UPLOAD');
     event.target.value = '';
   };
 
@@ -179,7 +214,7 @@ export default function AiScan() {
 
   const handleCameraCapture = (file) => {
     setCameraOpen(false);
-    stageOrScan(file, 'WEBCAM');
+    stageFiles([file], 'WEBCAM');
   };
 
   const handleScanAgain = () => {
@@ -189,6 +224,8 @@ export default function AiScan() {
     setErrorMsg(null);
     setScanState('scanning');
     setPhotos([]);
+    setAngle('FRONT');
+    setStageNotice(null);
   };
 
   return (
@@ -210,16 +247,21 @@ export default function AiScan() {
           <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-ink/10 bg-paper p-4 shadow-card">
             <label className="flex items-center gap-2 text-sm font-medium text-ink">
               <input type="checkbox" checked={multiAngle} disabled={isProcessing}
-                onChange={(event) => { setMultiAngle(event.target.checked); setPhotos([]); }} />
+                onChange={(event) => {
+                  setMultiAngle(event.target.checked);
+                  setPhotos([]);
+                  setAngle('FRONT');
+                  setStageNotice(null);
+                }} />
               Capture multiple angles
             </label>
             {multiAngle && <>
-              <p className="mt-2 text-sm text-muted">Add front, back, left or right photos. Each angle is analyzed independently; the same bird may appear more than once. These are observations, not a unique flock count.</p>
+              <p className="mt-2 text-sm text-muted">Add front, back, left or right photos. Select several files at once and they are assigned in order; each angle is analyzed independently, so the same bird may appear more than once. These are observations, not a unique flock count.</p>
               <label className="mt-3 flex items-center gap-2 text-sm text-soft">
-                Photo angle
+                Next photo angle
                 <select value={angle} disabled={isProcessing} onChange={(event) => setAngle(event.target.value)}
                   className="rounded-lg border border-ink/15 bg-paper px-2 py-1 text-sm">
-                  {['FRONT', 'BACK', 'LEFT', 'RIGHT'].map((value) => <option key={value}>{value}</option>)}
+                  {ANGLES.map((value) => <option key={value}>{value}</option>)}
                 </select>
               </label>
               {photos.length > 0 && (
@@ -229,12 +271,21 @@ export default function AiScan() {
                       <span className="truncate"><strong>{photo.angle}</strong> · {photo.file.name}</span>
                       <button type="button" disabled={isProcessing}
                         className="text-xs font-semibold text-sage-dark underline"
-                        onClick={() => setPhotos((items) => items.filter((p) => p.angle !== photo.angle))}>
+                        onClick={() => {
+                          setPhotos((items) => items.filter((p) => p.angle !== photo.angle));
+                          setAngle(photo.angle);
+                          setStageNotice(null);
+                        }}>
                         Remove
                       </button>
                     </li>
                   ))}
                 </ul>
+              )}
+              {stageNotice && (
+                <p role="status" className="mt-3 rounded-xl border border-[#E8D7B4] bg-warn-soft px-3 py-2 text-xs text-warn">
+                  {stageNotice}
+                </p>
               )}
               <Button className="mt-3" disabled={!photos.length || isProcessing} onClick={runAngles}>
                 Analyze {photos.length} photo{photos.length === 1 ? '' : 's'}
@@ -263,6 +314,7 @@ export default function AiScan() {
             onFileSelected={handleFileSelected}
             isProcessing={isProcessing}
             previewUrl={previewUrl}
+            allowMultiple={multiAngle}
             errorMsg={errorMsg}
           />
         ) : (

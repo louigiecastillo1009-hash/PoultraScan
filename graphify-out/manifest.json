@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/ScanningView.jsx": {
-    "mtime": 1794987029.0165665,
-    "seen": 1794987147.4507382,
-    "ast_hash": "78ffe6e62e14f1fe09954ce9564e68a2",
+    "mtime": 1794988695.684615,
+    "seen": 1794988782.5535758,
+    "ast_hash": "1406fdef6a9b514dd4ff19ab1756a4de",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/TotalsFooter.jsx": {
@@ -960,9 +960,9 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/page/AiScan.jsx": {
-    "mtime": 1794986966.311877,
-    "seen": 1794987147.451743,
-    "ast_hash": "f4b6d42951bb48eac86fff544c819bd4",
+    "mtime": 1794988746.157851,
+    "seen": 1794988782.5546372,
+    "ast_hash": "0dee9844aa5609e6b3169011126347c8",
     "semantic_hash": ""
   },
   "frontend/src/pages/auth/api/auth.js": {

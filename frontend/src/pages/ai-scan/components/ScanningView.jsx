@@ -12,6 +12,7 @@ export default function ScanningView({
   isProcessing,
   previewUrl,
   errorMsg,
+  allowMultiple = false,
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl">
@@ -19,6 +20,7 @@ export default function ScanningView({
         ref={uploadInputRef}
         type="file"
         accept="image/*"
+        multiple={allowMultiple}
         onChange={onFileSelected}
         className="hidden"
       />
@@ -92,7 +94,7 @@ export default function ScanningView({
           disabled={isProcessing}
         >
           <MdUpload className="text-lg text-sage-dark" aria-hidden="true" />
-          Upload image
+          {allowMultiple ? 'Upload images' : 'Upload image'}
         </Button>
         <Button className="h-12 w-full" onClick={onCapture} disabled={isProcessing}>
           <MdPhotoCamera className="text-lg" aria-hidden="true" />
