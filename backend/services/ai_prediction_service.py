@@ -9,14 +9,18 @@ from PIL import UnidentifiedImageError
 from models.detected_chicken import DetectedChicken
 from models.chicken_image import ChickenImage
 from models.ai_prediction import AIPrediction
+from models.scan_summary import ScanSummary
 from models.farm import Farm
+from models.scan_photo import ScanPhoto
 from utils.image_compression import compress_image
 from utils.image_converter import convert_to_jpeg
 from utils.image_cropper import crop_chicken_image
+from utils.image_storage import save_compressed_image, UPLOAD_DIR
 from utils.gemini_client import get_disease_insights_batch, GeminiInsightsError
 from utils.gemini_disease_classifier import (
     classify_diseases_batch_with_gemini,
     DiseaseClassificationError,
+    CANNOT_ASSESS_USER_MESSAGE,
 )
 from utils.openrouter_vision import (
     classify_diseases_batch_openrouter,
@@ -37,25 +41,44 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 class AIPredictionService:
+    @staticmethod
+    def require_owned_session(db: Session, session_id: int, user_id: int):
+        session = db.query(ScanSession).join(Farm, Farm.id == ScanSession.farm_id).filter(
+            ScanSession.id == session_id, Farm.user_id == user_id
+        ).first()
+        if session is None:
+            raise HTTPException(404, "Scan session not found")
+        return session
 
     # The AI alone is not accurate enough to alarm the farmer. A chicken is
     # only shown as "Not Healthy" when a SPECIFIC condition was identified
     # AND the model is reasonably confident. Anything uncertain (UNKNOWN,
-    # low confidence, failed classification) is shown as "Healthy" — the
-    # raw result is still stored in the DB for the record.
+    # low confidence, failed classification, bad camera framing) is shown
+    # as "Healthy" — the raw result is still stored in the DB for the record.
     MIN_FLAG_CONFIDENCE = 50.0
+
+    # Label stored/returned when the camera framing (too close / too far /
+    # unclear) makes an honest size + health assessment impossible.
+    CANNOT_ASSESS = "CANNOT_ASSESS"
+
+    QUOTA_EXHAUSTED_MESSAGE = (
+        "Some AI analysis is temporarily unavailable. Free limits may have "
+        "been reached, or a provider may be unavailable. Available results "
+        "are saved. Try again later; the reset time is not known."
+    )
 
     @staticmethod
     def _is_healthy(disease_name: str, confidence_score) -> bool:
         """
-        Treats every uncertain outcome (UNKNOWN label, missing confidence,
-        or confidence below MIN_FLAG_CONFIDENCE) as Healthy so a healthy
-        chicken is never falsely flagged as not healthy.
+        Healthy/not-healthy tri-state: True for healthy, False only when
+        there is a specific non-healthy finding at sufficient confidence,
+        and None when the photo could not be assessed (UNKNOWN /
+        CANNOT_ASSESS). None must never be counted or displayed as healthy.
         """
         if disease_name == "HEALTHY":
             return True
-        if disease_name == "UNKNOWN":
-            return True
+        if disease_name in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS):
+            return None
         if confidence_score is None:
             return True
         if float(confidence_score) < AIPredictionService.MIN_FLAG_CONFIDENCE:
@@ -65,10 +88,12 @@ class AIPredictionService:
     @staticmethod
     def _display_status(disease_name: str, confidence_score) -> str:
         """
-        The API response only ever says "Healthy" or "Not Healthy" — a
-        chicken counts as not healthy only when a specific condition was
-        identified with at least MIN_FLAG_CONFIDENCE confidence.
+        The API response says "Healthy", "Not Healthy", or — when the
+        camera framing made an honest assessment impossible —
+        "CANNOT_ASSESS" (the frontend shows a reposition-camera card).
         """
+        if disease_name in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS):
+            return disease_name
         if AIPredictionService._is_healthy(disease_name, confidence_score):
             return "Healthy"
         return "Not Healthy"
@@ -97,30 +122,35 @@ class AIPredictionService:
 
     @staticmethod
     def _save_image_to_disk(image_bytes: bytes) -> str:
-        compressed_bytes, extension = compress_image(image_bytes)
-        filename = f"{uuid.uuid4().hex}.{extension}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-
-        with open(filepath, "wb") as f:
-            f.write(compressed_bytes)
-
-        return f"/static/uploads/chicken_images/{filename}"
+        return save_compressed_image(image_bytes)
 
     @staticmethod
-    def _classify_diseases_with_fallback(crops: list[bytes], chicken_count: int) -> list[dict]:
+    def _classify_diseases_with_fallback(crops: list[bytes], chicken_count: int) -> tuple[list[dict], bool]:
         """
         Tries Gemini's batch disease classification first. If every free
         Gemini model fails (quota/rate-limit exhaustion), falls back to
         OpenRouter's batch classification. If that also fails, returns
         UNKNOWN placeholders so the scan can still complete.
+
+        Returns (classifications, quota_exhausted) — quota_exhausted is
+        True only when BOTH providers failed, so the frontend can show
+        the "try again later" modal.
         """
+        if len(crops) > 4:
+            results, unavailable = [], False
+            for offset in range(0, len(crops), 4):
+                chunk = crops[offset:offset + 4]
+                items, failed = AIPredictionService._classify_diseases_with_fallback(chunk, len(chunk))
+                results.extend(items)
+                unavailable |= failed
+            return results, unavailable
         try:
-            return classify_diseases_batch_with_gemini(crops)
+            return classify_diseases_batch_with_gemini(crops), False
         except DiseaseClassificationError as e:
             print(f"[PREDICTION WARNING] Gemini batch classification failed: {e}. Falling back to OpenRouter...")
 
         try:
-            return classify_diseases_batch_openrouter(crops)
+            return classify_diseases_batch_openrouter(crops), False
         except OpenRouterVisionError as e:
             print(f"[PREDICTION WARNING] OpenRouter batch classification also failed: {e}")
 
@@ -128,33 +158,45 @@ class AIPredictionService:
             "disease_name": "UNKNOWN",
             "confidence_score": 0.0,
             "reasoning": "AI classification was temporarily unavailable (rate limit), so this chicken could not be assessed.",
+            "framing": "OK",
             "model_used": "n/a",
-        } for _ in range(chicken_count)]
+        } for _ in range(chicken_count)], True
 
     @staticmethod
-    def _get_insights_with_fallback(insight_items: list[dict]) -> list[dict]:
+    def _get_insights_with_fallback(insight_items: list[dict]) -> tuple[list[dict], bool]:
         """
         Tries Gemini's batch weight/oil/tips insights first. If every
         free Gemini model fails, falls back to OpenRouter's batch
         insights. If that also fails, returns zeroed-out defaults so the
         scan can still complete.
+
+        Returns (insights, quota_exhausted) — quota_exhausted is True
+        only when BOTH providers failed.
         """
+        if len(insight_items) > 4:
+            results, unavailable = [], False
+            for offset in range(0, len(insight_items), 4):
+                items, failed = AIPredictionService._get_insights_with_fallback(insight_items[offset:offset + 4])
+                results.extend(items)
+                unavailable |= failed
+            return results, unavailable
         try:
-            return get_disease_insights_batch(insight_items)
+            return get_disease_insights_batch(insight_items), False
         except GeminiInsightsError as e:
             print(f"[PREDICTION WARNING] Gemini batch insights failed: {e}. Falling back to OpenRouter...")
 
         try:
-            return get_disease_insights_batch_openrouter(insight_items)
+            return get_disease_insights_batch_openrouter(insight_items), False
         except OpenRouterVisionError as e:
             print(f"[PREDICTION WARNING] OpenRouter batch insights also failed: {e}")
 
         return [{
             "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
             "estimated_weight": 0.0,
+            "weight_confidence": 0.0,
             "estimated_oil_ml": 0.0,
             "market_ready": False
-        } for _ in insight_items]
+        } for _ in insight_items], True
 
     @staticmethod
     def _finalize_single_chicken(
@@ -163,13 +205,15 @@ class AIPredictionService:
         crop_bytes: bytes,
         classification: dict,
         insights: dict,
-        image_type: str,
+        angle: str,
         start_time: float,
     ) -> dict:
+        cannot_assess = classification.get("disease_name") in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS)
+
         image_url = AIPredictionService._save_image_to_disk(crop_bytes)
         chicken_image = ChickenImage(
             detected_chicken_id=detected_chicken.id,
-            image_type=image_type,
+            image_type=angle,
             image_url=image_url
         )
         db.add(chicken_image)
@@ -180,30 +224,57 @@ class AIPredictionService:
         confidence_score = classification["confidence_score"]
         reasoning = classification.get("reasoning", "")
 
-        try:
-            groq_data = get_disease_recommendation(disease_name, confidence_score)
-        except RecommendationError as e:
-            print(f"[RECOMMENDATION WARNING] {e}")
+        if cannot_assess:
+            # Bad camera framing (too close/too far) — skip Groq and don't
+            # fabricate weight/insights. The card tells the farmer to
+            # reposition the camera. No vision quota is spent on insights.
             groq_data = {
                 "breed": "Unknown",
                 "recommendation": None,
                 "prevention_tips": None,
                 "severity": "UNKNOWN",
             }
+            insights_final = {
+                "tips": reasoning or CANNOT_ASSESS_USER_MESSAGE,
+                "estimated_weight": 0.0,
+                "weight_confidence": 0.0,
+                "estimated_oil_ml": 0.0,
+                "market_ready": False,
+            }
+        else:
+            try:
+                groq_data = get_disease_recommendation(disease_name, confidence_score)
+            except RecommendationError as e:
+                print(f"[RECOMMENDATION WARNING] {e}")
+                groq_data = {
+                    "breed": "Unknown",
+                    "recommendation": None,
+                    "prevention_tips": None,
+                    "severity": "UNKNOWN",
+                }
+            insights_final = insights or {
+                "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
+                "estimated_weight": 0.0,
+                "weight_confidence": 0.0,
+                "estimated_oil_ml": 0.0,
+                "market_ready": False,
+            }
 
         processing_time_ms = int((time.time() - start_time) * 1000)
 
         # NOTE: the actual disease name is still stored in the DB (still
         # used above to generate the recommendation/prevention tips) —
-        # only the API response is simplified to Healthy/Not Healthy.
+        # only the API response is simplified to Healthy/Not Healthy
+        # (plus CANNOT_ASSESS for framing failures).
         ai_prediction = AIPrediction(
             detected_chicken_id=detected_chicken.id,
             disease=disease_name,
             disease_confidence=confidence_score,
-            estimated_weight=insights["estimated_weight"],
-            estimated_oil_ml=insights["estimated_oil_ml"],
-            market_ready=insights["market_ready"],
-            care_tips=insights["tips"],
+            estimated_weight=insights_final["estimated_weight"] or None,
+            estimated_oil_ml=insights_final["estimated_oil_ml"] or None,
+            weight_confidence=insights_final.get("weight_confidence") if insights_final["estimated_weight"] else None,
+            market_ready=insights_final["market_ready"],
+            care_tips=insights_final["tips"],
             breed=groq_data["breed"],
             recommendation=groq_data["recommendation"],
             prevention_tips=groq_data["prevention_tips"],
@@ -226,9 +297,13 @@ class AIPredictionService:
             "disease": AIPredictionService._display_status(disease_name, confidence_score),
             "confidence": confidence_score,
             "healthy": AIPredictionService._is_healthy(disease_name, confidence_score),
+            "assessable": not cannot_assess,
+            "cannot_assess_reason": reasoning if cannot_assess else None,
             "reasoning": reasoning,
-            "estimated_weight": float(ai_prediction.estimated_weight),
-            "estimated_oil_ml": float(ai_prediction.estimated_oil_ml),
+            "angle": angle,
+            "estimated_weight": float(ai_prediction.estimated_weight) if ai_prediction.estimated_weight is not None else None,
+            "weight_confidence": float(ai_prediction.weight_confidence) if ai_prediction.weight_confidence is not None else None,
+            "estimated_oil_ml": float(ai_prediction.estimated_oil_ml) if ai_prediction.estimated_oil_ml is not None else None,
             "market_ready": ai_prediction.market_ready,
             "care_tips": ai_prediction.care_tips,
             "breed": ai_prediction.breed,
@@ -242,11 +317,14 @@ class AIPredictionService:
         }
 
     @staticmethod
-    def predict(db: Session, scan_session_id: int, image_type: str, file: UploadFile):
+    def predict(db: Session, scan_session_id: int, image_type: str, file: UploadFile = None):
         start_time = time.time()
 
-        contents = file.file.read()
-        AIPredictionService._validate_file(file, contents)
+        photos = (
+            db.query(ScanPhoto)
+            .filter(ScanPhoto.scan_session_id == scan_session_id)
+            .all()
+        )
 
         detected_chickens = (
             db.query(DetectedChicken)
@@ -267,60 +345,145 @@ class AIPredictionService:
                 "No valid detected chickens found for this scan session. Run detection first."
             )
 
-        # Crop every chicken up front — no Gemini/OpenRouter calls yet.
-        crops = [
-            crop_chicken_image(
-                contents,
-                c.bounding_box_x, c.bounding_box_y,
-                c.bounding_box_width, c.bounding_box_height,
-            )
-            for c in detected_chickens
-        ]
+        # A repeated submission with complete, assessable saved results should
+        # return them instead of charging the provider or duplicating rows.
+        existing = AIPredictionService.get_predictions_for_session(db, scan_session_id)
+        if existing and len(existing) == len(detected_chickens) and all(
+            chicken["assessable"] for chicken in existing
+        ):
+            return {"chickens": existing, "total_chickens": len(existing),
+                    "total_weight": round(sum(c["estimated_weight"] or 0 for c in existing), 2),
+                    "total_oil_ml": round(sum(c["estimated_oil_ml"] or 0 for c in existing), 2),
+                    "market_ready_count": sum(bool(c["market_ready"]) for c in existing)}
+
+        if existing:
+            # Retry after a partial/quota failure: replace this session's prior
+            # predictions, crops and summary so a retry cannot duplicate rows
+            # or leave stale counts in history.
+            chicken_ids = [chicken.id for chicken in detected_chickens]
+            db.query(AIPrediction).filter(
+                AIPrediction.detected_chicken_id.in_(chicken_ids)
+            ).delete(synchronize_session=False)
+            db.query(ChickenImage).filter(
+                ChickenImage.detected_chicken_id.in_(chicken_ids)
+            ).delete(synchronize_session=False)
+            db.query(ScanSummary).filter(
+                ScanSummary.scan_session_id == scan_session_id
+            ).delete(synchronize_session=False)
+            db.commit()
+
+        if photos:
+            # Multi-angle / saved-photo path: every detection is linked to
+            # the ScanPhoto it came from, so each chicken is cropped from
+            # the correct image. The frontend does NOT need to re-upload.
+            photo_by_id = {photo.id: photo for photo in photos}
+            crops = []
+            angles = []
+            for chicken in detected_chickens:
+                photo = photo_by_id.get(chicken.scan_photo_id)
+                if photo is None:
+                    raise HTTPException(
+                        status.HTTP_400_BAD_REQUEST,
+                        "Scan photo is missing for a detected chicken. Please run detection again."
+                    )
+                photo_path = os.path.join(UPLOAD_DIR, os.path.basename(photo.image_url))
+                if not os.path.exists(photo_path):
+                    # Render free-tier restarts can wipe the uploads disk —
+                    # without the source photo we cannot crop honestly.
+                    raise HTTPException(
+                        status.HTTP_400_BAD_REQUEST,
+                        "Saved scan photos are no longer available on the server. Please run the scan again."
+                    )
+                with open(photo_path, "rb") as f:
+                    photo_bytes = f.read()
+                crops.append(
+                    crop_chicken_image(
+                        photo_bytes,
+                        chicken.bounding_box_x, chicken.bounding_box_y,
+                        chicken.bounding_box_width, chicken.bounding_box_height,
+                    )
+                )
+                angles.append(photo.angle)
+        else:
+            # Legacy single-photo path: crop from the uploaded file
+            # (sessions detected before ScanPhoto existed).
+            if not file:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST,
+                    "No image file was provided and this scan session has no saved photos."
+                )
+
+            contents = file.file.read()
+            AIPredictionService._validate_file(file, contents)
+
+            crops = [
+                crop_chicken_image(
+                    contents,
+                    c.bounding_box_x, c.bounding_box_y,
+                    c.bounding_box_width, c.bounding_box_height,
+                )
+                for c in detected_chickens
+            ]
+            angles = [image_type] * len(detected_chickens)
 
         # ONE call classifies ALL chickens' disease status — Gemini first,
         # OpenRouter fallback if every free Gemini model is exhausted.
-        classifications = AIPredictionService._classify_diseases_with_fallback(
+        classifications, classification_exhausted = AIPredictionService._classify_diseases_with_fallback(
             crops, len(detected_chickens)
         )
 
-        # ONE call estimates weight/oil/tips for ALL chickens — same
-        # Gemini-first, OpenRouter-fallback pattern.
+        # ONE call estimates weight/oil/tips for ALL assessable chickens —
+        # same Gemini-first, OpenRouter-fallback pattern. Chickens the AI
+        # marked CANNOT_ASSESS (bad framing) are excluded from the call:
+        # they would waste image tokens on an estimate we must not make.
+        assessable_indices = [
+            i for i, classification in enumerate(classifications)
+            if classification.get("disease_name") not in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS)
+        ]
         insight_items = [
             {
-                "disease": classification["disease_name"],
-                "confidence": classification["confidence_score"],
-                "image_bytes": crop_bytes,
+                "disease": classifications[i]["disease_name"],
+                "confidence": classifications[i]["confidence_score"],
+                "image_bytes": crops[i],
             }
-            for classification, crop_bytes in zip(classifications, crops)
+            for i in assessable_indices
         ]
-        insights_list = AIPredictionService._get_insights_with_fallback(insight_items)
+        insights_assessable, insights_exhausted = (
+            AIPredictionService._get_insights_with_fallback(insight_items)
+            if insight_items else ([], False)
+        )
+        insights_list = [None] * len(classifications)
+        for idx, insights in zip(assessable_indices, insights_assessable):
+            insights_list[idx] = insights
+
+        quota_exhausted = classification_exhausted or insights_exhausted
 
         # Everything past this point is DB writes + Groq (not Gemini/
         # OpenRouter) — no additional vision-API quota is used no matter
         # how many chickens.
         chickens_result = []
-        for chicken, crop_bytes, classification, insights in zip(
-            detected_chickens, crops, classifications, insights_list
+        for chicken, crop_bytes, classification, insights, angle in zip(
+            detected_chickens, crops, classifications, insights_list, angles
         ):
             chickens_result.append(
                 AIPredictionService._finalize_single_chicken(
-                    db, chicken, crop_bytes, classification, insights, image_type, start_time
+                    db, chicken, crop_bytes, classification, insights, angle, start_time
                 )
             )
 
-        total_weight = round(sum(c["estimated_weight"] for c in chickens_result), 2)
-        total_oil_ml = round(sum(c["estimated_oil_ml"] for c in chickens_result), 2)
+        total_weight = round(sum(c["estimated_weight"] or 0 for c in chickens_result), 2)
+        total_oil_ml = round(sum(c["estimated_oil_ml"] or 0 for c in chickens_result), 2)
         market_ready_count = sum(1 for c in chickens_result if c["market_ready"])
 
         session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
         if session:
-            session.status = ScanStatus.COMPLETED
+            session.status = ScanStatus.FAILED if quota_exhausted else ScanStatus.COMPLETED
             session.finished_at = func.now()
             db.commit()
 
             farm = db.query(Farm).filter(Farm.id == session.farm_id).first()
             if farm:
-                diseased = [c for c in chickens_result if not c["healthy"]]
+                diseased = [c for c in chickens_result if c["healthy"] is False]
 
                 NotificationService.create(
                     db,
@@ -352,6 +515,8 @@ class AIPredictionService:
 
         return {
             "chickens": chickens_result,
+            "quota_exhausted": quota_exhausted,
+            "quota_message": AIPredictionService.QUOTA_EXHAUSTED_MESSAGE if quota_exhausted else None,
             "total_chickens": len(chickens_result),
             "total_weight": total_weight,
             "total_oil_ml": total_oil_ml,
@@ -388,6 +553,10 @@ class AIPredictionService:
                 "confidence": confidence,
                 "healthy": AIPredictionService._is_healthy(prediction.disease, confidence),
                 "reasoning": None,
+                "angle": image.image_type if image else None,
+                "assessable": prediction.disease not in ("UNKNOWN", "CANNOT_ASSESS"),
+                "cannot_assess_reason": prediction.care_tips if prediction.disease in ("UNKNOWN", "CANNOT_ASSESS") else None,
+                "weight_confidence": float(prediction.weight_confidence) if prediction.weight_confidence is not None else None,
                 "estimated_weight": float(prediction.estimated_weight) if prediction.estimated_weight is not None else None,
                 "estimated_oil_ml": float(prediction.estimated_oil_ml) if prediction.estimated_oil_ml is not None else None,
                 "market_ready": prediction.market_ready,

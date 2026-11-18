@@ -10,7 +10,7 @@ import {
 } from 'react-icons/md';
 
 import { Button, ModalShell, Notice } from './app/index';
-import { PoultraScanLoader } from './ui';
+import { PoultryScanLoader } from './ui';
 import { useQuickScan } from '../hooks/useQuickScan';
 import { CameraCaptureModal } from '../pages/ai-scan/components/index';
 import { SEVERITY_STYLES } from '../constant/severity';
@@ -135,7 +135,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
 
       {hasFarm && status === 'processing' && (
         <div className="py-10">
-          <PoultraScanLoader size={48} label="Analyzing flock..." />
+          <PoultryScanLoader size={48} label="Analyzing flock..." />
         </div>
       )}
 
@@ -152,6 +152,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
 
       {hasFarm && status === 'done' && summary && (
         <div className="flex flex-col gap-4">
+          {summary.unavailableMessage && <Notice tone="warning" title="Analysis temporarily unavailable">{summary.unavailableMessage}</Notice>}
           <div className="flex items-center gap-2 rounded-xl border border-[#CFDDB8] bg-success-soft px-3 py-2.5">
             <MdCheckCircle className="flex-shrink-0 text-lg text-sage-dark" aria-hidden="true" />
             <span className="text-[12px] font-semibold text-sage-dark">

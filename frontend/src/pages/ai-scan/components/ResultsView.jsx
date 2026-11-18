@@ -11,6 +11,7 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
   const navigate = useNavigate();
   const detections = detectionData?.detections ?? [];
   const chickens = predictionData?.chickens ?? [];
+  const multiAngle = new Set(chickens.map((chicken) => chicken.angle).filter(Boolean)).size > 1;
   const totalWeight = predictionData?.total_weight ?? 0;
   const totalOilMl = predictionData?.total_oil_ml ?? 0;
   const marketReadyCount = predictionData?.market_ready_count ?? 0;
@@ -158,7 +159,11 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
         <SectionHeading
           eyebrow="Detections"
           title="Individual results"
-          description="Detailed analysis for each detected chicken."
+          description={
+            multiAngle
+              ? 'Each photo angle is analyzed independently. The same bird may appear more than once; these are observations, not a unique flock count.'
+              : 'Detailed analysis for each detected chicken.'
+          }
           action={
             <div className="flex items-center gap-3">
               <span className="hidden text-[11px] font-medium text-muted sm:inline">

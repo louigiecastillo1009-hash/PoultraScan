@@ -13,6 +13,7 @@ from database.database import DATABASE_URL, engine
 from models.user import User
 from models.farm import Farm
 from models.scan_session import ScanSession
+from models.scan_photo import ScanPhoto
 from models.detected_chicken import DetectedChicken
 from models.chicken_image import ChickenImage
 from models.ai_prediction import AIPrediction

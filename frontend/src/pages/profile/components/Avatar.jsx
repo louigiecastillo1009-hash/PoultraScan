@@ -1,6 +1,6 @@
 import { MdCameraAlt } from 'react-icons/md';
 
-import { PoultraScanLoader } from '../../../components/ui';
+import { PoultryScanLoader } from '../../../components/ui';
 import { resolveAvatarSrc } from '../../../utils/AvatarSrc';
 import { AVATAR_ICONS, getIconKey, isIconAvatar } from '../../../utils/avatarIcons';
 
@@ -51,7 +51,7 @@ export default function Avatar({ fullname, avatarUrl, size = 'h-24 w-24', onClic
 
       {uploading && (
         <span className="absolute inset-0 flex items-center justify-center bg-ink/50">
-          <PoultraScanLoader size={20} label={null} className="gap-0" />
+          <PoultryScanLoader size={20} label={null} className="gap-0" />
         </span>
       )}
     </button>

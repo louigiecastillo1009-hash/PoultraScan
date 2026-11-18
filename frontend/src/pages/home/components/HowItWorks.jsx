@@ -14,7 +14,7 @@ const steps = [
     number: '02',
     title: 'Run the scan',
     description:
-      'PoultraScan detects the chickens in the frame and runs its AI-assisted health and size estimates.',
+      'Poultry Scan detects the chickens in the frame and runs its AI-assisted health and size estimates.',
   },
   {
     number: '03',

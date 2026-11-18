@@ -34,6 +34,12 @@ class AIPrediction(Base):
 
     severity = Column(String(20))  # NEW — OpenAI severity rating: LOW / MEDIUM / HIGH
 
+    # How confident the vision AI is in its own weight ESTIMATE (0-100).
+    # Weight is estimated from a photo — never a measured value — so the
+    # confidence is shown next to the weight on result cards. Nullable:
+    # older rows simply have no weight confidence.
+    weight_confidence = Column(DECIMAL(5,2))
+
     model_name = Column(String(100))
 
     model_version = Column(String(50))

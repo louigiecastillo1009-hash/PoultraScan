@@ -12,7 +12,7 @@ import {
 } from 'react-icons/md';
 
 import { Button, ModalShell } from '../../../components/index';
-import { PoultraScanLoader } from '../../../components/ui';
+import { PoultryScanLoader } from '../../../components/ui';
 import { formatDateTime } from '../../../utils/formatDateTime';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 import { getPredictionsBySession } from '../api/aiPredictionApi';
@@ -159,7 +159,7 @@ export default function ScanDetailModal({ scan, onClose }) {
           </h3>
           {loadingChickens ? (
             <div className="flex justify-center py-6">
-              <PoultraScanLoader size={36} label={null} />
+              <PoultryScanLoader size={36} label={null} />
             </div>
           ) : chickens.length === 0 ? (
             <div className="flex items-center gap-2 rounded-xl border border-ink/10 bg-cream-deep/45 px-4 py-3">

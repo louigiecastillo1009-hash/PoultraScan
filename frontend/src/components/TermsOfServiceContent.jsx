@@ -6,7 +6,7 @@ export default function TermsOfServiceContent() {
       <section>
         <h3 className="text-sm font-bold text-[#101107] mb-1">1. Acceptance of Terms</h3>
         <p>
-          By creating an account or using PoultraScan AI ("the Service," "we," "us," or "our"), you
+          By creating an account or using Poultry Scan AI ("the Service," "we," "us," or "our"), you
           agree to be bound by these Terms of Service. If you do not agree to these terms, please do
           not use the Service.
         </p>
@@ -14,7 +14,7 @@ export default function TermsOfServiceContent() {
 
       <section>
         <h3 className="text-sm font-bold text-[#101107] mb-1">2. Description of Service</h3>
-        <p className="mb-2">PoultraScan AI is a poultry health diagnostic and farm management application. The Service allows users to:</p>
+        <p className="mb-2">Poultry Scan AI is a poultry health diagnostic and farm management application. The Service allows users to:</p>
         <ul className="list-disc pl-5 flex flex-col gap-1">
           <li>Create and manage one or more poultry farms</li>
           <li>Capture or upload images of chickens for AI-assisted analysis</li>
@@ -42,7 +42,7 @@ export default function TermsOfServiceContent() {
         <h3 className="text-sm font-bold text-[#101107] mb-1">4. AI-Generated Results Are Estimates, Not Veterinary Diagnoses</h3>
         <p className="font-semibold text-[#101107] mb-2">This is the most important section of these Terms.</p>
         <p className="mb-2">
-          PoultraScan AI uses artificial intelligence to analyze images of poultry and generate
+          Poultry Scan AI uses artificial intelligence to analyze images of poultry and generate
           estimates related to disease indicators, weight, oil yield, and market readiness. These
           results are automated estimates only and:
         </p>
@@ -108,7 +108,7 @@ export default function TermsOfServiceContent() {
       <section>
         <h3 className="text-sm font-bold text-[#101107] mb-1">9. Limitation of Liability</h3>
         <p>
-          To the maximum extent permitted by law, PoultraScan AI and its developers shall not be
+          To the maximum extent permitted by law, Poultry Scan AI and its developers shall not be
           liable for any indirect, incidental, special, or consequential damages — including loss of
           livestock, revenue, or business opportunity — arising from your use of, or inability to
           use, the Service, including reliance on AI-generated diagnostic results.

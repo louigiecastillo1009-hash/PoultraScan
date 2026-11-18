@@ -7,7 +7,7 @@ import {
   EmptyState,
   Notice,
   PageHeader,
-  PoultraScanLoader,
+  PoultryScanLoader,
   Surface,
 } from '../../../components/index';
 import { useScanHistory } from '../hooks/useScanHistory';
@@ -68,7 +68,7 @@ export default function ScanHistory() {
           <div className="p-3 sm:p-4 md:p-6">
             {loading ? (
               <div className="py-16">
-                <PoultraScanLoader size={48} label="Loading scan history..." />
+                <PoultryScanLoader size={48} label="Loading scan history..." />
               </div>
             ) : scans.length === 0 ? (
               <EmptyState

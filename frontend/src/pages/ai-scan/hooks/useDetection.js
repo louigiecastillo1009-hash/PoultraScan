@@ -6,11 +6,11 @@ export function useDetection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const runDetection = useCallback(async ({ scanSessionId, imageFile }) => {
+  const runDetection = useCallback(async ({ scanSessionId, imageFile, angle }) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await countChickens({ scanSessionId, imageFile });
+      const result = await countChickens({ scanSessionId, imageFile, angle });
       setData(result);
       return result;
     } catch (err) {

@@ -2,7 +2,7 @@ import { MdHistory, MdRefresh } from 'react-icons/md';
 
 import { Badge, Button, EmptyState, Notice } from '../../../components/index';
 import Surface from '../../../components/app/Surface';
-import { PoultraScanLoader } from '../../../components/ui';
+import { PoultryScanLoader } from '../../../components/ui';
 import { useRecentScans } from '../hooks/useRecentScan';
 import ScanStatusBadge from './ScanStatusBadge';
 
@@ -42,7 +42,7 @@ export default function RecentScansTable({ farmId }) {
 
       {loading && (
         <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
-          <PoultraScanLoader size={40} label="Loading scans..." />
+          <PoultryScanLoader size={40} label="Loading scans..." />
         </div>
       )}
 

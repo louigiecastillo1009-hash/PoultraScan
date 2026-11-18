@@ -18,6 +18,7 @@ import json
 import base64
 from dotenv import load_dotenv
 from openai import OpenAI
+from utils.scan_result_validation import ordered_image_results
 
 from utils.gemini_disease_classifier import (
     DISEASE_PROMPT,
@@ -25,24 +26,47 @@ from utils.gemini_disease_classifier import (
     _apply_healthy_confidence_floor,
     _sanitize_confidence,
     _sanitize_disease_name,
+    _parse_framing,
+    _cannot_assess_result,
 )
-from utils.gemini_client import _sanitize_weight, _compute_oil_ml
+from utils.gemini_client import _sanitize_weight, _sanitize_weight_confidence, _compute_oil_ml
 
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
+# Cap how long a response can get so a chatty model can't burn tokens
+# (a full multi-chicken JSON batch is well under this).
+MAX_OUTPUT_TOKENS = int(os.getenv("AI_MAX_OUTPUT_TOKENS", "4096") or "4096")
+
 client = OpenAI(
-    api_key=OPENROUTER_API_KEY,
+    api_key=OPENROUTER_API_KEY or "not-configured",
     base_url="https://openrouter.ai/api/v1",
+    timeout=30.0,
+    max_retries=0,
 )
 
 # Free-tier vision-capable models on OpenRouter, tried in order.
-OPENROUTER_VISION_MODELS = [
-    "meta-llama/llama-4-maverick:free",
+#
+# IMPORTANT — verified against OpenRouter's live model list on 2026-11-18
+# (the previous chain contained two delisted models that failed on every
+# fallback attempt). Free-model limits per OpenRouter docs: 20 requests/
+# minute; 50/day without purchased credits, 1000/day once >=10 credits
+# have been purchased (all-time). Override with
+# OPENROUTER_VISION_MODELS="model-a:free,model-b:free" in the environment.
+DEFAULT_OPENROUTER_VISION_MODELS = [
     "google/gemma-4-31b-it:free",
-    "qwen/qwen2.5-vl-72b-instruct:free",
+    "inclusionai/ling-3.2-flash:free",
 ]
+
+_openrouter_models_env = os.getenv("OPENROUTER_VISION_MODELS", "").strip()
+OPENROUTER_VISION_MODELS = (
+    [m.strip() for m in _openrouter_models_env.split(",") if m.strip()]
+    if _openrouter_models_env
+    else DEFAULT_OPENROUTER_VISION_MODELS
+)
+if any(not model.endswith(":free") for model in OPENROUTER_VISION_MODELS):
+    raise ValueError("OPENROUTER_VISION_MODELS must contain explicit :free model IDs only")
 
 
 class OpenRouterVisionError(Exception):
@@ -95,10 +119,12 @@ using the exact same rules above.
 Respond ONLY with a valid JSON array (no markdown, no code fences) with
 exactly {len(crop_images)} objects in the same order as the images, each
 following the single-chicken JSON format described above.
+Also include "image_id": "image_1" (or the corresponding image ID) in EACH object.
 """
 
     content = [{"type": "text", "text": batch_prompt}]
-    for img_bytes in crop_images:
+    for index, img_bytes in enumerate(crop_images, start=1):
+        content.append({"type": "text", "text": f"image_{index}"})
         content.append({
             "type": "image_url",
             "image_url": {"url": _image_to_data_url(img_bytes)}
@@ -110,17 +136,31 @@ following the single-chicken JSON format described above.
                 model=model_name,
                 messages=[{"role": "user", "content": content}],
                 temperature=0.4,
+                max_tokens=MAX_OUTPUT_TOKENS,
             )
 
             raw_text = response.choices[0].message.content
             data = _extract_json_array(raw_text)
 
+            if response.usage:
+                print(
+                    f"[OPENROUTER BATCH DISEASE] '{model_name}' usage: "
+                    f"prompt={response.usage.prompt_tokens} completion={response.usage.completion_tokens}"
+                )
+
             if not isinstance(data, list) or len(data) != len(crop_images):
                 print(f"[OPENROUTER BATCH DISEASE] '{model_name}' returned malformed/mismatched array length. Trying next model...")
                 continue
 
+            data = ordered_image_results(data, len(crop_images))
             results = []
             for item in data:
+                framing, framing_note = _parse_framing(item)
+                if framing != "OK":
+                    print(f"[OPENROUTER BATCH DISEASE] Framing issue ({framing}) — marking CANNOT_ASSESS.")
+                    results.append(_cannot_assess_result(framing, framing_note, f"openrouter:{model_name}"))
+                    continue
+
                 chicken_visible = item.get("chicken_visible", True)
                 is_blurry = item.get("is_blurry", False)
 
@@ -129,6 +169,7 @@ following the single-chicken JSON format described above.
                         "disease_name": "UNKNOWN",
                         "confidence_score": 0.0,
                         "reasoning": item.get("quality_note", "").strip() or DEFAULT_IMAGE_QUALITY_MESSAGE,
+                        "framing": "OK",
                         "model_used": f"openrouter:{model_name}",
                     })
                     continue
@@ -140,6 +181,7 @@ following the single-chicken JSON format described above.
                     "disease_name": disease_name,
                     "confidence_score": _apply_healthy_confidence_floor(disease_name, confidence_score),
                     "reasoning": item.get("reasoning", ""),
+                    "framing": "OK",
                     "model_used": f"openrouter:{model_name}",
                 })
 
@@ -184,21 +226,25 @@ a separate AI model as follows:
 
 {disease_list_str}
 
-For EACH image, look carefully at that specific chicken (its size, body
-condition, posture) and estimate realistic values based on what you
-actually see in THAT image. A typical broiler chicken weighs between
-1.0 and 3.5 kg -- use the visual size of the bird in each photo to judge
-where it falls in that range (or slightly outside it if unusually
-small/large).
+For EACH image, assess visible body condition and posture independently.
+Do not substitute a typical broiler weight for an unsupported estimate.
+
+IMPORTANT: These are automatic crops. Pixel size and crop occupancy do not
+establish physical weight. Without a reliable scale or supporting information,
+return estimated_weight: null and weight_confidence: null. Confidence is
+self-reported uncertainty, not a measured accuracy rate.
 
 Respond ONLY with a valid JSON array (no markdown, no code fences) with
 exactly {len(items)} objects in the same order as the images, each in
 this exact format:
 {{
+  "image_id": "image_1",
   "tips": "2-4 sentences of practical care/treatment advice for this condition",
-  "estimated_weight": <number in kg, based on that chicken's visible size>,
+  "estimated_weight": <number in kg ONLY if supported, otherwise null>,
+  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>,
   "market_ready": <true or false>
 }}
+Use the actual image ID (image_1, image_2, etc.) for each result.
 
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
@@ -210,7 +256,8 @@ treatment/isolation.
 """
 
     content = [{"type": "text", "text": prompt_text}]
-    for item in items:
+    for index, item in enumerate(items, start=1):
+        content.append({"type": "text", "text": f"image_{index}"})
         content.append({
             "type": "image_url",
             "image_url": {"url": _image_to_data_url(item["image_bytes"])}
@@ -222,21 +269,30 @@ treatment/isolation.
                 model=model_name,
                 messages=[{"role": "user", "content": content}],
                 temperature=0.4,
+                max_tokens=MAX_OUTPUT_TOKENS,
             )
 
             raw_text = response.choices[0].message.content
             data = _extract_json_array(raw_text)
 
+            if response.usage:
+                print(
+                    f"[OPENROUTER BATCH INSIGHTS] '{model_name}' usage: "
+                    f"prompt={response.usage.prompt_tokens} completion={response.usage.completion_tokens}"
+                )
+
             if not isinstance(data, list) or len(data) != len(items):
                 print(f"[OPENROUTER BATCH INSIGHTS] '{model_name}' returned malformed/mismatched array length. Trying next model...")
                 continue
 
+            data = ordered_image_results(data, len(items))
             results = []
             for entry in data:
                 weight = _sanitize_weight(entry.get("estimated_weight", 0.0))
                 results.append({
                     "tips": entry.get("tips", "No specific advice available."),
                     "estimated_weight": weight,
+                    "weight_confidence": _sanitize_weight_confidence(entry.get("weight_confidence")),
                     "estimated_oil_ml": _compute_oil_ml(weight),
                     "market_ready": bool(entry.get("market_ready", False)),
                 })

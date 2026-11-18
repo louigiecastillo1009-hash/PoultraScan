@@ -7,7 +7,7 @@ export default function PrivacyPolicyContent() {
       <section>
         <h3 className="text-sm font-bold text-[#101107] mb-1">1. Introduction</h3>
         <p>
-          This Privacy Policy explains how PoultraScan AI ("the Service," "we," "us," or "our")
+          This Privacy Policy explains how Poultry Scan AI ("the Service," "we," "us," or "our")
           collects, uses, stores, and protects your information when you use our poultry health
           diagnostic application. By using the Service, you agree to the practices described in this
           policy.

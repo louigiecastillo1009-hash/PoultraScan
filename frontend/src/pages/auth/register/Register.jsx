@@ -98,7 +98,7 @@ function SuccessModal({ onDone }) {
           Account created
         </h2>
         <p className="mt-2 text-[13.5px] leading-6 text-[#555743]">
-          Your PoultraScan AI account is ready. Taking you to sign in in{" "}
+          Your Poultry Scan AI account is ready. Taking you to sign in in{" "}
           <span className="font-semibold text-[#101107]">{countdown}</span>...
         </p>
 

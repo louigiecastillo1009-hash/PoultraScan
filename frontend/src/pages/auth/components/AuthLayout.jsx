@@ -98,7 +98,7 @@ export default function AuthLayout({ children }) {
           <div className="relative z-10 flex h-full w-full flex-col justify-between p-9 xl:p-12">
             <Link
               to="/home"
-              aria-label="PoultraScan AI home"
+              aria-label="Poultry Scan AI home"
               className="group inline-flex items-center gap-3 self-start rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B1A03E] focus-visible:ring-offset-4 focus-visible:ring-offset-[#101107]"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#6E8C56] text-[#101107] shadow-[0_10px_24px_-12px_rgba(0,0,0,0.8)] transition-transform duration-200 group-hover:scale-105">
@@ -106,7 +106,7 @@ export default function AuthLayout({ children }) {
               </span>
               <span className="flex flex-col leading-none">
                 <span className="auth-display text-[20px] font-semibold tracking-[-0.02em] text-[#F4F8E5]">
-                  PoultraScan
+                  Poultry Scan
                 </span>
                 <span className="mt-1.5 text-[8.5px] font-bold uppercase tracking-[0.2em] text-[#CDBF73]">
                   AI flock diagnostics
@@ -149,7 +149,7 @@ export default function AuthLayout({ children }) {
             </div>
 
             <p className="text-[10.5px] font-medium tracking-[0.02em] text-[#F4F8E5]/35">
-              © {year} PoultraScan AI. All rights reserved.
+              © {year} Poultry Scan AI. All rights reserved.
             </p>
           </div>
         </aside>
@@ -169,7 +169,7 @@ export default function AuthLayout({ children }) {
             {/* Compact brand for mobile and tablet */}
             <Link
               to="/home"
-              aria-label="PoultraScan AI home"
+              aria-label="Poultry Scan AI home"
               className="inline-flex items-center gap-2.5 rounded-xl lg:hidden"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#6E8C56] text-[#101107]">
@@ -177,7 +177,7 @@ export default function AuthLayout({ children }) {
               </span>
               <span className="flex flex-col leading-none">
                 <span className="auth-display text-[17px] font-semibold tracking-[-0.02em]">
-                  PoultraScan
+                  Poultry Scan
                 </span>
                 <span className="mt-1 text-[7.5px] font-bold uppercase tracking-[0.16em] text-[#7A6A28]">
                   AI flock diagnostics

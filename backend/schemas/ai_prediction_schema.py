@@ -7,6 +7,7 @@ from enum import Enum
 class ImageTypeSchema(str, Enum):
     WEBCAM = "WEBCAM"
     FRONT = "FRONT"
+    BACK = "BACK"
     LEFT = "LEFT"
     RIGHT = "RIGHT"
 
@@ -21,10 +22,19 @@ class ChickenPredictionSchema(BaseModel):
     ai_prediction_id: int
     disease: str
     confidence: float
-    healthy: bool
+    healthy: Optional[bool]
+    # False when the photo framing (camera too close/too far) makes an
+    # honest size/health assessment impossible — the card then shows the
+    # reposition-camera message from cannot_assess_reason.
+    assessable: bool = True
+    cannot_assess_reason: Optional[str] = None
+    # Which source photo/angle this chicken came from (multi-angle scans).
+    angle: Optional[str] = None
     reasoning: Optional[str] = None
-    estimated_weight: float
-    estimated_oil_ml: float
+    estimated_weight: Optional[float]
+    # The vision model's confidence in its own weight ESTIMATE (0-100).
+    weight_confidence: Optional[float] = None
+    estimated_oil_ml: Optional[float]
     market_ready: bool
     care_tips: str
     breed: Optional[str] = None
@@ -45,3 +55,8 @@ class BatchPredictionResponseSchema(BaseModel):
     total_weight: float
     total_oil_ml: float
     market_ready_count: int
+    # True when every free AI provider (Gemini + OpenRouter fallbacks) was
+    # rate-limited/quota-exhausted, so part of this scan could not be
+    # analyzed and the frontend should show the "try again later" modal.
+    quota_exhausted: bool = False
+    quota_message: Optional[str] = None

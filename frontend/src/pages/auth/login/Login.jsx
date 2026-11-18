@@ -216,7 +216,7 @@ export default function Login() {
         </button>
 
         <p className="mt-6 border-t border-[#101107]/10 pt-5 text-center text-[13px] text-[#555743]">
-          New to PoultraScan?{" "}
+          New to Poultry Scan?{" "}
           <Link
             to="/register"
             className="font-semibold text-[#564F1E] underline-offset-4 transition-colors hover:text-[#101107] hover:underline"

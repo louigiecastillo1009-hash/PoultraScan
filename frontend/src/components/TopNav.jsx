@@ -30,7 +30,7 @@ function TopNav() {
       <div className="mx-auto flex h-[68px] w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-6 md:h-[76px] lg:px-10">
         <Link
           to="/dashboard"
-          aria-label="PoultraScan AI dashboard"
+          aria-label="Poultry Scan AI dashboard"
           className="flex min-w-0 items-center gap-2.5 rounded-lg active:scale-[0.98]"
         >
           <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-cream">
@@ -42,7 +42,7 @@ function TopNav() {
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-display text-[1.25rem] font-semibold leading-none tracking-[-0.025em] text-ink">
-              PoultraScan
+              Poultry Scan
             </span>
             <span className="mt-1 hidden text-[8px] font-bold uppercase tracking-[0.19em] text-muted sm:block">
               Poultry intelligence

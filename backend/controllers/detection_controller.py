@@ -78,7 +78,7 @@ class DetectionController:
         return jpeg_bytes
 
     @staticmethod
-    def count_chickens(db: Session, scan_session_id: int, file: UploadFile):
+    def count_chickens(db: Session, scan_session_id: int, file: UploadFile, angle: str = "FRONT"):
         contents = file.file.read()
 
         # Validate + convert to JPEG before sending to Gemini.
@@ -88,7 +88,8 @@ class DetectionController:
             result = DetectionService.detect_and_count(
                 db=db,
                 scan_session_id=scan_session_id,
-                image_bytes=jpeg_bytes
+                image_bytes=jpeg_bytes,
+                angle=angle,
             )
             return result
 

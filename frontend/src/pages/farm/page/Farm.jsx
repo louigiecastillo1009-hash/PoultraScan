@@ -17,7 +17,7 @@ import {
   EmptyState,
   Notice,
   PageHeader,
-  PoultraScanLoader,
+  PoultryScanLoader,
 } from '../../../components/index';
 
 export default function FarmDetails() {
@@ -86,7 +86,7 @@ export default function FarmDetails() {
 
       {loading && (
         <div className="mt-8 flex flex-col items-center justify-center rounded-[1.5rem] border border-ink/10 bg-paper py-20">
-          <PoultraScanLoader size={48} label="Loading farm details..." />
+          <PoultryScanLoader size={48} label="Loading farm details..." />
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import { PoultraScanLoader } from './ui';
+import { PoultryScanLoader } from './ui';
 
 export default function LoadingScreen() {
   return (
@@ -7,7 +7,7 @@ export default function LoadingScreen() {
       aria-label="Loading page"
       className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-cream px-4"
     >
-      <PoultraScanLoader size={56} label="Loading..." />
+      <PoultryScanLoader size={56} label="Loading..." />
     </div>
   );
 }

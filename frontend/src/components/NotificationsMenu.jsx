@@ -9,7 +9,7 @@ import {
 } from 'react-icons/md';
 
 import { useNotifications } from '../hooks/useNotification';
-import { PoultraScanLoader } from './ui';
+import { PoultryScanLoader } from './ui';
 
 const VISIBLE_LIMIT = 5;
 
@@ -97,7 +97,7 @@ export default function NotificationsMenu() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               {loading && (
                 <div className="px-4 py-8">
-                  <PoultraScanLoader size={32} label="Loading..." />
+                  <PoultryScanLoader size={32} label="Loading..." />
                 </div>
               )}
 

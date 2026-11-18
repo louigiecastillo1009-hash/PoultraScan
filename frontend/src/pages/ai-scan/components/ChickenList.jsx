@@ -15,7 +15,7 @@ export default function ChickenList({ chickens }) {
       {chickens.map((chicken, i) => {
         const sev = SEVERITY_STYLES[chicken.severity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
         const isOpen = expanded === i;
-        const isUncertain = chicken.disease === 'UNKNOWN';
+        const isUncertain = chicken.assessable === false || ['UNKNOWN', 'CANNOT_ASSESS'].includes(chicken.disease);
         const hasExtra = Boolean(
           chicken.breed || chicken.recommendation || (isUncertain && chicken.reasoning)
         );
@@ -41,20 +41,21 @@ export default function ChickenList({ chickens }) {
                 <span className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-[#101107]">
                     Chicken {chicken.tracking_id ?? '—'}
+                    {chicken.angle ? ` · ${chicken.angle}` : ''}
                   </span>
                   <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                    chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'
+                    isUncertain ? 'text-[#6F7160]' : chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'
                   }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${isUncertain ? 'bg-[#9A9B8A]' : chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
                     {chicken.disease}
                   </span>
                 </span>
                 <span className="flex items-center gap-2 mt-0.5 text-xs text-[#6F7160]">
-                  <span>{chicken.estimated_weight} kg</span>
+                  <span>{chicken.estimated_weight == null ? 'Weight unknown' : `Est. ${chicken.estimated_weight} kg`}</span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
-                  <span>~{Math.round(chicken.estimated_oil_ml ?? 0)} mL</span>
+                  <span>{chicken.estimated_oil_ml == null ? 'Oil unknown' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
-                  <span>{chicken.confidence}% confidence</span>
+                  <span>{chicken.confidence == null ? 'confidence unknown' : `${Math.round(chicken.confidence)}% confidence`}</span>
                 </span>
               </span>
 

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useAuth } from '../../../middleware/AuthContext'; // adjust path if different
 
-const CACHE_PREFIX = 'poultrascan_cache_';
+const CACHE_PREFIX = 'poultryscan_cache_';
 
 function getCacheKey(userId, farmId) {
   return `${CACHE_PREFIX}${userId}_${farmId}`;

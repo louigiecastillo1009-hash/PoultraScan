@@ -101,7 +101,7 @@ class ScanSummaryService:
         ).count()
 
         diseased_count = prediction_query.filter(
-            AIPrediction.disease != "HEALTHY"
+            AIPrediction.disease.notin_(["HEALTHY", "UNKNOWN", "CANNOT_ASSESS"])
         ).count()
 
         market_ready_count = prediction_query.filter(
@@ -128,7 +128,7 @@ class ScanSummaryService:
             market_ready_count=market_ready_count,
             average_weight=round(average_weight, 2) if average_weight is not None else None,
             estimated_total_oil_ml=round(estimated_total_oil_ml, 2) if estimated_total_oil_ml is not None else None,
-            remarks=None
+            remarks="Counts are image observations; the same bird can appear in multiple angles. Unknown assessments are excluded from healthy/diseased counts."
         )
 
         db.add(new_summary)

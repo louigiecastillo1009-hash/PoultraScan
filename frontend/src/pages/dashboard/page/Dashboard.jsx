@@ -10,7 +10,7 @@ import {
 
 import { useDashboardStats } from '../hooks/useDashboard';
 import { useAuth } from '../../../middleware/AuthContext';
-import { Button, Notice, PoultraScanLoader } from '../../../components/index';
+import { Button, Notice, PoultryScanLoader } from '../../../components/index';
 import { AlertFeed, AnomalyChart, FarmHealthChart, MetricCard, ScanSummary } from '../components/index';
 
 function getFirstName(name) {
@@ -55,7 +55,7 @@ export default function Dashboard() {
                     {getGreeting()}, <span className="text-gold">{firstName}</span>.
                   </>
                 ) : (
-                  'Welcome to PoultraScan.'
+                  'Welcome to Poultry Scan.'
                 )}
               </h1>
 
@@ -124,7 +124,7 @@ export default function Dashboard() {
 
       {loading && (
         <div className="py-24">
-          <PoultraScanLoader label="Loading dashboard..." />
+          <PoultryScanLoader label="Loading dashboard..." />
         </div>
       )}
 

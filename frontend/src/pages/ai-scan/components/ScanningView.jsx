@@ -1,7 +1,7 @@
 import { MdPhotoCamera, MdUpload } from 'react-icons/md';
 
 import { Button, Notice } from '../../../components/index';
-import { PoultraScanLoader } from '../../../components/ui';
+import { PoultryScanLoader } from '../../../components/ui';
 import AccuracyNotice from './AccuracyNotice';
 
 export default function ScanningView({
@@ -68,7 +68,7 @@ export default function ScanningView({
 
           {isProcessing && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-ink/75 backdrop-blur-sm">
-              <PoultraScanLoader
+              <PoultryScanLoader
                 size={56}
                 label={previewUrl ? 'Processing results...' : 'Analyzing poultry...'}
                 labelClassName="text-cream"

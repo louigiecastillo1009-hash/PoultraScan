@@ -50,7 +50,7 @@ PAID_MODELS = [
 # box — paid models will simply 4xx quickly and be skipped if billing is not
 # actually on. Set GEMINI_BILLING_ENABLED=false to skip the paid tier entirely
 # (saves a wasted round-trip when you know billing is off).
-BILLING_ENABLED = os.getenv("GEMINI_BILLING_ENABLED", "true").strip().lower() in (
+BILLING_ENABLED = os.getenv("GEMINI_BILLING_ENABLED", "false").strip().lower() in (
     "1", "true", "yes", "on",
 )
 
@@ -300,6 +300,32 @@ def count_chickens_with_gemini(image_bytes: bytes) -> dict:
             print(f"[GEMINI COUNT] Model '{model_name}' ({tier}) failed: {e}. Trying next model...")
             continue
 
-    raise GeminiCountingError(
-        "All Gemini models failed to return a usable chicken count."
-    )
+    # Import lazily: OpenRouter classification shares the quality exception
+    # defined here. A missing Gemini quota must not prevent detection fallback.
+    from utils.openrouter_vision import client as router_client, OPENROUTER_API_KEY, OPENROUTER_VISION_MODELS, _image_to_data_url
+    if OPENROUTER_API_KEY:
+        for model_name in OPENROUTER_VISION_MODELS:
+            try:
+                response = router_client.chat.completions.create(
+                    model=model_name,
+                    max_tokens=4096,
+                    messages=[{"role": "user", "content": [
+                        {"type": "text", "text": DETECTION_PROMPT},
+                        {"type": "image_url", "image_url": {"url": _image_to_data_url(image_bytes)}},
+                    ]}],
+                )
+                if response.choices[0].finish_reason != "stop":
+                    continue
+                data = json.loads(response.choices[0].message.content.replace("```json", "").replace("```", "").strip())
+                if data.get("chicken_visible") is False or data.get("is_blurry") is True:
+                    raise ImageQualityError(DEFAULT_IMAGE_QUALITY_MESSAGE)
+                detections = _sanitize_detections(data.get("detections", []), image_width, image_height)
+                if not detections:
+                    raise ImageQualityError(DEFAULT_IMAGE_QUALITY_MESSAGE)
+                return {"total_chickens": len(detections), "confidence_note": data.get("confidence_note", ""),
+                        "detections": detections, "raw_response": data, "model_used": model_name, "model_tier": "free"}
+            except ImageQualityError:
+                raise
+            except Exception:
+                continue
+    raise GeminiCountingError("Analysis is temporarily unavailable. Free limits may be reached; try later. Reset time is unknown.")

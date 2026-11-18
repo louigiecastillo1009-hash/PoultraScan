@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'poultrascan_active_farm_id';
+const STORAGE_KEY = 'poultryscan_active_farm_id';
 const ActiveFarmContext = createContext(null);
 
 export function ActiveFarmProvider({ children }) {

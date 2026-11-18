@@ -6,7 +6,7 @@ import requests
 BREVO_SMTP_URL = "https://api.brevo.com/v3/smtp/email"
 DEFAULT_APP_URL = "https://poultra-scan.vercel.app"
 
-# Shared PoultraScan AgriTech brand palette (matches the frontend theme)
+# Shared Poultry Scan AgriTech brand palette (matches the frontend theme)
 BRAND_PRIMARY = "#2E7D32"
 BRAND_PRIMARY_HOVER = "#276C2A"
 BRAND_LIGHT_GREEN = "#E8F5E9"
@@ -24,7 +24,7 @@ class EmailService:
 
     @classmethod
     def _render_shell(cls, title: str, body_html: str) -> str:
-        """Wrap any email body in the shared PoultraScan-branded layout."""
+        """Wrap any email body in the shared Poultry Scan-branded layout."""
         return f"""\
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -49,7 +49,7 @@ class EmailService:
                     <span style="display:block;width:44px;height:44px;line-height:44px;text-align:center;color:#ffffff;font-size:22px;font-weight:bold;">P</span>
                   </td>
                   <td style="padding-left:12px;">
-                    <span style="color:{BRAND_INK};font-size:20px;font-weight:bold;letter-spacing:-0.2px;">PoultraScan AI</span>
+                    <span style="color:{BRAND_INK};font-size:20px;font-weight:bold;letter-spacing:-0.2px;">Poultry Scan AI</span>
                     <br />
                     <span style="color:{BRAND_TEXT_MUTED};font-size:12px;">Smart Poultry Health Monitoring</span>
                   </td>
@@ -69,7 +69,7 @@ class EmailService:
           <tr>
             <td align="center" style="padding:24px 0 0 0;">
               <span style="color:{BRAND_TEXT_MUTED};font-size:12px;line-height:18px;">
-                PoultraScan AI &bull; Monitor. Detect. Thrive.<br />
+                Poultry Scan AI &bull; Monitor. Detect. Thrive.<br />
                 If you have questions, reply to this email or reach out through the app.
               </span>
             </td>
@@ -87,7 +87,7 @@ class EmailService:
         """Send an HTML email through the Brevo REST API."""
         api_key = os.getenv("BREVO_API_KEY")
         sender_email = os.getenv("BREVO_SENDER_EMAIL")
-        sender_name = os.getenv("BREVO_SENDER_NAME") or "PoultraScan AI"
+        sender_name = os.getenv("BREVO_SENDER_NAME") or "Poultry Scan AI"
 
         if not api_key or not sender_email:
             missing = [name for name in ("BREVO_API_KEY", "BREVO_SENDER_EMAIL") if not os.getenv(name)]
@@ -120,7 +120,7 @@ class EmailService:
         body_html = f"""\
       <h1 style="margin:0 0 12px 0;color:{BRAND_INK};font-size:22px;line-height:28px;">Reset Your Password</h1>
       <p style="margin:0 0 24px 0;color:{BRAND_TEXT_MUTED};font-size:15px;line-height:24px;">
-        We received a request to reset the password for your PoultraScan AI account.
+        We received a request to reset the password for your Poultry Scan AI account.
         Use the 6-character code below to choose a new password.
       </p>
 
@@ -154,7 +154,7 @@ class EmailService:
 
         cls._send(
             to_email,
-            "Your PoultraScan AI password reset code",
+            "Your Poultry Scan AI password reset code",
             cls._render_shell("Password Reset", body_html),
         )
 
@@ -195,6 +195,6 @@ class EmailService:
 
         cls._send(
             recipient,
-            "New feedback for PoultraScan AI",
+            "New feedback for Poultry Scan AI",
             cls._render_shell("New Feedback", body_html),
         )

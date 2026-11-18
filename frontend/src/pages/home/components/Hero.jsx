@@ -41,7 +41,7 @@ export default function Hero() {
 
           <Reveal delay={140}>
             <p className="ps-lead mt-6 max-w-[36rem]">
-              Photograph your flock and let PoultraScan&apos;s AI-assisted analysis
+              Photograph your flock and let Poultry Scan&apos;s AI-assisted analysis
               count the chickens in view, flag possible health concerns, and estimate
               weight and market readiness — a simpler first look at your flock,
               right from your phone.

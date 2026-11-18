@@ -15,7 +15,7 @@ import {
   Button,
   Notice,
   PageHeader,
-  PoultraScanLoader,
+  PoultryScanLoader,
   Surface,
   TextField,
 } from '../../../components/index';
@@ -141,7 +141,7 @@ export default function Profile() {
 
       {loading && (
         <Surface className="mt-8 flex min-h-[320px] items-center justify-center">
-          <PoultraScanLoader label="Loading profile..." size={48} />
+          <PoultryScanLoader label="Loading profile..." size={48} />
         </Surface>
       )}
 

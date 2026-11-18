@@ -14,6 +14,15 @@ class DetectedChicken(Base):
         nullable=False
     )
 
+    # Which source photo (and its angle) this detection came from. Nullable
+    # so pre-existing detections (created before multi-angle scans) keep
+    # working — those are treated as belonging to the single uploaded photo.
+    scan_photo_id = Column(
+        Integer,
+        ForeignKey("scan_photos.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
     tracking_id = Column(Integer)
 
     confidence = Column(DECIMAL(5,2))

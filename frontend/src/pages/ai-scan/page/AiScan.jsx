@@ -39,6 +39,12 @@ export default function AiScan() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [showFarmModal, setShowFarmModal] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [multiAngle, setMultiAngle] = useState(false);
+  const [angle, setAngle] = useState('FRONT');
+  const [photos, setPhotos] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [providerNotice, setProviderNotice] = useState(null);
+  const submitting = useRef(false);
 
   const uploadInputRef = useRef(null);
 
@@ -46,15 +52,65 @@ export default function AiScan() {
   const { runPrediction, loading: predictionLoading } = useAiPrediction();
   const { saveCache, clearCache } = useScanCache(farmId);
 
-  const isProcessing = detectionLoading || predictionLoading;
+  const isProcessing = busy || detectionLoading || predictionLoading;
+
+  const stageOrScan = (file, scanType) => {
+    if (!multiAngle) return runFullScan(file, scanType);
+    setPhotos((previous) => [...previous.filter((p) => p.angle !== angle), { file, angle, scanType }]);
+  };
+
+  const runAngles = async () => {
+    if (!farmId || !photos.length || submitting.current) return;
+    submitting.current = true;
+    setBusy(true);
+    setErrorMsg(null);
+    try {
+      const { session } = await createScanSession({ farmId, scanType: photos[0].scanType });
+      const detected = [];
+      const failures = [];
+      for (const photo of photos) {
+        try {
+          const result = await runDetection({ scanSessionId: session.id, imageFile: photo.file, angle: photo.angle });
+          detected.push({ ...photo, result });
+        } catch (error) {
+          failures.push(`${photo.angle}: ${error.message}`);
+        }
+      }
+      if (!detected.length) throw new Error(failures.join(' '));
+      const predictionData = await runPrediction({ scanSessionId: session.id, imageType: DEFAULT_IMAGE_TYPE });
+      // Results are independent observations, never a deduplicated flock count.
+      // Boxes belong to the previewed photo only, so they stay aligned.
+      const detectionData = {
+        total_chickens: predictionData.total_chickens,
+        detections: detected[0].result?.detections ?? [],
+      };
+      const preview = await fileToBase64(detected[0].file);
+      setPreviewUrl(preview);
+      setResultData({ detectionData, predictionData });
+      setScanState('results');
+      saveCache({ previewUrl: preview, detectionData, predictionData });
+      if (failures.length || predictionData.quota_exhausted) {
+        setProviderNotice([predictionData.quota_message, ...failures].filter(Boolean).join(' '));
+      }
+    } catch (error) {
+      setErrorMsg(error.message || 'Scan failed. Please try again.');
+      setProviderNotice(error.message || 'Analysis is temporarily unavailable. Try again later.');
+    } finally {
+      submitting.current = false;
+      setBusy(false);
+    }
+  };
 
   const runFullScan = async (file, scanType) => {
+    if (submitting.current) return;
     if (!farmId) {
       setShowFarmModal(true);
       return;
     }
 
     setErrorMsg(null);
+    submitting.current = true;
+    setBusy(true);
     const blobPreview = URL.createObjectURL(file);
     setPreviewUrl(blobPreview);
 
@@ -69,11 +125,11 @@ export default function AiScan() {
       const predictionResult = await runPrediction({
         scanSessionId: newScanSessionId,
         imageType: DEFAULT_IMAGE_TYPE,
-        file,
       });
 
       setResultData({ detectionData: detectionResult, predictionData: predictionResult });
       setScanState('results');
+      if (predictionResult.quota_exhausted) setProviderNotice(predictionResult.quota_message);
 
       const base64Preview = await fileToBase64(file);
       setPreviewUrl(base64Preview);
@@ -92,12 +148,16 @@ export default function AiScan() {
       }
 
       setErrorMsg(message);
+      if (/unavailable|quota|limit|busy/i.test(message)) setProviderNotice(message);
+    } finally {
+      submitting.current = false;
+      setBusy(false);
     }
   };
 
   const handleFileSelected = (event) => {
     const file = event.target.files?.[0];
-    if (file) runFullScan(file, 'UPLOAD');
+    if (file) stageOrScan(file, 'UPLOAD');
     event.target.value = '';
   };
 
@@ -119,7 +179,7 @@ export default function AiScan() {
 
   const handleCameraCapture = (file) => {
     setCameraOpen(false);
-    runFullScan(file, 'WEBCAM');
+    stageOrScan(file, 'WEBCAM');
   };
 
   const handleScanAgain = () => {
@@ -128,6 +188,7 @@ export default function AiScan() {
     setPreviewUrl(null);
     setErrorMsg(null);
     setScanState('scanning');
+    setPhotos([]);
   };
 
   return (
@@ -145,6 +206,42 @@ export default function AiScan() {
       />
 
       <div className="mt-7">
+        {scanState === 'scanning' && farmId && (
+          <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-ink/10 bg-paper p-4 shadow-card">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink">
+              <input type="checkbox" checked={multiAngle} disabled={isProcessing}
+                onChange={(event) => { setMultiAngle(event.target.checked); setPhotos([]); }} />
+              Capture multiple angles
+            </label>
+            {multiAngle && <>
+              <p className="mt-2 text-sm text-muted">Add front, back, left or right photos. Each angle is analyzed independently; the same bird may appear more than once. These are observations, not a unique flock count.</p>
+              <label className="mt-3 flex items-center gap-2 text-sm text-soft">
+                Photo angle
+                <select value={angle} disabled={isProcessing} onChange={(event) => setAngle(event.target.value)}
+                  className="rounded-lg border border-ink/15 bg-paper px-2 py-1 text-sm">
+                  {['FRONT', 'BACK', 'LEFT', 'RIGHT'].map((value) => <option key={value}>{value}</option>)}
+                </select>
+              </label>
+              {photos.length > 0 && (
+                <ul className="mt-3 space-y-2">
+                  {photos.map((photo) => (
+                    <li key={photo.angle} className="flex items-center justify-between gap-3 rounded-xl border border-ink/10 bg-cream-deep/45 px-3 py-2 text-sm">
+                      <span className="truncate"><strong>{photo.angle}</strong> · {photo.file.name}</span>
+                      <button type="button" disabled={isProcessing}
+                        className="text-xs font-semibold text-sage-dark underline"
+                        onClick={() => setPhotos((items) => items.filter((p) => p.angle !== photo.angle))}>
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Button className="mt-3" disabled={!photos.length || isProcessing} onClick={runAngles}>
+                Analyze {photos.length} photo{photos.length === 1 ? '' : 's'}
+              </Button>
+            </>}
+          </div>
+        )}
         {farmId && (
           <Notice
             tone="info"
@@ -183,6 +280,17 @@ export default function AiScan() {
           onCapture={handleCameraCapture}
           onClose={() => setCameraOpen(false)}
         />
+      )}
+
+      {providerNotice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/75 p-4">
+          <section role="dialog" aria-modal="true" aria-labelledby="provider-notice-title" className="max-w-md rounded-2xl bg-paper p-6 shadow-pop">
+            <h2 id="provider-notice-title" className="text-xl font-semibold">Some analysis is unavailable</h2>
+            <p className="my-4">{providerNotice}</p>
+            <p className="mb-4 text-sm">Available results are kept. Free limits may reset later or tomorrow; an exact reset time is not available.</p>
+            <Button autoFocus onClick={() => setProviderNotice(null)}>Close</Button>
+          </section>
+        </div>
       )}
 
       {showFarmModal && (

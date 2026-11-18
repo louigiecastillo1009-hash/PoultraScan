@@ -22,6 +22,10 @@ function MarketReadyBar({ ready, total }) {
 }
 
 export default function TotalsFooter({ chickens, totalWeight, totalOilMl, marketReadyCount }) {
+  const hasWeight = chickens.some((chicken) => chicken.estimated_weight != null);
+  const hasOil = chickens.some((chicken) => chicken.estimated_oil_ml != null);
+  const someWeightMissing = hasWeight && chickens.some((chicken) => chicken.estimated_weight == null);
+
   return (
     <Surface padding="none" className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-ink/10 px-5 py-4">
@@ -47,9 +51,16 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             Total weight
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {totalWeight}
-            <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
+            {hasWeight ? totalWeight : 'Unknown'}
+            {hasWeight && (
+              <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
+            )}
           </p>
+          {someWeightMissing && (
+            <p className="mt-1 text-[10.5px] text-muted">
+              Some chickens had no supported weight; the total covers known weights only.
+            </p>
+          )}
         </div>
         <div className="px-5 py-4 sm:py-5">
           <p className="flex items-center gap-1 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
@@ -60,8 +71,10 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             />
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            ~{Math.round(totalOilMl ?? 0)}
-            <span className="ml-1 text-[12px] font-medium text-muted">mL</span>
+            {hasOil ? `~${Math.round(totalOilMl ?? 0)}` : 'Unknown'}
+            {hasOil && (
+              <span className="ml-1 text-[12px] font-medium text-muted">mL</span>
+            )}
           </p>
         </div>
         <div className="px-5 py-4 sm:py-5">

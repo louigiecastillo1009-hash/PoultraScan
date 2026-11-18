@@ -7,6 +7,7 @@ import enum
 class ImageType(enum.Enum):
     WEBCAM = "WEBCAM"
     FRONT = "FRONT"
+    BACK = "BACK"
     LEFT = "LEFT"
     RIGHT = "RIGHT"
 

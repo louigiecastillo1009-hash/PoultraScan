@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createScanSession } from '../pages/ai-scan/api/scanSession'; // adjust path
 import { countChickens } from '../pages/ai-scan/api/detection'; // adjust path
 import { predictDisease } from '../pages/ai-scan/api/aiPrediction'; // adjust path
@@ -11,7 +11,13 @@ function summarize(predictionData) {
   const chickens = predictionData?.chickens ?? [];
 
   if (chickens.length === 0) {
-    return { chickenCount: 0, healthyCount: 0, topDisease: null, topSeverity: null };
+    return {
+      chickenCount: 0,
+      healthyCount: 0,
+      topDisease: null,
+      topSeverity: null,
+      unavailableMessage: predictionData?.quota_message,
+    };
   }
 
   let worst = chickens[0];
@@ -26,10 +32,12 @@ function summarize(predictionData) {
     healthyCount: chickens.filter((c) => c.healthy).length,
     topDisease: worst.disease,
     topSeverity: worst.severity,
+    unavailableMessage: predictionData.quota_message,
   };
 }
 
 export function useQuickScan(farmId) {
+  const submitting = useRef(false);
   const [status, setStatus] = useState('idle'); // idle | processing | done | error
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
@@ -37,6 +45,8 @@ export function useQuickScan(farmId) {
   const { saveCache } = useScanCache(farmId);
 
   const runQuickScan = useCallback(async (file, scanType) => {
+    if (submitting.current) return;
+    submitting.current = true;
     setStatus('processing');
     setError(null);
     setSummary(null);
@@ -46,7 +56,7 @@ export function useQuickScan(farmId) {
       const scanSessionId = sessionResult.session.id;
 
       const detectionResult = await countChickens({ scanSessionId, imageFile: file });
-      const predictionResult = await predictDisease({ scanSessionId, imageType: DEFAULT_IMAGE_TYPE, file });
+      const predictionResult = await predictDisease({ scanSessionId, imageType: DEFAULT_IMAGE_TYPE });
 
       // Save under the SAME cache key AiScan.jsx reads on mount, so tapping
       // "More Info" lands on /scan with the result already there — no re-scan.
@@ -64,7 +74,8 @@ export function useQuickScan(farmId) {
     } catch (err) {
       setError(err.message || 'Scan failed. Please try again.');
       setStatus('error');
-      throw err;
+    } finally {
+      submitting.current = false;
     }
   }, [farmId, saveCache]);
 

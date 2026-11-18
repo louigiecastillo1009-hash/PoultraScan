@@ -1,1 +1,1 @@
-export {default as PoultraScanLoader} from './PoultraScanLoader'
+export {default as PoultryScanLoader} from './PoultryScanLoader'

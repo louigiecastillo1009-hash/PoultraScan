@@ -9,9 +9,11 @@ not just a blind guess from the disease label alone.
 
 import os
 import json
+import math
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+from utils.scan_result_validation import ordered_image_results
 
 load_dotenv()
 
@@ -75,6 +77,7 @@ Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
 {{
   "tips": "2-4 sentences of practical care/treatment advice for this condition",
   "estimated_weight": <number in kg, based on the chicken's visible size in the photo, realistic broiler range>,
+  "weight_confidence": <integer 0-100, how confident you are in the weight estimate given the bird's visibility and framing in the photo>,
   "market_ready": <true or false, whether this chicken would be safe/ready for market>
 }}
 
@@ -94,6 +97,19 @@ def _detect_mime_type(image_bytes: bytes) -> str:
     return "image/jpeg"
 
 
+def _sanitize_weight_confidence(raw_confidence) -> float:
+    """
+    Clamps the AI's self-reported weight-estimate confidence to 0-100,
+    defaulting to 0 when missing/garbage so a missing value never reads
+    as "fully confident".
+    """
+    try:
+        conf = float(raw_confidence)
+    except (TypeError, ValueError):
+        return 0.0
+    return max(0.0, min(conf, 100.0)) if math.isfinite(conf) else 0.0
+
+
 def _sanitize_weight(raw_weight) -> float:
     try:
         weight = float(raw_weight)
@@ -101,7 +117,7 @@ def _sanitize_weight(raw_weight) -> float:
         print(f"[WEIGHT DEBUG] Gemini returned non-numeric weight: {raw_weight!r}")
         return 0.0
 
-    if weight < MIN_REALISTIC_WEIGHT_KG or weight > MAX_REALISTIC_WEIGHT_KG:
+    if not math.isfinite(weight) or weight < MIN_REALISTIC_WEIGHT_KG or weight > MAX_REALISTIC_WEIGHT_KG:
         print(
             f"[WEIGHT DEBUG] UNREALISTIC weight from Gemini: {weight} kg "
             f"(expected between {MIN_REALISTIC_WEIGHT_KG}-{MAX_REALISTIC_WEIGHT_KG} kg). "
@@ -140,6 +156,7 @@ def get_disease_insights(disease: str, confidence: float, image_bytes: bytes) ->
             return {
                 "tips": data.get("tips", "No specific advice available."),
                 "estimated_weight": weight,
+                "weight_confidence": _sanitize_weight_confidence(data.get("weight_confidence")),
                 "estimated_oil_ml": _compute_oil_ml(weight),
                 "market_ready": bool(data.get("market_ready", False))
             }
@@ -152,6 +169,7 @@ def get_disease_insights(disease: str, confidence: float, image_bytes: bytes) ->
     return {
         "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
         "estimated_weight": 0.0,
+        "weight_confidence": 0.0,
         "estimated_oil_ml": 0.0,
         "market_ready": False
     }
@@ -174,7 +192,8 @@ def get_disease_insights_batch(items: list[dict]) -> list[dict]:
             instead of silently getting zeroed-out defaults.
     """
     parts = []
-    for item in items:
+    for index, item in enumerate(items, start=1):
+        parts.append(types.Part.from_text(text=f"image_{index}"))
         mime_type = _detect_mime_type(item["image_bytes"])
         parts.append(types.Part.from_bytes(data=item["image_bytes"], mime_type=mime_type))
 
@@ -192,21 +211,26 @@ a separate AI model as follows:
 
 {disease_list_str}
 
-For EACH image, look carefully at that specific chicken (its size, body
-condition, posture) and estimate realistic values based on what you
-actually see in THAT image. A typical broiler chicken weighs between
-1.0 and 3.5 kg — use the visual size of the bird in each photo to judge
-where it falls in that range (or slightly outside it if unusually
-small/large).
+For EACH image, assess visible body condition and posture independently.
+Do not substitute a typical broiler weight for an unsupported estimate.
+
+IMPORTANT: Pixel size and crop occupancy do NOT establish real weight.
+These are automatic crops with unknown distance, age and scale. Do not
+infer weight from apparent size. If there is no reliable scale or supporting
+information, return estimated_weight: null and weight_confidence: null.
+Any confidence is self-reported uncertainty, NOT a measured accuracy rate.
 
 Respond ONLY with a valid JSON array (no markdown, no code fences) with
 exactly {len(items)} objects in the same order as the images, each in
 this exact format:
 {{
+  "image_id": "image_1",
   "tips": "2-4 sentences of practical care/treatment advice for this condition",
-  "estimated_weight": <number in kg, based on that chicken's visible size>,
+  "estimated_weight": <number in kg ONLY if supported, otherwise null>,
+  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>,
   "market_ready": <true or false>
 }}
+Use the actual image ID (image_1, image_2, etc.) for each result.
 
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
@@ -232,12 +256,14 @@ treatment/isolation.
                 print(f"[BATCH INSIGHTS] '{model_name}' returned malformed/mismatched array length. Trying next model...")
                 continue
 
+            data = ordered_image_results(data, len(items))
             results = []
             for entry in data:
                 weight = _sanitize_weight(entry.get("estimated_weight", 0.0))
                 results.append({
                     "tips": entry.get("tips", "No specific advice available."),
                     "estimated_weight": weight,
+                    "weight_confidence": _sanitize_weight_confidence(entry.get("weight_confidence")),
                     "estimated_oil_ml": _compute_oil_ml(weight),
                     "market_ready": bool(entry.get("market_ready", False)),
                 })

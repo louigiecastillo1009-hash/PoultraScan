@@ -47,7 +47,7 @@ export default function ProductPreview() {
                   <MdBiotech className="text-[14px]" aria-hidden="true" />
                 </span>
                 <span className="truncate font-display text-[0.95rem] font-semibold text-[#101107]">
-                  PoultraScan
+                  Poultry Scan
                 </span>
               </div>
 

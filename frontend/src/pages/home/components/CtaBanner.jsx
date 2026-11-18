@@ -32,7 +32,7 @@ export default function CtaBanner() {
           <p className="mt-4 max-w-[31rem] text-[15px] leading-7 text-[#D7DAC8] sm:text-base">
             {user
               ? 'Your farm workspace is ready. Add a photo of your flock and keep the next scan with the right farm.'
-              : 'Create an account, add your first farm, and take a photo of your flock. PoultraScan keeps the results with that farm.'}
+              : 'Create an account, add your first farm, and take a photo of your flock. Poultry Scan keeps the results with that farm.'}
           </p>
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link to={primaryPath} className="ps-btn ps-btn-primary ps-btn-lg w-full sm:w-auto">

@@ -9,7 +9,6 @@ load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-print(f"[GROQ DEBUG] GROQ_API_KEY loaded: {'YES (' + GROQ_API_KEY[:6] + '...)' if GROQ_API_KEY else 'NO — key is None/empty!'}")
 
 # Groq Client (OpenAI-compatible, free tier)
 client = OpenAI(

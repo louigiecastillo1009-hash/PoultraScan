@@ -13,14 +13,23 @@ import { SEVERITY_STYLES } from '../../../constant/severity';
 export default function ChickenCard({ chicken }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const severity = SEVERITY_STYLES[chicken.severity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
-  const isUncertain = chicken.disease === 'UNKNOWN';
+  const isUncertain = chicken.assessable === false || ['UNKNOWN', 'CANNOT_ASSESS'].includes(chicken.disease);
   const hasExtraContent = Boolean(chicken.breed || chicken.recommendation);
+
+  if (isUncertain) return (
+    <article className="rounded-2xl border border-ink/10 bg-paper p-5 shadow-card">
+      <h3 className="font-semibold">{chicken.angle ? `${chicken.angle} · ` : ''}Chicken {chicken.tracking_id} — Unknown</h3>
+      <p className="mt-3 text-sm">{chicken.cannot_assess_reason || chicken.reasoning || chicken.care_tips || 'Chicken cannot be assessed clearly. Please reposition the camera and retake the photo.'}</p>
+      <p className="mt-3 text-sm text-muted">Weight and health assessment unavailable. This is not a healthy result.</p>
+    </article>
+  );
 
   return (
     <article className="flex w-full flex-col overflow-hidden rounded-[1.5rem] border border-ink/10 bg-paper shadow-card transition-shadow hover:shadow-card-hover">
       <header className="flex items-center justify-between gap-3 border-b border-ink/10 bg-cream-deep/45 px-5 py-3.5">
         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-olive">
           Chicken {chicken.tracking_id ?? '—'}
+          {chicken.angle ? ` · ${chicken.angle}` : ''}
         </span>
         <span className={`badge ${severity.bg} ${severity.text}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${severity.dot}`} aria-hidden="true" />
@@ -49,18 +58,19 @@ export default function ChickenCard({ chicken }) {
           </div>
         </div>
 
-        {isUncertain && chicken.reasoning && (
-          <p className="rounded-xl border border-[#E8D7B4] bg-warn-soft px-3 py-2 text-[11px] leading-relaxed text-warn">
-            {chicken.reasoning}
-          </p>
-        )}
-
         <div className="grid grid-cols-2 gap-4 border-y border-ink/10 py-4">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">Weight</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">Estimated weight</p>
             <p className="mt-1 font-display text-[1.35rem] font-medium text-ink">
-              {chicken.estimated_weight}
-              <span className="ml-1 text-[11px] font-medium text-muted">kg</span>
+              {chicken.estimated_weight ?? 'Unknown'}
+              {chicken.estimated_weight != null && (
+                <span className="ml-1 text-[11px] font-medium text-muted">kg</span>
+              )}
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {chicken.estimated_weight == null
+                ? 'No reliable weight estimate from this photo.'
+                : `Model confidence: ${chicken.weight_confidence == null ? 'Unknown' : `${Math.round(chicken.weight_confidence)}%`}. Self-reported, not measured accuracy. Verify with a scale.`}
             </p>
           </div>
           <div className="border-l border-ink/10 pl-4">
@@ -74,24 +84,30 @@ export default function ChickenCard({ chicken }) {
               </span>
             </p>
             <p className="mt-1 font-display text-[1.35rem] font-medium text-ink">
-              ~{Math.round(chicken.estimated_oil_ml ?? 0)}
-              <span className="ml-1 text-[11px] font-medium text-muted">mL</span>
+              {chicken.estimated_oil_ml == null ? 'Unknown' : `~${Math.round(chicken.estimated_oil_ml)}`}
+              {chicken.estimated_oil_ml != null && (
+                <span className="ml-1 text-[11px] font-medium text-muted">mL</span>
+              )}
             </p>
-            <p className="mt-0.5 text-[9.5px] text-muted">from estimated weight</p>
+            <p className="mt-0.5 text-[9.5px] text-muted">
+              {chicken.estimated_oil_ml == null ? 'not estimated' : 'from estimated weight'}
+            </p>
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between">
             <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">
-              Confidence
+              AI confidence
             </span>
-            <span className="text-[11px] font-bold text-sage-dark">{chicken.confidence}%</span>
+            <span className="text-[11px] font-bold text-sage-dark">
+              {chicken.confidence == null ? 'Unknown' : `${Math.round(chicken.confidence)}%`}
+            </span>
           </div>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-cream-deep">
             <div
               className="h-1.5 rounded-full bg-sage-dark transition-all duration-500"
-              style={{ width: `${chicken.confidence}%` }}
+              style={{ width: `${chicken.confidence ?? 0}%` }}
               aria-hidden="true"
             />
           </div>

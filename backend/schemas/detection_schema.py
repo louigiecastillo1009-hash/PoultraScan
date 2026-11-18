@@ -14,12 +14,15 @@ class BoundingBox(BaseModel):
 
 
 class ChickenDetection(BaseModel):
+    angle: Optional[str] = None
     tracking_id: int
     confidence: float
     bounding_box: BoundingBox
 
 
 class DetectionResponse(BaseModel):
+    angle: Optional[str] = None
+    scan_photo_id: Optional[int] = None
     success: bool
     total_chickens: int
     detections: List[ChickenDetection]

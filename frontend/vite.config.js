@@ -23,8 +23,8 @@ export default defineConfig({
       },
 
       manifest: {
-        name: "PoultraScan",
-        short_name: "PoultraScan",
+        name: "Poultry Scan",
+        short_name: "Poultry Scan",
         description: "AI-powered poultry health monitoring system",
         theme_color: "#14532D",
         background_color: "#F7FAF8",

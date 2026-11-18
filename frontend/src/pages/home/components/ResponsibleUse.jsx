@@ -19,7 +19,7 @@ export default function ResponsibleUse() {
             </h2>
             <div className="mt-4 grid gap-4 text-[13px] leading-6 text-[#4C4E3B] md:grid-cols-2 md:gap-8 sm:text-sm sm:leading-7">
               <p>
-                PoultraScan&apos;s results are automated estimates generated from the image
+                Poultry Scan&apos;s results are automated estimates generated from the image
                 you provide. They can help you notice possible issues and decide where to
                 look next, but they do not confirm disease or replace an examination by a
                 licensed poultry veterinarian.

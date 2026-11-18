@@ -34,6 +34,7 @@ export default function ChickenPredictionCard({ chicken }) {
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[12.5px] font-semibold text-ink">
               Chicken #{chicken.tracking_id ?? chicken.detected_chicken_id}
+              {chicken.angle ? ` · ${chicken.angle}` : ''}
             </p>
             <Badge tone={chicken.healthy ? 'success' : 'danger'} size="sm">
               {chicken.disease}
@@ -58,7 +59,7 @@ export default function ChickenPredictionCard({ chicken }) {
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
             <DetailStat
               icon={MdScale}
-              label="Weight"
+              label="Estimated weight"
               value={chicken.estimated_weight != null ? `${chicken.estimated_weight} kg` : '--'}
             />
             <DetailStat
@@ -73,6 +74,16 @@ export default function ChickenPredictionCard({ chicken }) {
               tone={chicken.market_ready ? 'good' : 'default'}
             />
           </div>
+
+          {chicken.estimated_weight != null && (
+            <p className="text-[11px] text-muted">
+              Weight confidence:{' '}
+              {chicken.weight_confidence == null
+                ? 'Unknown'
+                : `${Math.round(chicken.weight_confidence)}%`}{' '}
+              — model self-report, not measured accuracy. Verify with a scale.
+            </p>
+          )}
 
           {chicken.care_tips && (
             <div className="rounded-xl border border-ink/10 bg-cream-deep/45 p-3">

@@ -26,13 +26,13 @@ export default function ProductIntro() {
         <Reveal className="lg:order-2 lg:col-span-6">
           <p className="ps-eyebrow">
             <span className="ps-eyebrow-dot" aria-hidden="true" />
-            What PoultraScan does
+            What Poultry Scan does
           </p>
           <h2 className="ps-h2 mt-4 max-w-[13ch] text-[#101107]">
             A simpler way to understand poultry health.
           </h2>
           <p className="ps-lead mt-5 max-w-[34rem]">
-            PoultraScan turns a photo of your flock into a structured first look. See the
+            Poultry Scan turns a photo of your flock into a structured first look. See the
             chickens it detects, review possible health concerns, and check estimated weight
             and market readiness — then keep the scan with the farm it belongs to.
           </p>

@@ -51,7 +51,7 @@ export default function NavBar() {
           to="/home"
           onClick={closeMobile}
           className="flex min-w-0 items-center gap-2.5 rounded-lg"
-          aria-label="PoultraScan home"
+          aria-label="Poultry Scan home"
         >
           <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#101107] text-[#F4F8E5]">
             <MdBiotech className="text-[20px]" aria-hidden="true" />
@@ -62,7 +62,7 @@ export default function NavBar() {
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-display text-[1.3rem] font-semibold leading-none tracking-[-0.025em] text-[#101107]">
-              PoultraScan
+              Poultry Scan
             </span>
             <span className="mt-1 hidden text-[8px] font-bold uppercase tracking-[0.19em] text-[#6B6D57] sm:block">
               Poultry intelligence

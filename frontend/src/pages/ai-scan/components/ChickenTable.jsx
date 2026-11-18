@@ -23,7 +23,7 @@ export default function ChickenTable({ chickens }) {
               <th className={th}>Chicken</th>
               <th className={th}>Health</th>
               <th className={th}>Severity</th>
-              <th className={th}>Weight</th>
+              <th className={th}>Estimated weight</th>
               <th className={th}>Estimated Oil Yield</th>
               <th className={th}>Confidence</th>
               <th className={th}>Market Ready</th>
@@ -34,7 +34,7 @@ export default function ChickenTable({ chickens }) {
             {chickens.map((chicken, i) => {
               const sev = SEVERITY_STYLES[chicken.severity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
               const isOpen = expanded === i;
-              const isUncertain = chicken.disease === 'UNKNOWN';
+              const isUncertain = chicken.assessable === false || ['UNKNOWN', 'CANNOT_ASSESS'].includes(chicken.disease);
               const hasExtra = Boolean(
                 chicken.breed || chicken.recommendation || (isUncertain && chicken.reasoning)
               );
@@ -44,11 +44,12 @@ export default function ChickenTable({ chickens }) {
                   <tr className={`transition-colors ${isOpen ? 'bg-cream-deep/30' : 'hover:bg-cream-deep/40'}`}>
                     <td className={`${td} font-semibold text-[#101107] whitespace-nowrap`}>
                       Chicken {chicken.tracking_id ?? '—'}
+                      {chicken.angle ? ` · ${chicken.angle}` : ''}
                     </td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
-                        <span className={`font-medium ${chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'}`}>
+                        <span className={`w-2 h-2 rounded-full ${isUncertain ? 'bg-[#9A9B8A]' : chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
+                        <span className={`font-medium ${isUncertain ? 'text-[#6F7160]' : chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'}`}>
                           {chicken.disease}
                         </span>
                       </span>
@@ -56,14 +57,16 @@ export default function ChickenTable({ chickens }) {
                     <td className={td}>
                       <span className={`badge ${sev.bg} ${sev.text}`}>{sev.label}</span>
                     </td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight} kg</td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>~{Math.round(chicken.estimated_oil_ml ?? 0)} mL</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Unknown' : `${chicken.estimated_weight} kg`}</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_oil_ml == null ? 'Unknown' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-2">
                         <span className="w-16 h-1.5 bg-[#DDE3CF] rounded-full overflow-hidden">
-                          <span className="block h-full bg-[#4D6938] rounded-full" style={{ width: `${chicken.confidence}%` }} />
+                          <span className="block h-full bg-[#4D6938] rounded-full" style={{ width: `${chicken.confidence ?? 0}%` }} />
                         </span>
-                        <span className="text-xs font-bold text-[#4D6938]">{chicken.confidence}%</span>
+                        <span className="text-xs font-bold text-[#4D6938]">
+                          {chicken.confidence == null ? 'Unknown' : `${Math.round(chicken.confidence)}%`}
+                        </span>
                       </span>
                     </td>
                     <td className={td}>

@@ -35,7 +35,7 @@ export default function Footer() {
         <div className="mx-auto w-full max-w-[1240px] px-4 py-10 sm:px-6 sm:py-12 lg:px-10">
           <div className="grid gap-9 md:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_1fr] lg:gap-12">
             <div>
-              <Link to="/dashboard" className="inline-flex items-center gap-2.5" aria-label="PoultraScan dashboard">
+              <Link to="/dashboard" className="inline-flex items-center gap-2.5" aria-label="Poultry Scan dashboard">
                 <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-ink text-cream">
                   <MdBiotech className="text-[18px]" aria-hidden="true" />
                   <span
@@ -44,7 +44,7 @@ export default function Footer() {
                   />
                 </span>
                 <span className="font-display text-[1.2rem] font-semibold tracking-[-0.025em] text-ink">
-                  PoultraScan
+                  Poultry Scan
                 </span>
               </Link>
               <p className="mt-4 max-w-[21rem] text-[12.5px] leading-6 text-soft">
@@ -93,7 +93,7 @@ export default function Footer() {
           </div>
 
           <div className="mt-9 flex flex-col gap-2 border-t border-ink/12 pt-5 text-[10.5px] leading-5 text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} PoultraScan. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Poultry Scan. All rights reserved.</p>
             <p>Poultry health, made a little clearer.</p>
           </div>
         </div>

@@ -6,9 +6,19 @@ small padding margin so the crop isn't razor-tight around the bird.
 """
 
 import io
+import os
+
 from PIL import Image
 
 CROP_PADDING_RATIO = 0.10  # 10% padding on each side of the box
+
+# Longest side allowed for AI-submitted crops. Crops used to be sent at
+# their full pixel size (a close-up chicken could be thousands of pixels),
+# which burns large amounts of image tokens for zero accuracy gain.
+# 768px keeps enough detail for disease/size judgment while keeping token
+# usage predictable. Override with CROP_MAX_PIXELS in the environment;
+# set to 0 to disable capping entirely.
+CROP_MAX_PIXELS = int(os.getenv("CROP_MAX_PIXELS", "768") or "0")
 
 
 def crop_chicken_image(image_bytes: bytes, x: float, y: float, width: float, height: float) -> bytes:
@@ -28,11 +38,16 @@ def crop_chicken_image(image_bytes: bytes, x: float, y: float, width: float, hei
     right = min(img_w, int(right))
     bottom = min(img_h, int(bottom))
 
-    # Guard against a degenerate box collapsing to zero-size
+    # Never silently substitute a whole flock for one chicken.
     if right <= left or bottom <= top:
-        cropped = image
+        raise ValueError("Invalid chicken bounding box; please run detection again.")
     else:
         cropped = image.crop((left, top, right, bottom))
+
+    # This cap is configurable; fine-detail quality must be evaluated on
+    # representative photos before choosing a production resolution.
+    if CROP_MAX_PIXELS > 0 and max(cropped.size) > CROP_MAX_PIXELS:
+        cropped.thumbnail((CROP_MAX_PIXELS, CROP_MAX_PIXELS), Image.LANCZOS)
 
     buffer = io.BytesIO()
     cropped.save(buffer, format="JPEG", quality=90)

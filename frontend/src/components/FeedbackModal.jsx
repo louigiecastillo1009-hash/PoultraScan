@@ -50,7 +50,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
       title={isSent ? 'Feedback sent' : 'Send feedback'}
       description={
         isSent
-          ? 'Thanks for helping us improve PoultraScan AI.'
+          ? 'Thanks for helping us improve Poultry Scan AI.'
           : 'Found a bug or have a suggestion? Let us know below.'
       }
       icon={isSent ? <MdCheckCircle className="text-lg" /> : <MdEmail className="text-lg" />}

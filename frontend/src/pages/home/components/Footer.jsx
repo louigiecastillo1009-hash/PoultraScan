@@ -44,7 +44,7 @@ export default function Footer() {
               <Link
                 to="/home"
                 className="inline-flex items-center gap-2.5"
-                aria-label="PoultraScan home"
+                aria-label="Poultry Scan home"
               >
                 <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#101107] text-[#F4F8E5]">
                   <MdBiotech className="text-[18px]" aria-hidden="true" />
@@ -54,7 +54,7 @@ export default function Footer() {
                   />
                 </span>
                 <span className="font-display text-[1.2rem] font-semibold tracking-[-0.025em] text-[#101107]">
-                  PoultraScan
+                  Poultry Scan
                 </span>
               </Link>
               <p className="mt-4 max-w-[20rem] text-[13px] leading-6 text-[#555743]">
@@ -126,7 +126,7 @@ export default function Footer() {
           </div>
 
           <div className="mt-10 flex flex-col gap-2 border-t border-[#101107]/12 pt-6 text-[11px] leading-5 text-[#6B6D57] sm:mt-12 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} PoultraScan. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Poultry Scan. All rights reserved.</p>
             <p>Poultry health, made a little clearer.</p>
           </div>
         </div>
