@@ -1,7 +1,5 @@
-"""Add scan chicken type and user-entered oil correction.
+"""Add user-entered oil correction.
 
-- scan_sessions.chicken_type: BROILER or NATIVE, selects the market-weight
-  target. Existing rows default to BROILER.
 - detected_chickens.measured_oil_ml: optional user-entered oil yield that
   overrides the AI display value without deleting the original estimate.
 
@@ -21,18 +19,6 @@ depends_on = None
 def upgrade():
     inspector = inspect(op.get_bind())
 
-    session_columns = {c["name"] for c in inspector.get_columns("scan_sessions")}
-    if "chicken_type" not in session_columns:
-        op.add_column(
-            "scan_sessions",
-            sa.Column(
-                "chicken_type",
-                sa.String(length=20),
-                nullable=False,
-                server_default="BROILER",
-            ),
-        )
-
     chicken_columns = {c["name"] for c in inspector.get_columns("detected_chickens")}
     if "measured_oil_ml" not in chicken_columns:
         op.add_column(
@@ -47,7 +33,3 @@ def downgrade():
     chicken_columns = {c["name"] for c in inspector.get_columns("detected_chickens")}
     if "measured_oil_ml" in chicken_columns:
         op.drop_column("detected_chickens", "measured_oil_ml")
-
-    session_columns = {c["name"] for c in inspector.get_columns("scan_sessions")}
-    if "chicken_type" in session_columns:
-        op.drop_column("scan_sessions", "chicken_type")

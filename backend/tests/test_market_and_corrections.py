@@ -16,19 +16,17 @@ from services.scan_summary_service import ScanSummaryService
 from utils.market_readiness import assess_market_readiness
 
 
-def test_market_targets_for_broiler_and_native():
-    broiler = assess_market_readiness("BROILER", 2.0, True)
-    assert broiler["market_ready"] is True
-    assert broiler["market_ready_label"] == "Market ready"
-    assert broiler["market_target_kg"] == 1.8
+def test_market_target_is_generic():
+    ready = assess_market_readiness(2.0, True)
+    assert ready["market_ready"] is True
+    assert ready["market_ready_label"] == "Market ready"
+    assert ready["market_target_kg"] == 1.5
 
-    assert assess_market_readiness("BROILER", 1.5, True)["market_ready"] is False
-    assert assess_market_readiness("NATIVE", 1.5, True)["market_ready"] is True
-    assert assess_market_readiness("NATIVE", 1.0, True)["market_ready"] is False
-    assert assess_market_readiness("BROILER", 2.5, False)["market_ready"] is False
-    assert assess_market_readiness("BROILER", None, True)["market_ready_label"] == "Check weight"
-    # Unknown chicken type falls back to broiler.
-    assert assess_market_readiness("other", 2.0, True)["chicken_type"] == "BROILER"
+    assert assess_market_readiness(1.5, True)["market_ready"] is True
+    assert assess_market_readiness(1.2, True)["market_ready"] is False
+    assert assess_market_readiness(2.5, False)["market_ready"] is False
+    assert assess_market_readiness(None, True)["market_ready_label"] == "Check weight"
+    assert assess_market_readiness(2.0, None)["market_ready"] is True
 
 
 def test_illness_is_only_flagged_at_80_percent_confidence():
@@ -41,13 +39,24 @@ def test_illness_is_only_flagged_at_80_percent_confidence():
     assert AIPredictionService.assessment_status("UNKNOWN", "mock-model") == "ASSESSED"
 
 
+def test_named_disease_requires_confirmed_visible_signs():
+    from utils.gemini_disease_classifier import _confirmed_visible_signs
+
+    assert _confirmed_visible_signs({"visible_signs": True}) is True
+    assert _confirmed_visible_signs({"visible_signs": "yes"}) is True
+    assert _confirmed_visible_signs({"visible_signs": False}) is False
+    # Missing or ambiguous evidence must not be treated as a visible sign.
+    assert _confirmed_visible_signs({}) is False
+    assert _confirmed_visible_signs({"visible_signs": "maybe"}) is False
+
+
 def test_summary_does_not_count_low_confidence_findings_as_disease():
     engine = create_engine("sqlite://")
     Base.metadata.create_all(engine)
     with Session(engine) as db:
         db.add(User(id=1, fullname="A", username="a", email="a@a.a", password="x"))
         db.add(Farm(id=1, user_id=1, farm_name="Farm", location="Test", capacity=10))
-        db.add(ScanSession(id=1, farm_id=1, scan_type=ScanType.UPLOAD, chicken_type="BROILER"))
+        db.add(ScanSession(id=1, farm_id=1, scan_type=ScanType.UPLOAD))
         db.add(DetectedChicken(id=1, scan_session_id=1, tracking_id=1))
         db.add(DetectedChicken(id=2, scan_session_id=1, tracking_id=2))
         db.add(AIPrediction(
@@ -73,7 +82,7 @@ def test_user_correction_replaces_display_and_totals_but_keeps_ai_estimate():
     with Session(engine) as db:
         db.add(User(id=1, fullname="A", username="a", email="a@a.a", password="x"))
         db.add(Farm(id=1, user_id=1, farm_name="Farm", location="Test", capacity=10))
-        db.add(ScanSession(id=1, farm_id=1, scan_type=ScanType.UPLOAD, chicken_type="BROILER"))
+        db.add(ScanSession(id=1, farm_id=1, scan_type=ScanType.UPLOAD))
         db.add(DetectedChicken(id=1, scan_session_id=1, tracking_id=1))
         db.add(AIPrediction(
             detected_chicken_id=1, disease="HEALTHY", disease_confidence=90,

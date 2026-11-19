@@ -237,7 +237,7 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
         totalOilMl={totalOilMl}
         marketReadyCount={marketReadyCount}
       />
-      <p className="text-sm text-muted">Weight is an approximate visual estimate. Oil yield is calculated from that weight using assumed fat content and rendering efficiency. Use <strong>Add actual measurements</strong> on a chicken card to replace an estimate with your own scale/oil reading; totals update and the AI estimate is kept. Market readiness is based on estimated weight and the selected chicken type, not age or food safety.</p>
+      <p className="text-sm text-muted">Weight is an approximate visual estimate. Oil yield is calculated from that weight using assumed fat content and rendering efficiency. Use <strong>Add actual measurements</strong> on a chicken card to replace an estimate with your own scale/oil reading; totals update and the AI estimate is kept. Market readiness is based on estimated weight, not age or food safety.</p>
 
       <div className="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row">
         <Button variant="secondary" className="w-full sm:w-auto" onClick={onScanAgain}>

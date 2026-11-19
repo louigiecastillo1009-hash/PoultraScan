@@ -27,11 +27,7 @@ from utils.openrouter_vision import (
     get_disease_insights_batch_openrouter,
     OpenRouterVisionError,
 )
-from utils.market_readiness import (
-    DEFAULT_CHICKEN_TYPE,
-    normalize_chicken_type,
-    assess_market_readiness,
-)
+from utils.market_readiness import assess_market_readiness
 
 from services.scan_summary_service import ScanSummaryService
 from services.notification_service import NotificationService
@@ -82,13 +78,12 @@ class AIPredictionService:
             .first()
         )
         session = db.query(ScanSession).filter(ScanSession.id == chicken.scan_session_id).first()
-        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
         effective = AIPredictionService._effective_values(chicken, prediction)
         healthy = (
             AIPredictionService._is_healthy(prediction.disease, prediction.disease_confidence)
             if prediction is not None else None
         )
-        readiness = assess_market_readiness(chicken_type, effective["effective_weight"], healthy)
+        readiness = assess_market_readiness(effective["effective_weight"], healthy)
         return {
             "detected_chicken_id": chicken.id,
             "measured_weight_kg": float(chicken.measured_weight_kg) if chicken.measured_weight_kg is not None else None,
@@ -299,7 +294,6 @@ class AIPredictionService:
         insights: dict,
         angle: str,
         start_time: float,
-        chicken_type: str = DEFAULT_CHICKEN_TYPE,
     ) -> dict:
         disease_name = classification["disease_name"]
         confidence_score = classification["confidence_score"]
@@ -350,7 +344,7 @@ class AIPredictionService:
             float(measured_oil) if measured_oil is not None
             else (float(estimated_oil) if estimated_oil is not None else None)
         )
-        readiness = assess_market_readiness(chicken_type, effective_weight, healthy)
+        readiness = assess_market_readiness(effective_weight, healthy)
 
         processing_time_ms = int((time.time() - start_time) * 1000)
 
@@ -403,7 +397,6 @@ class AIPredictionService:
             "effective_oil_ml": effective_oil,
             "weight_source": "user" if measured_weight is not None else ("ai" if estimated_weight is not None else None),
             "oil_source": "user" if measured_oil is not None else ("ai" if estimated_oil is not None else None),
-            "chicken_type": readiness["chicken_type"],
             "market_target_kg": readiness["market_target_kg"],
             "market_ready": readiness["market_ready"],
             "market_ready_label": readiness["market_ready_label"],
@@ -563,7 +556,6 @@ class AIPredictionService:
         quota_exhausted = classification_exhausted or insights_exhausted
 
         session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
-        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
 
         # Everything past this point is DB writes — no additional vision
         # quota is used no matter how many chickens.
@@ -573,8 +565,7 @@ class AIPredictionService:
         ):
             chickens_result.append(
                 AIPredictionService._finalize_single_chicken(
-                    db, chicken, crop_bytes, classification, insights, angle, start_time,
-                    chicken_type,
+                    db, chicken, crop_bytes, classification, insights, angle, start_time
                 )
             )
 
@@ -647,15 +638,11 @@ class AIPredictionService:
         )
 
         results = []
-        session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
-        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
         for chicken, prediction, image in rows:
             confidence = float(prediction.disease_confidence) if prediction.disease_confidence is not None else None
             effective = AIPredictionService._effective_values(chicken, prediction)
             healthy = AIPredictionService._is_healthy(prediction.disease, confidence)
-            readiness = assess_market_readiness(
-                chicken_type, effective["effective_weight"], healthy
-            )
+            readiness = assess_market_readiness(effective["effective_weight"], healthy)
             results.append({
                 "detected_chicken_id": chicken.id,
                 "measured_weight_kg": float(chicken.measured_weight_kg) if chicken.measured_weight_kg is not None else None,
@@ -677,7 +664,6 @@ class AIPredictionService:
                 "estimated_weight": float(prediction.estimated_weight) if prediction.estimated_weight is not None else None,
                 "estimated_oil_ml": float(prediction.estimated_oil_ml) if prediction.estimated_oil_ml is not None else None,
                 **effective,
-                "chicken_type": readiness["chicken_type"],
                 "market_target_kg": readiness["market_target_kg"],
                 "market_ready": readiness["market_ready"],
                 "market_ready_label": readiness["market_ready_label"],

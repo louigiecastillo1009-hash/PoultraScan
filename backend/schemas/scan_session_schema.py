@@ -15,15 +15,9 @@ class ScanStatusSchema(str, Enum):
     FAILED = "FAILED"
 
 
-class ChickenTypeSchema(str, Enum):
-    BROILER = "BROILER"
-    NATIVE = "NATIVE"
-
-
 class CreateScanSessionSchema(BaseModel):
     farm_id: int
     scan_type: ScanTypeSchema
-    chicken_type: ChickenTypeSchema = ChickenTypeSchema.BROILER
 
 
 class UpdateScanSessionStatusSchema(BaseModel):
@@ -36,12 +30,11 @@ class ScanSessionResponseSchema(BaseModel):
     id: int
     farm_id: int
     scan_type: str
-    chicken_type: str = "BROILER"
     status: str
     started_at: datetime
     finished_at: Optional[datetime]
 
-    @field_validator("scan_type", "chicken_type", "status", mode="before")
+    @field_validator("scan_type", "status", mode="before")
     @classmethod
     def enum_to_value(cls, v):
         return v.value if hasattr(v, "value") else v

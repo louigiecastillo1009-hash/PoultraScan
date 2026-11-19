@@ -46,7 +46,6 @@ class ChickenPredictionSchema(BaseModel):
     effective_oil_ml: Optional[float] = None
     weight_source: Optional[str] = None
     oil_source: Optional[str] = None
-    chicken_type: str = "BROILER"
     market_target_kg: Optional[float] = None
     market_ready_label: Optional[str] = None
     market_ready_note: Optional[str] = None
@@ -90,7 +89,6 @@ class MeasurementResponseSchema(MeasurementSchema):
     effective_oil_ml: Optional[float] = None
     weight_source: Optional[str] = None
     oil_source: Optional[str] = None
-    chicken_type: str = "BROILER"
     market_target_kg: Optional[float] = None
     market_ready: bool = False
     market_ready_label: Optional[str] = None

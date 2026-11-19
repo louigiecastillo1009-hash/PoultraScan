@@ -146,6 +146,14 @@ unable to assess choose UNKNOWN: mild, possible, or ambiguous signs (a
 slightly pale comb, slightly ruffled feathers, an odd camera angle, dim
 lighting) are never enough to flag a bird as sick.
 
+VISIBLE_SIGNS GATE — before naming any disease, ask: "Can I literally point to
+the sign in THIS image?" A named disease is allowed ONLY when the answer is
+yes and you can describe the exact visible lesion, discharge, swelling,
+bloody droppings, paralysis, or similar concrete sign. If you cannot point to
+it, or the sign is minor/possible rather than clear, set "visible_signs" to
+false and choose HEALTHY or UNKNOWN — never a named disease. When in doubt,
+the bird is healthy.
+
 HEALTHY — choose this when the bird shows NO concrete sign of illness:
 reasonably upright/alert posture (or normal resting posture), feathers that
 are not severely damaged, clear eyes, and no visible lesions, swelling,
@@ -162,6 +170,7 @@ Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
   "framing": "<OK, TOO_CLOSE, TOO_FAR, or UNCLEAR>",
   "framing_note": "<one short sentence explaining the framing issue if framing is not OK, otherwise empty string>",
   "quality_note": "<one short sentence explaining the issue if chicken_visible is false or is_blurry is true, otherwise empty string>",
+  "visible_signs": <true or false — true ONLY when you can point to a concrete, clearly visible sign of illness in this image (lesion, discharge, swelling, bloody droppings, paralysis, etc.). Minor or ambiguous cues, poor lighting, normal resting posture, or slightly ruffled feathers must be false>,
   "disease": "<disease name in UPPER_SNAKE_CASE, e.g. COCCIDIOSIS, NEWCASTLE_DISEASE, HEALTHY, UNKNOWN, or another specific disease name if clearly applicable>",
   "confidence": <integer 0-100, self-reported confidence, not calibrated accuracy>,
   "reasoning": "<one or two sentences citing the SPECIFIC visual evidence observed that led to this classification>"
@@ -172,6 +181,7 @@ and "confidence" to 0 as placeholders (they will be ignored). If framing is
 not OK, also set "disease" to "HEALTHY" and "confidence" to 0 — the app
 rejects badly framed photos because the camera distance would make the
 bird look artificially large or small.
+If "visible_signs" is false, "disease" MUST be HEALTHY or UNKNOWN.
 """
 
 
@@ -198,6 +208,20 @@ def _apply_healthy_confidence_floor(disease_name: str, confidence_score: float) 
     """
     # Retain the compatibility helper, but never inflate model confidence.
     return confidence_score
+
+
+def _confirmed_visible_signs(item: dict) -> bool:
+    """
+    True only when the model explicitly reports a concrete visible sign of
+    illness. A missing or false value means the photo does not clearly show
+    sickness, so a named disease must not be surfaced as a health flag.
+    """
+    value = item.get("visible_signs")
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "1", "yes")
+    return False
 
 
 def _sanitize_disease_name(raw_name) -> str:
@@ -297,7 +321,15 @@ def classify_disease_with_gemini(image_bytes: bytes) -> dict:
         cache = _load_cache()
         if image_hash in cache:
             print(f"[DISEASE CACHE] Hit for image hash '{image_hash[:12]}...' — skipping Gemini call.")
-            return cache[image_hash]
+            cached = dict(cache[image_hash])
+            # Apply the visible-signs gate to cached results too, so an old
+            # cached illness label without concrete evidence stops flagging.
+            if (
+                cached.get("disease_name") not in ("HEALTHY", "UNKNOWN", "CANNOT_ASSESS")
+                and not _confirmed_visible_signs(cached.get("raw_response") or {})
+            ):
+                cached["disease_name"] = "UNKNOWN"
+            return cached
 
     mime_type = "image/jpeg"
     if image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
@@ -336,6 +368,9 @@ def classify_disease_with_gemini(image_bytes: bytes) -> dict:
                 raise ImageQualityError(message)
 
             disease_name = _sanitize_disease_name(data.get("disease", ""))
+            if disease_name not in ("HEALTHY", "UNKNOWN") and not _confirmed_visible_signs(data):
+                # No concrete visible sign -> never report a named illness.
+                disease_name = "UNKNOWN"
             confidence_score = round(_sanitize_confidence(data.get("confidence", 0)), 2)
             confidence_score = _apply_healthy_confidence_floor(disease_name, confidence_score)
 
@@ -431,6 +466,9 @@ Also include "image_id": "image_1" (or the corresponding image ID) in EACH objec
                     continue
 
                 disease_name = _sanitize_disease_name(item.get("disease", ""))
+                if disease_name not in ("HEALTHY", "UNKNOWN") and not _confirmed_visible_signs(item):
+                    # No concrete visible sign -> never report a named illness.
+                    disease_name = "UNKNOWN"
                 confidence_score = round(_sanitize_confidence(item.get("confidence", 0)), 2)
 
                 results.append({

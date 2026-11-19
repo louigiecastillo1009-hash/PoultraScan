@@ -27,6 +27,7 @@ from utils.gemini_disease_classifier import (
     _apply_healthy_confidence_floor,
     _sanitize_confidence,
     _sanitize_disease_name,
+    _confirmed_visible_signs,
     _parse_framing,
     _cannot_assess_result,
 )
@@ -176,6 +177,9 @@ Also include "image_id": "image_1" (or the corresponding image ID) in EACH objec
                     continue
 
                 disease_name = _sanitize_disease_name(item.get("disease", ""))
+                if disease_name not in ("HEALTHY", "UNKNOWN") and not _confirmed_visible_signs(item):
+                    # No concrete visible sign -> never report a named illness.
+                    disease_name = "UNKNOWN"
                 confidence_score = round(_sanitize_confidence(item.get("confidence", 0)), 2)
 
                 results.append({

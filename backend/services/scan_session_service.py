@@ -22,8 +22,7 @@ class ScanSessionService:
 
         new_session = ScanSession(
             farm_id=data.farm_id,
-            scan_type=data.scan_type.value,
-            chicken_type=data.chicken_type.value,
+            scan_type=data.scan_type.value
         )
         db.add(new_session)
         db.commit()

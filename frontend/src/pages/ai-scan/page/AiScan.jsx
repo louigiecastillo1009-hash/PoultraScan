@@ -41,7 +41,6 @@ export default function AiScan() {
   const [showFarmModal, setShowFarmModal] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [multiAngle, setMultiAngle] = useState(false);
-  const [chickenType, setChickenType] = useState('BROILER');
   const [angle, setAngle] = useState('FRONT');
   const [photos, setPhotos] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -101,7 +100,6 @@ export default function AiScan() {
       const { session } = await createScanSession({
         farmId,
         scanType: photos.some((photo) => photo.scanType === 'WEBCAM') ? 'WEBCAM' : 'UPLOAD',
-        chickenType,
       });
       const detected = [];
       const failures = [];
@@ -152,7 +150,7 @@ export default function AiScan() {
     setPreviewUrl(blobPreview);
 
     try {
-      const sessionResult = await createScanSession({ farmId, scanType, chickenType });
+      const sessionResult = await createScanSession({ farmId, scanType });
       const newScanSessionId = sessionResult.session.id;
 
       const detectionResult = await runDetection({
@@ -247,22 +245,7 @@ export default function AiScan() {
       <div className="mt-7">
         {scanState === 'scanning' && farmId && (
           <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-ink/10 bg-paper p-4 shadow-card">
-            <label className="flex flex-wrap items-center gap-2 text-sm font-medium text-ink">
-              Chicken type
-              <select
-                value={chickenType}
-                disabled={isProcessing}
-                onChange={(event) => setChickenType(event.target.value)}
-                className="rounded-lg border border-ink/15 bg-paper px-2 py-1 text-sm"
-              >
-                <option value="BROILER">Broiler / meat chicken (target ≥ 1.8 kg)</option>
-                <option value="NATIVE">Native / local (target ≥ 1.2 kg)</option>
-              </select>
-            </label>
-            <p className="mt-1 text-xs text-muted">
-              Sets the estimated market-ready weight target. It does not verify age or food safety.
-            </p>
-            <label className="mt-3 flex items-center gap-2 text-sm font-medium text-ink">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink">
               <input type="checkbox" checked={multiAngle} disabled={isProcessing}
                 onChange={(event) => {
                   setMultiAngle(event.target.checked);

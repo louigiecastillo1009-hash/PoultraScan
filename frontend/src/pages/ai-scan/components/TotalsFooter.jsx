@@ -74,7 +74,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             <span className="ml-1 text-[12px] font-medium text-muted">of {chickens.length}</span>
           </p>
           <p className="mt-2 text-xs text-muted">
-            Based on estimated or entered weight and the selected chicken type. Age and food safety are not verified.
+            Based on estimated or entered weight. Age and food safety are not verified.
           </p>
         </div>
       </div>

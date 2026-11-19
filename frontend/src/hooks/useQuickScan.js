@@ -46,7 +46,7 @@ export function useQuickScan(farmId) {
 
   const { saveCache } = useScanCache(farmId);
 
-  const runQuickScan = useCallback(async (file, scanType, chickenType = 'BROILER') => {
+  const runQuickScan = useCallback(async (file, scanType) => {
     if (submitting.current) return;
     submitting.current = true;
     setStatus('processing');
@@ -54,7 +54,7 @@ export function useQuickScan(farmId) {
     setSummary(null);
 
     try {
-      const sessionResult = await createScanSession({ farmId, scanType, chickenType });
+      const sessionResult = await createScanSession({ farmId, scanType });
       const scanSessionId = sessionResult.session.id;
 
       const detectionResult = await countChickens({ scanSessionId, imageFile: file });
