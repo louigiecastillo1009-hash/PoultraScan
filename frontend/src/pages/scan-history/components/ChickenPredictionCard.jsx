@@ -11,7 +11,6 @@ import { Badge } from '../../../components/index';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 import DetailStat from './DetailStat';
 import SeverityBadge from './SeverityBadge';
-import MeasurementForm from '../../ai-scan/components/MeasurementForm';
 import { presentChicken } from '../../ai-scan/components/resultPresentation';
 
 export default function ChickenPredictionCard({ chicken }) {
@@ -59,12 +58,11 @@ export default function ChickenPredictionCard({ chicken }) {
 
       {expanded && (
         <div className="flex flex-col gap-3 border-t border-ink/10 p-3 sm:p-4">
-          <MeasurementForm key={chicken.detected_chicken_id} chicken={chicken} />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
             <DetailStat
               icon={MdScale}
               label="Estimated weight"
-              value={chicken.estimated_weight != null ? `${chicken.estimated_weight} kg` : 'Measurement required'}
+              value={chicken.estimated_weight != null ? `~${chicken.estimated_weight} kg` : 'Estimate unavailable'}
             />
             <DetailStat
               icon={MdOpacity}
@@ -74,7 +72,7 @@ export default function ChickenPredictionCard({ chicken }) {
             <DetailStat
               icon={MdHealthAndSafety}
               label="Market ready"
-              value={chicken.assessable === false ? 'Not assessed' : chicken.market_ready ? 'Yes' : 'No'}
+              value="Needs verification"
               tone={chicken.market_ready ? 'good' : 'default'}
             />
           </div>

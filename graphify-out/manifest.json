@@ -444,10 +444,10 @@
     "semantic_hash": "d63061d863f97cd38178678c3e87de0f"
   },
   "backend/services/journal_entry_service.py": {
-    "mtime": 1783323404.0317802,
-    "seen": 1794985661.952416,
-    "ast_hash": "da7401c3826aaf617857bd21c77f4556",
-    "semantic_hash": "da7401c3826aaf617857bd21c77f4556"
+    "mtime": 1795049644.9400342,
+    "seen": 1795049795.8058944,
+    "ast_hash": "9b0cc62c159364d3350546cfd33edb34",
+    "semantic_hash": ""
   },
   "backend/services/notification_service.py": {
     "mtime": 1783922361.0298824,
@@ -504,15 +504,15 @@
     "semantic_hash": "1ab2ea3fbda6ce2cd1a7c732b9289691"
   },
   "backend/utils/gemini_client.py": {
-    "mtime": 1794986301.0162854,
-    "seen": 1794987147.437356,
-    "ast_hash": "4260c6266b903b6141089950c263d6ac",
+    "mtime": 1795049644.9523342,
+    "seen": 1795049795.8117936,
+    "ast_hash": "4798d7ff95824a919583d6bf3ddee230",
     "semantic_hash": ""
   },
   "backend/utils/gemini_disease_classifier.py": {
-    "mtime": 1794986301.0152168,
-    "seen": 1794987147.437359,
-    "ast_hash": "7a0e1b5aa0a330d17a1bc912d9a914f9",
+    "mtime": 1795049492.3591297,
+    "seen": 1795049795.8118014,
+    "ast_hash": "dacf8a17cc127a6db05dd2ef3778532f",
     "semantic_hash": ""
   },
   "backend/utils/gemini_image_counter.py": {
@@ -576,9 +576,9 @@
     "semantic_hash": ""
   },
   "backend/utils/openrouter_vision.py": {
-    "mtime": 1794986301.0171869,
-    "seen": 1794987147.4386263,
-    "ast_hash": "4091d8c0cffcf1664e938ea63b4da96f",
+    "mtime": 1795049492.353056,
+    "seen": 1795049795.8163505,
+    "ast_hash": "a59c8f64e2dcb5e071dbc83fa501af51",
     "semantic_hash": ""
   },
   "backend/utils/security.py": {
@@ -882,21 +882,21 @@
     "semantic_hash": "1aa7dd61128d0687f0c6260f27c5d038"
   },
   "frontend/src/pages/ai-scan/components/ChickenCard.jsx": {
-    "mtime": 1795047663.337706,
-    "seen": 1795047820.0773835,
-    "ast_hash": "a53f0a35c95c42fcead94f5683099d1a",
+    "mtime": 1795049692.9610436,
+    "seen": 1795049795.8461149,
+    "ast_hash": "fe396a767dc7a2dd7f10dbac5c6140a9",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/ChickenList.jsx": {
-    "mtime": 1795047563.8746061,
-    "seen": 1795047820.0773907,
-    "ast_hash": "718d09874ad3107bb6cbe6e6ee36c6c1",
+    "mtime": 1795049602.9318943,
+    "seen": 1795049795.846123,
+    "ast_hash": "a1e646565e521360e1969f0134a0ab9c",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/ChickenTable.jsx": {
-    "mtime": 1795047563.8781483,
-    "seen": 1795047820.077396,
-    "ast_hash": "e0e988c09f81bfb323edf7e25662e186",
+    "mtime": 1795049602.9247065,
+    "seen": 1795049795.8461294,
+    "ast_hash": "eab0b4461e40d6e89daf7fb4ff9d0a8a",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/FarmRequiredModal.jsx": {
@@ -912,9 +912,9 @@
     "semantic_hash": "5676835aa50ac143cde119021f3c81fd"
   },
   "frontend/src/pages/ai-scan/components/ResultsView.jsx": {
-    "mtime": 1795047526.976863,
-    "seen": 1795047820.0788374,
-    "ast_hash": "b30596097daef3be8852d32fbe1db7bf",
+    "mtime": 1795049692.9720225,
+    "seen": 1795049795.8475266,
+    "ast_hash": "0dcc5de2cd06d5ca42128e4119dda910",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/ScanningView.jsx": {
@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/TotalsFooter.jsx": {
-    "mtime": 1795047563.883884,
-    "seen": 1795047820.079368,
-    "ast_hash": "170ee47cd59cf6375d8ce7925210e7de",
+    "mtime": 1795049602.9371655,
+    "seen": 1795049795.8481007,
+    "ast_hash": "552637061ec89b37146c4ba385b8c996",
     "semantic_hash": ""
   },
   "frontend/src/pages/ai-scan/components/ViewModeToggle.jsx": {
@@ -1374,9 +1374,9 @@
     "semantic_hash": "939aec0355074013df684ef5b8c30516"
   },
   "frontend/src/pages/scan-history/components/ChickenPredictionCard.jsx": {
-    "mtime": 1795047758.6662855,
-    "seen": 1795047820.1272078,
-    "ast_hash": "5e673a24be8c24f523f576dd5607af3f",
+    "mtime": 1795049586.4630375,
+    "seen": 1795049795.8833208,
+    "ast_hash": "efab42ab93eda299763dcc13d500f61f",
     "semantic_hash": ""
   },
   "frontend/src/pages/scan-history/components/ConfirmDeleteModal.jsx": {
@@ -1422,9 +1422,9 @@
     "semantic_hash": "04e6b7dcf3bab7d3e6cd9afbf5447224"
   },
   "frontend/src/pages/scan-history/components/ScanDetailModal.jsx": {
-    "mtime": 1794987029.127368,
-    "seen": 1794987147.4715946,
-    "ast_hash": "fc18ddee7d1b788dd826b498b3bb1ebb",
+    "mtime": 1795049692.9753091,
+    "seen": 1795049795.8862784,
+    "ast_hash": "b50d989fc2e3b893253dd3d44c762376",
     "semantic_hash": ""
   },
   "frontend/src/pages/scan-history/components/ScanRow.jsx": {
@@ -4467,6 +4467,24 @@
     "mtime": 1795047692.107353,
     "seen": 1795047820.0804932,
     "ast_hash": "4d55859bca06cf3083dcd6ed025597ce",
+    "semantic_hash": ""
+  },
+  "backend/tests/test_visual_scan_estimates.py": {
+    "mtime": 1795049753.7155807,
+    "seen": 1795049795.8103988,
+    "ast_hash": "b261cccf856a5f1f14daf4cef2968558",
+    "semantic_hash": ""
+  },
+  "backend/utils/scan_estimation.py": {
+    "mtime": 1795049492.3510368,
+    "seen": 1795049795.8167784,
+    "ast_hash": "2799698d1e8b93ae7bd5b26f518d1e8e",
+    "semantic_hash": ""
+  },
+  "frontend/src/pages/scan-history/components/ManualScanLog.jsx": {
+    "mtime": 1795049628.3205101,
+    "seen": 1795049795.8850121,
+    "ast_hash": "bb25392f7ead76658ef7141a603feec1",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

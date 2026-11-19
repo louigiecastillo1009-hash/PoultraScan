@@ -19,6 +19,7 @@ import base64
 from dotenv import load_dotenv
 from openai import OpenAI
 from utils.scan_result_validation import ordered_image_results
+from utils.scan_estimation import VISUAL_ESTIMATION_INSTRUCTIONS, supported_market_ready
 
 from utils.gemini_disease_classifier import (
     DISEASE_PROMPT,
@@ -226,13 +227,7 @@ a separate AI model as follows:
 
 {disease_list_str}
 
-For EACH image, assess visible body condition and posture independently.
-Do not substitute a typical broiler weight for an unsupported estimate.
-
-IMPORTANT: These are automatic crops. Pixel size and crop occupancy do not
-establish physical weight. Without a reliable scale or supporting information,
-return estimated_weight: null and weight_confidence: null. Confidence is
-self-reported uncertainty, not a measured accuracy rate.
+{VISUAL_ESTIMATION_INSTRUCTIONS}
 
 Respond ONLY with a valid JSON array (no markdown, no code fences) with
 exactly {len(items)} objects in the same order as the images, each in
@@ -249,7 +244,7 @@ Use the actual image ID (image_1, image_2, etc.) for each result.
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
 
-If a chicken's disease is HEALTHY, market_ready should lean true and tips
+If a chicken's disease is HEALTHY, tips
 should be general maintenance advice. If COCCIDIOSIS, FOWL_POX, or
 NEWCASTLE, market_ready should be false and tips should focus on
 treatment/isolation.
@@ -294,7 +289,7 @@ treatment/isolation.
                     "estimated_weight": weight,
                     "weight_confidence": _sanitize_weight_confidence(entry.get("weight_confidence")),
                     "estimated_oil_ml": _compute_oil_ml(weight),
-                    "market_ready": bool(entry.get("market_ready", False)),
+                    "market_ready": supported_market_ready(entry.get("market_ready"), weight, None),
                 })
 
             print(f"[OPENROUTER BATCH INSIGHTS] Success using model: {model_name} -> {len(results)} results in 1 call")

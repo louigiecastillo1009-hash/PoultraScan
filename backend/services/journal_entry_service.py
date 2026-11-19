@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from models.journal_entry import JournalEntry
+from models.farm import Farm
+from models.scan_session import ScanSession
 from schemas.journal_entry_schema import CreateJournalEntrySchema, UpdateJournalEntrySchema
 
 
@@ -9,6 +11,18 @@ class JournalEntryService:
 
     @staticmethod
     def create(db: Session, user_id: int, data: CreateJournalEntrySchema) -> JournalEntry:
+        if data.farm_id is not None:
+            farm = db.query(Farm).filter(Farm.id == data.farm_id, Farm.user_id == user_id).first()
+            if farm is None:
+                raise HTTPException(404, "Farm not found")
+        if data.scan_session_id is not None:
+            scan = db.query(ScanSession).join(Farm, Farm.id == ScanSession.farm_id).filter(
+                ScanSession.id == data.scan_session_id, Farm.user_id == user_id
+            ).first()
+            if scan is None:
+                raise HTTPException(404, "Scan not found")
+            if data.farm_id is not None and scan.farm_id != data.farm_id:
+                raise HTTPException(400, "Scan does not belong to this farm")
         new_entry = JournalEntry(user_id=user_id, **data.model_dump())
         db.add(new_entry)
         db.commit()

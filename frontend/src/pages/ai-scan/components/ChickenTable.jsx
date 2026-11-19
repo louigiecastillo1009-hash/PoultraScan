@@ -1,7 +1,6 @@
 import { Fragment, useState } from 'react';
 import {
   MdChevronRight,
-  MdCheck,
   MdOutlinePets,
   MdOutlineMedicalServices,
 } from 'react-icons/md';
@@ -57,7 +56,7 @@ export default function ChickenTable({ chickens }) {
                     <td className={td}>
                       <span className={`badge ${sev.bg} ${sev.text}`}>{chicken.severity === 'UNKNOWN' ? 'Not assessed' : sev.label}</span>
                     </td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Measurement required' : `${chicken.estimated_weight} kg`}</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Estimate unavailable' : `~${chicken.estimated_weight} kg`}</td>
                     <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_oil_ml == null ? 'Not estimated' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-2">
@@ -70,13 +69,7 @@ export default function ChickenTable({ chickens }) {
                       </span>
                     </td>
                     <td className={td}>
-                      {chicken.market_ready ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#4D6938]">
-                          <MdCheck className="text-sm" /> Market Ready
-                        </span>
-                      ) : (
-                        <span className="text-xs font-medium text-[#6F7160]">Not ready</span>
-                      )}
+                      <span className="text-xs font-medium text-[#6F7160]">Needs verification</span>
                     </td>
                     <td className={`${td} text-right`}>
                       <button

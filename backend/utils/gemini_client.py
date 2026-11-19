@@ -25,10 +25,11 @@ FREE_MODELS = [
     "gemini-3-flash-preview",
 ]
 
+from utils.scan_estimation import VISUAL_ESTIMATION_INSTRUCTIONS, supported_market_ready
 MIN_REALISTIC_WEIGHT_KG = 0.1
 MAX_REALISTIC_WEIGHT_KG = 8.0
 
-# Oil yield is COMPUTED from real weight using a fixed rendering model, never
+# Oil yield is COMPUTED from estimated weight using a fixed rendering model, never
 # guessed by the AI. Formula (all constants named so the math is auditable):
 #   edible fat (g)   = weight_kg * 1000 * OIL_FAT_RATIO * OIL_RENDERING_EFFICIENCY
 #   oil (ml)         = edible fat (g) / OIL_DENSITY_G_PER_ML
@@ -68,10 +69,7 @@ You are given a photo of a live chicken. A separate AI model already classified 
 - Disease: {disease}
 - Confidence: {confidence}%
 
-Look carefully at the chicken in the image (its size, body condition, posture) and estimate
-realistic values based on what you actually see. A typical broiler chicken weighs between
-1.0 and 3.5 kg — use the visual size of the bird in the photo to judge where it falls in
-that range (or slightly outside it if the bird looks unusually small/large).
+{VISUAL_ESTIMATION_INSTRUCTIONS}
 
 Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
 {{
@@ -84,7 +82,7 @@ Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
 Note: oil yield is NOT requested here — the app computes it from the
 estimated_weight using its own formula, so do not invent an oil number.
 
-If disease is HEALTHY, market_ready should lean true and tips should be general maintenance advice.
+If disease is HEALTHY, tips should be general maintenance advice.
 If disease is COCCIDIOSIS, FOWL_POX, or NEWCASTLE, market_ready should be false and tips should focus on treatment/isolation.
 """
 
@@ -158,7 +156,7 @@ def get_disease_insights(disease: str, confidence: float, image_bytes: bytes) ->
                 "estimated_weight": weight,
                 "weight_confidence": _sanitize_weight_confidence(data.get("weight_confidence")),
                 "estimated_oil_ml": _compute_oil_ml(weight),
-                "market_ready": bool(data.get("market_ready", False))
+                "market_ready": supported_market_ready(data.get("market_ready"), weight, disease)
             }
 
         except Exception as e:
@@ -211,14 +209,7 @@ a separate AI model as follows:
 
 {disease_list_str}
 
-For EACH image, assess visible body condition and posture independently.
-Do not substitute a typical broiler weight for an unsupported estimate.
-
-IMPORTANT: Pixel size and crop occupancy do NOT establish real weight.
-These are automatic crops with unknown distance, age and scale. Do not
-infer weight from apparent size. If there is no reliable scale or supporting
-information, return estimated_weight: null and weight_confidence: null.
-Any confidence is self-reported uncertainty, NOT a measured accuracy rate.
+{VISUAL_ESTIMATION_INSTRUCTIONS}
 
 Respond ONLY with a valid JSON array (no markdown, no code fences) with
 exactly {len(items)} objects in the same order as the images, each in
@@ -235,7 +226,7 @@ Use the actual image ID (image_1, image_2, etc.) for each result.
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
 
-If a chicken's disease is HEALTHY, market_ready should lean true and tips
+If a chicken's disease is HEALTHY, tips
 should be general maintenance advice. If COCCIDIOSIS, FOWL_POX, or
 NEWCASTLE, market_ready should be false and tips should focus on
 treatment/isolation.
@@ -265,7 +256,7 @@ treatment/isolation.
                     "estimated_weight": weight,
                     "weight_confidence": _sanitize_weight_confidence(entry.get("weight_confidence")),
                     "estimated_oil_ml": _compute_oil_ml(weight),
-                    "market_ready": bool(entry.get("market_ready", False)),
+                    "market_ready": supported_market_ready(entry.get("market_ready"), weight, None),
                 })
 
             print(f"[BATCH INSIGHTS] Success using model: {model_name} -> {len(results)} results in 1 call")

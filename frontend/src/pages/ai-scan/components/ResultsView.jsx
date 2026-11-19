@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { Badge, Button, SectionHeading, Surface } from '../../../components/index';
 import { ChickenCard, ChickenList, ChickenTable, TotalsFooter, ViewModeToggle } from './index';
-import MeasurementForm from './MeasurementForm';
 import { presentChicken } from './resultPresentation';
 
 const VIEW_STORAGE_KEY = 'ai_scan_results_view';
@@ -16,7 +15,6 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
   const multiAngle = new Set(chickens.map((chicken) => chicken.angle).filter(Boolean)).size > 1;
   const totalWeight = predictionData?.total_weight ?? 0;
   const totalOilMl = predictionData?.total_oil_ml ?? 0;
-  const marketReadyCount = predictionData?.market_ready_count ?? 0;
 
   const [view, setView] = useState(() => {
     try {
@@ -169,7 +167,7 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
           action={
             <div className="flex items-center gap-3">
               <span className="hidden text-[11px] font-medium text-muted sm:inline">
-                {marketReadyCount} of {chickens.length} market ready
+                Market readiness needs verification
               </span>
               <ViewModeToggle value={view} onChange={setView} />
             </div>
@@ -205,15 +203,8 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
         chickens={chickens}
         totalWeight={totalWeight}
         totalOilMl={totalOilMl}
-        marketReadyCount={marketReadyCount}
       />
-      <section className="space-y-3">
-        <h2 className="font-semibold">Record physical measurements</h2>
-        <p className="text-sm text-muted">Measurements are saved per photo observation, separately from AI estimates and estimated totals. Multiple angles may show the same bird.</p>
-        {chickens.map((chicken) => (
-          <MeasurementForm key={chicken.detected_chicken_id} chicken={chicken} />
-        ))}
-      </section>
+      <p className="text-sm text-muted">Weight is an approximate, uncalibrated visual estimate. Oil yield is calculated from that estimate using assumed fat content and rendering efficiency. Neither is a measured value. Optional manual notes are available in scan history.</p>
 
       <div className="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row">
         <Button variant="secondary" className="w-full sm:w-auto" onClick={onScanAgain}>

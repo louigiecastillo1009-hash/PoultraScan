@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  MdCheck,
   MdHealthAndSafety,
   MdInfoOutline,
   MdOutlineMedicalServices,
@@ -33,7 +32,7 @@ export default function ChickenCard({ chicken }) {
         </span>
         <span className={`badge ${severity.bg} ${severity.text}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${severity.dot}`} aria-hidden="true" />
-          {chicken.severity === 'UNKNOWN' ? 'Not assessed' : severity.label}
+          {chicken.severity === 'NONE' ? 'No visible signs' : chicken.severity === 'UNKNOWN' ? 'Not assessed' : severity.label}
         </span>
       </header>
 
@@ -63,14 +62,14 @@ export default function ChickenCard({ chicken }) {
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">Estimated weight</p>
             <p className="mt-1 font-display text-[1.35rem] font-medium text-ink">
-              {chicken.estimated_weight ?? 'Measurement required'}
+              {chicken.estimated_weight == null ? 'Estimate unavailable' : `~${chicken.estimated_weight}`}
               {chicken.estimated_weight != null && (
                 <span className="ml-1 text-[11px] font-medium text-muted">kg</span>
               )}
             </p>
             <p className="mt-1 text-xs text-muted">
               {chicken.estimated_weight == null
-                ? 'No reliable weight estimate from this photo.'
+                ? 'Try a clear, full-body photo of this chicken.'
                 : `Model confidence: ${chicken.weight_confidence == null ? 'Not provided' : `${Math.round(chicken.weight_confidence)}%`}. Self-reported, not measured accuracy. Verify with a scale.`}
             </p>
           </div>
@@ -114,30 +113,9 @@ export default function ChickenCard({ chicken }) {
           </div>
         </div>
 
-        <div
-          className={`flex items-center justify-between rounded-xl border px-3.5 py-2.5 ${
-            chicken.market_ready
-              ? 'border-[#CFDDB8] bg-success-soft'
-              : 'border-ink/10 bg-cream-deep/45'
-          }`}
-        >
-          <span
-            className={`text-[11px] font-semibold ${
-              chicken.market_ready ? 'text-sage-dark' : 'text-muted'
-            }`}
-          >
-            {chicken.market_ready ? 'Market ready' : 'Not market ready'}
-          </span>
-          <span
-            className={`flex h-5 w-5 items-center justify-center rounded-full ${
-              chicken.market_ready
-                ? 'bg-sage-dark text-cream'
-                : 'border border-line bg-paper text-muted'
-            }`}
-          >
-            <MdCheck className="text-sm" aria-hidden="true" />
-          </span>
-        </div>
+        <p className="rounded-xl border border-ink/10 bg-cream-deep/45 px-3.5 py-2.5 text-[11px] text-muted">
+          Market readiness needs verification
+        </p>
 
         {isExpanded && (
           <div className="flex flex-col gap-3">

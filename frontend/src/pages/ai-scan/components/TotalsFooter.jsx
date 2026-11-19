@@ -3,25 +3,7 @@ import { MdInfoOutline } from 'react-icons/md';
 
 import { Surface } from '../../../components/index';
 
-function MarketReadyBar({ ready, total }) {
-  if (!total) return null;
-  const percentage = Math.round((ready / total) * 100);
-
-  return (
-    <div className="mt-3 flex items-center gap-3">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream-deep">
-        <div
-          className="h-full rounded-full bg-sage-dark"
-          style={{ width: `${percentage}%` }}
-          aria-hidden="true"
-        />
-      </div>
-      <span className="text-[10.5px] font-bold text-sage-dark">{percentage}%</span>
-    </div>
-  );
-}
-
-export default function TotalsFooter({ chickens, totalWeight, totalOilMl, marketReadyCount }) {
+export default function TotalsFooter({ chickens, totalWeight, totalOilMl }) {
   const hasWeight = chickens.some((chicken) => chicken.estimated_weight != null);
   const hasOil = chickens.some((chicken) => chicken.estimated_oil_ml != null);
   const someWeightMissing = hasWeight && chickens.some((chicken) => chicken.estimated_weight == null);
@@ -51,7 +33,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             Total weight
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {hasWeight ? totalWeight : 'Measurement required'}
+            {hasWeight ? `~${totalWeight}` : 'Estimate unavailable'}
             {hasWeight && (
               <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
             )}
@@ -82,10 +64,9 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             Market ready
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {marketReadyCount}
-            <span className="ml-1 text-[12px] font-medium text-muted">of {chickens.length}</span>
+            Needs verification
           </p>
-          <MarketReadyBar ready={marketReadyCount} total={chickens.length} />
+          <p className="mt-2 text-xs text-muted">A healthy appearance does not confirm market weight, age, or food safety.</p>
         </div>
       </div>
     </Surface>

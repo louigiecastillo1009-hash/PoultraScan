@@ -59,6 +59,10 @@ _cache_lock = threading.Lock()
 
 
 DISEASE_PROMPT = """
+Each crop corresponds to ONE target chicken near its center. Ignore neighboring
+birds. Describe only that target, never "all chickens" or a group. If overlapping
+birds prevent identifying the target, mark framing UNCLEAR instead of assigning
+the group's assessment to this chicken.
 You are an expert poultry veterinary assistant analyzing a photo of a chicken
 for a farm monitoring app. Farmers rely on this assessment to catch disease
 early, so flag any CONCRETE sign of illness you can actually see in the image.

@@ -17,6 +17,7 @@ import { formatDateTime } from '../../../utils/formatDateTime';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 import { getPredictionsBySession } from '../api/aiPredictionApi';
 import ChickenPredictionCard from './ChickenPredictionCard';
+import ManualScanLog from './ManualScanLog';
 import DetailStat from './DetailStat';
 import StatusBadge from './StatusBadge';
 
@@ -135,7 +136,7 @@ export default function ScanDetailModal({ scan, onClose }) {
             icon={MdHealthAndSafety}
             label="Market ready"
             value={
-              scan.total_detected ? `${scan.market_ready_count ?? 0}/${scan.total_detected}` : '--'
+              'Needs verification'
             }
             tone="good"
           />
@@ -153,6 +154,10 @@ export default function ScanDetailModal({ scan, onClose }) {
           </div>
         )}
 
+        <details className="rounded-xl border border-ink/10 p-4">
+          <summary className="cursor-pointer text-sm font-semibold">Optional manual journal logs</summary>
+          <ManualScanLog key={scan.scan_session_id} scan={scan} />
+        </details>
         <div className="flex flex-col gap-2.5">
           <h3 className="font-display text-[1.15rem] font-medium text-ink">
             Chicken-by-chicken results
