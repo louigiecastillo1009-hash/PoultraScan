@@ -51,7 +51,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             Total weight
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {hasWeight ? totalWeight : 'Unknown'}
+            {hasWeight ? totalWeight : 'Measurement required'}
             {hasWeight && (
               <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
             )}
@@ -71,7 +71,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl, market
             />
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {hasOil ? `~${Math.round(totalOilMl ?? 0)}` : 'Unknown'}
+            {hasOil ? `~${Math.round(totalOilMl ?? 0)}` : 'Not estimated'}
             {hasOil && (
               <span className="ml-1 text-[12px] font-medium text-muted">mL</span>
             )}

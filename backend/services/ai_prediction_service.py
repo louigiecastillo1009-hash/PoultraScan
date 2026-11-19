@@ -42,6 +42,29 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class AIPredictionService:
     @staticmethod
+    def assessment_status(disease, model):
+        if disease not in ("UNKNOWN", "CANNOT_ASSESS"):
+            return "ASSESSED"
+        if model == "n/a":
+            return "UNAVAILABLE"
+        return "RETAKE"
+
+    @staticmethod
+    def save_measurements(db, chicken_id, user_id, measurements):
+        chicken = db.query(DetectedChicken).filter(DetectedChicken.id == chicken_id).first()
+        if chicken is None:
+            raise HTTPException(404, "Chicken observation not found")
+        AIPredictionService.require_owned_session(db, chicken.scan_session_id, user_id)
+        for field, value in measurements.model_dump(exclude_unset=True).items():
+            setattr(chicken, field, value)
+        db.commit()
+        db.refresh(chicken)
+        return {
+            "measured_weight_kg": chicken.measured_weight_kg,
+            "measured_height_cm": chicken.measured_height_cm,
+        }
+
+    @staticmethod
     def require_owned_session(db: Session, session_id: int, user_id: int):
         session = db.query(ScanSession).join(Farm, Farm.id == ScanSession.farm_id).filter(
             ScanSession.id == session_id, Farm.user_id == user_id
@@ -68,7 +91,7 @@ class AIPredictionService:
     )
 
     @staticmethod
-    def _is_healthy(disease_name: str, confidence_score) -> bool:
+    def _is_healthy(disease_name: str, confidence_score) -> bool | None:
         """
         Healthy/not-healthy tri-state: True for healthy, False only when
         there is a specific non-healthy finding at sufficient confidence,
@@ -80,9 +103,9 @@ class AIPredictionService:
         if disease_name in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS):
             return None
         if confidence_score is None:
-            return True
+            return None
         if float(confidence_score) < AIPredictionService.MIN_FLAG_CONFIDENCE:
-            return True
+            return None
         return False
 
     @staticmethod
@@ -94,6 +117,8 @@ class AIPredictionService:
         """
         if disease_name in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS):
             return disease_name
+        if AIPredictionService._is_healthy(disease_name, confidence_score) is None:
+            return "Assessment inconclusive"
         if AIPredictionService._is_healthy(disease_name, confidence_score):
             return "Healthy"
         return "Not Healthy"
@@ -290,6 +315,9 @@ class AIPredictionService:
 
         return {
             "detected_chicken_id": detected_chicken.id,
+            "measured_weight_kg": detected_chicken.measured_weight_kg,
+            "measured_height_cm": detected_chicken.measured_height_cm,
+            "assessment_status": AIPredictionService.assessment_status(disease_name, classification.get("model_used")),
             "tracking_id": detected_chicken.tracking_id,
             "chicken_image_id": chicken_image.id,
             "image_url": image_url,
@@ -545,6 +573,9 @@ class AIPredictionService:
             confidence = float(prediction.disease_confidence) if prediction.disease_confidence is not None else None
             results.append({
                 "detected_chicken_id": chicken.id,
+                "measured_weight_kg": chicken.measured_weight_kg,
+                "measured_height_cm": chicken.measured_height_cm,
+                "assessment_status": AIPredictionService.assessment_status(prediction.disease, prediction.model_version),
                 "tracking_id": chicken.tracking_id,
                 "chicken_image_id": image.id if image else None,
                 "image_url": image.image_url if image else None,

@@ -18,7 +18,7 @@ export default function ChickenCard({ chicken }) {
 
   if (isUncertain) return (
     <article className="rounded-2xl border border-ink/10 bg-paper p-5 shadow-card">
-      <h3 className="font-semibold">{chicken.angle ? `${chicken.angle} · ` : ''}Chicken {chicken.tracking_id} — Unknown</h3>
+      <h3 className="font-semibold">{chicken.angle ? `${chicken.angle} · ` : ''}Chicken {chicken.tracking_id} — {chicken.disease}</h3>
       <p className="mt-3 text-sm">{chicken.cannot_assess_reason || chicken.reasoning || chicken.care_tips || 'Chicken cannot be assessed clearly. Please reposition the camera and retake the photo.'}</p>
       <p className="mt-3 text-sm text-muted">Weight and health assessment unavailable. This is not a healthy result.</p>
     </article>
@@ -33,11 +33,12 @@ export default function ChickenCard({ chicken }) {
         </span>
         <span className={`badge ${severity.bg} ${severity.text}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${severity.dot}`} aria-hidden="true" />
-          {severity.label}
+          {chicken.severity === 'UNKNOWN' ? 'Not assessed' : severity.label}
         </span>
       </header>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
+        {chicken.reasoning && <p className="text-sm text-muted">{chicken.reasoning}</p>}
         <div className="flex items-center gap-3">
           <span
             className={`flex h-9 w-9 items-center justify-center rounded-full ${
@@ -62,7 +63,7 @@ export default function ChickenCard({ chicken }) {
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-olive">Estimated weight</p>
             <p className="mt-1 font-display text-[1.35rem] font-medium text-ink">
-              {chicken.estimated_weight ?? 'Unknown'}
+              {chicken.estimated_weight ?? 'Measurement required'}
               {chicken.estimated_weight != null && (
                 <span className="ml-1 text-[11px] font-medium text-muted">kg</span>
               )}
@@ -70,7 +71,7 @@ export default function ChickenCard({ chicken }) {
             <p className="mt-1 text-xs text-muted">
               {chicken.estimated_weight == null
                 ? 'No reliable weight estimate from this photo.'
-                : `Model confidence: ${chicken.weight_confidence == null ? 'Unknown' : `${Math.round(chicken.weight_confidence)}%`}. Self-reported, not measured accuracy. Verify with a scale.`}
+                : `Model confidence: ${chicken.weight_confidence == null ? 'Not provided' : `${Math.round(chicken.weight_confidence)}%`}. Self-reported, not measured accuracy. Verify with a scale.`}
             </p>
           </div>
           <div className="border-l border-ink/10 pl-4">
@@ -84,7 +85,7 @@ export default function ChickenCard({ chicken }) {
               </span>
             </p>
             <p className="mt-1 font-display text-[1.35rem] font-medium text-ink">
-              {chicken.estimated_oil_ml == null ? 'Unknown' : `~${Math.round(chicken.estimated_oil_ml)}`}
+              {chicken.estimated_oil_ml == null ? 'Not estimated' : `~${Math.round(chicken.estimated_oil_ml)}`}
               {chicken.estimated_oil_ml != null && (
                 <span className="ml-1 text-[11px] font-medium text-muted">mL</span>
               )}
@@ -101,7 +102,7 @@ export default function ChickenCard({ chicken }) {
               AI confidence
             </span>
             <span className="text-[11px] font-bold text-sage-dark">
-              {chicken.confidence == null ? 'Unknown' : `${Math.round(chicken.confidence)}%`}
+              {chicken.confidence == null ? 'Not provided' : `${Math.round(chicken.confidence)}%`}
             </span>
           </div>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-cream-deep">

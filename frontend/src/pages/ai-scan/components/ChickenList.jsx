@@ -51,15 +51,15 @@ export default function ChickenList({ chickens }) {
                   </span>
                 </span>
                 <span className="flex items-center gap-2 mt-0.5 text-xs text-[#6F7160]">
-                  <span>{chicken.estimated_weight == null ? 'Weight unknown' : `Est. ${chicken.estimated_weight} kg`}</span>
+                  <span>{chicken.estimated_weight == null ? 'Weight: measurement required' : `Est. ${chicken.estimated_weight} kg`}</span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
-                  <span>{chicken.estimated_oil_ml == null ? 'Oil unknown' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</span>
+                  <span>{chicken.estimated_oil_ml == null ? 'Oil: not estimated' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
-                  <span>{chicken.confidence == null ? 'confidence unknown' : `${Math.round(chicken.confidence)}% confidence`}</span>
+                  <span>{chicken.confidence == null ? 'confidence not provided' : `${Math.round(chicken.confidence)}% confidence`}</span>
                 </span>
               </span>
 
-              <span className={`badge ${sev.bg} ${sev.text} hidden sm:inline-flex`}>{sev.label}</span>
+              <span className={`badge ${sev.bg} ${sev.text} hidden sm:inline-flex`}>{chicken.severity === 'UNKNOWN' ? 'Not assessed' : sev.label}</span>
 
               {chicken.market_ready ? (
                 <span className="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-[#4D6938] bg-[#E9EFDA] border border-[#CFDDB8] rounded-full px-2.5 py-1">

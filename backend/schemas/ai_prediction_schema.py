@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
@@ -17,6 +17,9 @@ class ChickenPredictionSchema(BaseModel):
 
     detected_chicken_id: int
     tracking_id: Optional[int] = None
+    measured_weight_kg: Optional[float] = None
+    measured_height_cm: Optional[float] = None
+    assessment_status: str = "ASSESSED"
     chicken_image_id: int
     image_url: str
     ai_prediction_id: int
@@ -60,3 +63,9 @@ class BatchPredictionResponseSchema(BaseModel):
     # analyzed and the frontend should show the "try again later" modal.
     quota_exhausted: bool = False
     quota_message: Optional[str] = None
+
+
+class MeasurementSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    measured_weight_kg: Optional[float] = Field(default=None, ge=0.001, le=99999, allow_inf_nan=False)
+    measured_height_cm: Optional[float] = Field(default=None, ge=0.01, le=99999, allow_inf_nan=False)

@@ -24,6 +24,9 @@ class DetectedChicken(Base):
     )
 
     tracking_id = Column(Integer)
+    # User-entered physical measurements; never inferred from image pixels.
+    measured_weight_kg = Column(DECIMAL(8,3))
+    measured_height_cm = Column(DECIMAL(8,2))
 
     confidence = Column(DECIMAL(5,2))
 

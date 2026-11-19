@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { presentChicken } from '../pages/ai-scan/components/resultPresentation';
 import { createScanSession } from '../pages/ai-scan/api/scanSession'; // adjust path
 import { countChickens } from '../pages/ai-scan/api/detection'; // adjust path
 import { predictDisease } from '../pages/ai-scan/api/aiPrediction'; // adjust path
@@ -30,7 +31,7 @@ function summarize(predictionData) {
   return {
     chickenCount: chickens.length,
     healthyCount: chickens.filter((c) => c.healthy).length,
-    topDisease: worst.disease,
+    topDisease: presentChicken(worst).disease,
     topSeverity: worst.severity,
     unavailableMessage: predictionData.quota_message,
   };

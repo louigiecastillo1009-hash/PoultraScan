@@ -11,7 +11,7 @@ export default function SeverityBadge({ severity }) {
 
   return (
     <Badge tone={TONES[severity] || 'neutral'} size="sm">
-      {severity}
+      {severity === 'UNKNOWN' ? 'Not assessed' : severity}
     </Badge>
   );
 }

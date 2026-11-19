@@ -55,17 +55,17 @@ export default function ChickenTable({ chickens }) {
                       </span>
                     </td>
                     <td className={td}>
-                      <span className={`badge ${sev.bg} ${sev.text}`}>{sev.label}</span>
+                      <span className={`badge ${sev.bg} ${sev.text}`}>{chicken.severity === 'UNKNOWN' ? 'Not assessed' : sev.label}</span>
                     </td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Unknown' : `${chicken.estimated_weight} kg`}</td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_oil_ml == null ? 'Unknown' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Measurement required' : `${chicken.estimated_weight} kg`}</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_oil_ml == null ? 'Not estimated' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-2">
                         <span className="w-16 h-1.5 bg-[#DDE3CF] rounded-full overflow-hidden">
                           <span className="block h-full bg-[#4D6938] rounded-full" style={{ width: `${chicken.confidence ?? 0}%` }} />
                         </span>
                         <span className="text-xs font-bold text-[#4D6938]">
-                          {chicken.confidence == null ? 'Unknown' : `${Math.round(chicken.confidence)}%`}
+                          {chicken.confidence == null ? 'Not provided' : `${Math.round(chicken.confidence)}%`}
                         </span>
                       </span>
                     </td>

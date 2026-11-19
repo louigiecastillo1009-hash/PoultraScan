@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router-dom';
 
 import { Badge, Button, SectionHeading, Surface } from '../../../components/index';
 import { ChickenCard, ChickenList, ChickenTable, TotalsFooter, ViewModeToggle } from './index';
+import MeasurementForm from './MeasurementForm';
+import { presentChicken } from './resultPresentation';
 
 const VIEW_STORAGE_KEY = 'ai_scan_results_view';
 
 export default function ResultsView({ onScanAgain, detectionData, predictionData, previewUrl }) {
   const navigate = useNavigate();
   const detections = detectionData?.detections ?? [];
-  const chickens = predictionData?.chickens ?? [];
+  const chickens = (predictionData?.chickens ?? []).map(presentChicken);
   const multiAngle = new Set(chickens.map((chicken) => chicken.angle).filter(Boolean)).size > 1;
   const totalWeight = predictionData?.total_weight ?? 0;
   const totalOilMl = predictionData?.total_oil_ml ?? 0;
@@ -205,6 +207,13 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
         totalOilMl={totalOilMl}
         marketReadyCount={marketReadyCount}
       />
+      <section className="space-y-3">
+        <h2 className="font-semibold">Record physical measurements</h2>
+        <p className="text-sm text-muted">Measurements are saved per photo observation, separately from AI estimates and estimated totals. Multiple angles may show the same bird.</p>
+        {chickens.map((chicken) => (
+          <MeasurementForm key={chicken.detected_chicken_id} chicken={chicken} />
+        ))}
+      </section>
 
       <div className="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row">
         <Button variant="secondary" className="w-full sm:w-auto" onClick={onScanAgain}>

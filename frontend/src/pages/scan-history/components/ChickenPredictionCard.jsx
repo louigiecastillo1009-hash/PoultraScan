@@ -11,8 +11,11 @@ import { Badge } from '../../../components/index';
 import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 import DetailStat from './DetailStat';
 import SeverityBadge from './SeverityBadge';
+import MeasurementForm from '../../ai-scan/components/MeasurementForm';
+import { presentChicken } from '../../ai-scan/components/resultPresentation';
 
 export default function ChickenPredictionCard({ chicken }) {
+  chicken = presentChicken(chicken);
   const [expanded, setExpanded] = useState(false);
   const src = thumbnailSrc(chicken.image_url);
 
@@ -36,13 +39,13 @@ export default function ChickenPredictionCard({ chicken }) {
               Chicken #{chicken.tracking_id ?? chicken.detected_chicken_id}
               {chicken.angle ? ` · ${chicken.angle}` : ''}
             </p>
-            <Badge tone={chicken.healthy ? 'success' : 'danger'} size="sm">
+            <Badge tone={chicken.healthy == null ? 'neutral' : chicken.healthy ? 'success' : 'danger'} size="sm">
               {chicken.disease}
             </Badge>
             <SeverityBadge severity={chicken.severity} />
           </div>
           <p className="mt-0.5 text-[10.5px] text-muted">
-            {chicken.breed || 'Unknown breed'} ·{' '}
+            {chicken.breed || 'Breed not identified'} ·{' '}
             {chicken.confidence != null ? `${chicken.confidence}% confidence` : '--'}
           </p>
         </div>
@@ -56,21 +59,22 @@ export default function ChickenPredictionCard({ chicken }) {
 
       {expanded && (
         <div className="flex flex-col gap-3 border-t border-ink/10 p-3 sm:p-4">
+          <MeasurementForm key={chicken.detected_chicken_id} chicken={chicken} />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
             <DetailStat
               icon={MdScale}
               label="Estimated weight"
-              value={chicken.estimated_weight != null ? `${chicken.estimated_weight} kg` : '--'}
+              value={chicken.estimated_weight != null ? `${chicken.estimated_weight} kg` : 'Measurement required'}
             />
             <DetailStat
               icon={MdOpacity}
               label="Estimated oil yield"
-              value={chicken.estimated_oil_ml != null ? `~${Math.round(chicken.estimated_oil_ml)} mL` : '--'}
+              value={chicken.estimated_oil_ml != null ? `~${Math.round(chicken.estimated_oil_ml)} mL` : 'Not estimated'}
             />
             <DetailStat
               icon={MdHealthAndSafety}
               label="Market ready"
-              value={chicken.market_ready ? 'Yes' : 'No'}
+              value={chicken.assessable === false ? 'Not assessed' : chicken.market_ready ? 'Yes' : 'No'}
               tone={chicken.market_ready ? 'good' : 'default'}
             />
           </div>
@@ -79,7 +83,7 @@ export default function ChickenPredictionCard({ chicken }) {
             <p className="text-[11px] text-muted">
               Weight confidence:{' '}
               {chicken.weight_confidence == null
-                ? 'Unknown'
+                ? 'Not provided'
                 : `${Math.round(chicken.weight_confidence)}%`}{' '}
               — model self-report, not measured accuracy. Verify with a scale.
             </p>
