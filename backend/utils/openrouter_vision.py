@@ -219,7 +219,7 @@ def get_disease_insights_batch_openrouter(items: list[dict]) -> list[dict]:
     )
 
     prompt_text = f"""
-You are a poultry health assistant for a chicken farm monitoring app.
+You are a poultry photo analyst for a chicken farm monitoring app.
 
 You are given {len(items)} separate chicken images, in order, labeled
 image_1 through image_{len(items)}. Each has already been classified by
@@ -234,20 +234,16 @@ exactly {len(items)} objects in the same order as the images, each in
 this exact format:
 {{
   "image_id": "image_1",
-  "tips": "2-4 sentences of practical care/treatment advice for this condition",
-  "estimated_weight": <number in kg ONLY if supported, otherwise null>,
-  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>,
-  "market_ready": <true or false>
+  "tips": "1-2 sentences describing ONLY the visible body condition that supports the weight estimate. Do NOT name a disease, diagnose, or recommend medicine or treatment.",
+  "estimated_weight": <number in kg, your best approximate visual estimate>,
+  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>
 }}
 Use the actual image ID (image_1, image_2, etc.) for each result.
 
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
-
-If a chicken's disease is HEALTHY, tips
-should be general maintenance advice. If COCCIDIOSIS, FOWL_POX, or
-NEWCASTLE, market_ready should be false and tips should focus on
-treatment/isolation.
+Market readiness is computed by the app from the selected chicken type
+and weight; do not return it.
 """
 
     content = [{"type": "text", "text": prompt_text}]

@@ -13,12 +13,23 @@ from schemas.ai_prediction_schema import MeasurementSchema
 from services.ai_prediction_service import AIPredictionService
 
 
-@pytest.mark.parametrize("value", [0, -1, float("nan"), float("inf"), 100000])
+@pytest.mark.parametrize("value", [0, -1, float("nan"), float("inf")])
 def test_invalid_measurement_rejected(value):
     with pytest.raises(ValidationError):
         MeasurementSchema(measured_weight_kg=value)
     with pytest.raises(ValidationError):
         MeasurementSchema(measured_height_cm=value)
+    with pytest.raises(ValidationError):
+        MeasurementSchema(measured_oil_ml=value)
+
+
+def test_out_of_range_measurements_rejected():
+    with pytest.raises(ValidationError):
+        MeasurementSchema(measured_weight_kg=100000)
+    with pytest.raises(ValidationError):
+        MeasurementSchema(measured_height_cm=100000)
+    with pytest.raises(ValidationError):
+        MeasurementSchema(measured_oil_ml=1000000)
 
 
 def test_measurement_roundtrip_ownership_and_partial_update():
@@ -47,4 +58,4 @@ def test_provider_failure_is_distinct_from_photo_retake():
     assert AIPredictionService.assessment_status("CANNOT_ASSESS", "gemini") == "RETAKE"
     assert AIPredictionService.assessment_status("HEALTHY", "gemini") == "ASSESSED"
     assert AIPredictionService._is_healthy("COCCIDIOSIS", 1) is None
-    assert AIPredictionService._display_status("COCCIDIOSIS", 1) == "Assessment inconclusive"
+    assert AIPredictionService._display_status("COCCIDIOSIS", 1) == "No clear signs detected"

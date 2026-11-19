@@ -7,7 +7,7 @@ const resultItems = [
   'Estimated weight',
   'Estimated oil yield',
   'Market-readiness status',
-  'Confidence and recommendation',
+  'Confidence and visible condition',
 ];
 
 export default function ProductPreview() {

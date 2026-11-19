@@ -31,6 +31,7 @@ function summarize(predictionData) {
   return {
     chickenCount: chickens.length,
     healthyCount: chickens.filter((c) => c.healthy).length,
+    flaggedCount: chickens.filter((c) => c.healthy === false).length,
     topDisease: presentChicken(worst).disease,
     topSeverity: worst.severity,
     unavailableMessage: predictionData.quota_message,
@@ -45,7 +46,7 @@ export function useQuickScan(farmId) {
 
   const { saveCache } = useScanCache(farmId);
 
-  const runQuickScan = useCallback(async (file, scanType) => {
+  const runQuickScan = useCallback(async (file, scanType, chickenType = 'BROILER') => {
     if (submitting.current) return;
     submitting.current = true;
     setStatus('processing');
@@ -53,7 +54,7 @@ export function useQuickScan(farmId) {
     setSummary(null);
 
     try {
-      const sessionResult = await createScanSession({ farmId, scanType });
+      const sessionResult = await createScanSession({ farmId, scanType, chickenType });
       const scanSessionId = sessionResult.session.id;
 
       const detectionResult = await countChickens({ scanSessionId, imageFile: file });

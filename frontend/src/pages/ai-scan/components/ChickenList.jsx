@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   MdChevronRight,
   MdOutlinePets,
-  MdOutlineMedicalServices,
 } from 'react-icons/md';
 import { SEVERITY_STYLES } from '../../../constant/severity';
 
@@ -14,10 +13,20 @@ export default function ChickenList({ chickens }) {
       {chickens.map((chicken, i) => {
         const sev = SEVERITY_STYLES[chicken.severity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
         const isOpen = expanded === i;
-        const isUncertain = chicken.assessable === false || ['UNKNOWN', 'CANNOT_ASSESS'].includes(chicken.disease);
-        const hasExtra = Boolean(
-          chicken.breed || chicken.recommendation || (isUncertain && chicken.reasoning)
-        );
+        const isUncertain = chicken.assessable === false;
+        const hasExtra = Boolean(chicken.breed || chicken.care_tips);
+        const sevLabel =
+          chicken.severity === 'NONE' ? 'No visible signs'
+            : chicken.severity === 'UNKNOWN' ? 'No clear signs'
+              : sev.label;
+        const healthColor =
+          chicken.healthy === false ? 'text-[#B3261E]'
+            : chicken.healthy === true ? 'text-[#4D6938]'
+              : 'text-[#6F7160]';
+        const dotColor =
+          chicken.healthy === false ? 'bg-[#B3261E]'
+            : chicken.healthy === true ? 'bg-[#6E8C56]'
+              : 'bg-[#9A9B8A]';
 
         return (
           <li
@@ -42,26 +51,32 @@ export default function ChickenList({ chickens }) {
                     Chicken {chicken.tracking_id ?? '—'}
                     {chicken.angle ? ` · ${chicken.angle}` : ''}
                   </span>
-                  <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                    isUncertain ? 'text-[#6F7160]' : chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isUncertain ? 'bg-[#9A9B8A]' : chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
+                  <span className={`inline-flex items-center gap-1 text-xs font-medium ${healthColor}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
                     {chicken.disease}
                   </span>
                 </span>
                 <span className="flex items-center gap-2 mt-0.5 text-xs text-[#6F7160]">
-                  <span>{chicken.estimated_weight == null ? 'Weight estimate unavailable' : `Est. ${chicken.estimated_weight} kg`}</span>
+                  <span>
+                    {chicken.display_weight == null
+                      ? 'Weight estimate unavailable'
+                      : `${chicken.weight_source === 'user' ? 'Actual' : 'Est.'} ${chicken.display_weight} kg`}
+                  </span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
-                  <span>{chicken.estimated_oil_ml == null ? 'Oil: not estimated' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</span>
+                  <span>
+                    {chicken.display_oil_ml == null
+                      ? 'Oil: not estimated'
+                      : `${chicken.oil_source === 'user' ? '' : '~'}${Math.round(chicken.display_oil_ml)} mL`}
+                  </span>
                   <span className="h-1 w-1 rounded-full bg-line-strong" />
                   <span>{chicken.confidence == null ? 'confidence not provided' : `${Math.round(chicken.confidence)}% confidence`}</span>
                 </span>
               </span>
 
-              <span className={`badge ${sev.bg} ${sev.text} hidden sm:inline-flex`}>{chicken.severity === 'UNKNOWN' ? 'Not assessed' : sev.label}</span>
+              <span className={`badge ${sev.bg} ${sev.text} hidden sm:inline-flex`}>{sevLabel}</span>
 
-              <span className="hidden md:inline-flex text-xs font-medium text-[#6F7160] whitespace-nowrap">
-                Readiness needs verification
+              <span className={`hidden md:inline-flex text-xs font-medium whitespace-nowrap ${chicken.market_ready ? 'text-[#4D6938]' : 'text-[#6F7160]'}`}>
+                {chicken.market_ready_label}
               </span>
 
               {hasExtra && (
@@ -84,13 +99,10 @@ export default function ChickenList({ chickens }) {
                     {chicken.breed}
                   </p>
                 )}
-                {chicken.recommendation && (
+                {chicken.care_tips && (
                   <div className="rounded-xl border border-ink/10 bg-cream-deep/45 p-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <MdOutlineMedicalServices className="text-[#4D6938] text-sm" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4D6938]">Recommendation</span>
-                    </div>
-                    <p className="text-xs text-[#4C4E3E] leading-relaxed">{chicken.recommendation}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#4D6938]">Observed condition</span>
+                    <p className="mt-1 text-xs text-[#4C4E3E] leading-relaxed">{chicken.care_tips}</p>
                   </div>
                 )}
               </div>

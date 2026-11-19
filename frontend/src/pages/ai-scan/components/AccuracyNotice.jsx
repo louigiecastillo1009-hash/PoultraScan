@@ -4,12 +4,12 @@ export default function AccuracyNotice() {
   return (
     <Notice
       tone="warning"
-      title="AI results are estimates, not diagnoses."
+      title="AI results are estimates, not measurements."
       className="mb-5"
     >
-      This system can occasionally be wrong on disease detection, weight, or count. For sick or
-      high-value flocks, please confirm with a licensed poultry veterinarian before acting on these
-      results.
+      Counting, weight, oil yield, and visible condition can be inaccurate. The scanner does not
+      diagnose disease or prescribe treatment. Confirm weight with a scale before selling, and
+      consult a licensed poultry professional for any health concern.
     </Notice>
   );
 }

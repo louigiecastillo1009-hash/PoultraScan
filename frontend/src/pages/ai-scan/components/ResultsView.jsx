@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MdHistory, MdPhotoCamera, MdRefresh } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,10 +11,35 @@ const VIEW_STORAGE_KEY = 'ai_scan_results_view';
 export default function ResultsView({ onScanAgain, detectionData, predictionData, previewUrl }) {
   const navigate = useNavigate();
   const detections = detectionData?.detections ?? [];
-  const chickens = (predictionData?.chickens ?? []).map(presentChicken);
+  const [chickens, setChickens] = useState(() =>
+    (predictionData?.chickens ?? []).map(presentChicken)
+  );
+
+  // Keep local cards in sync when a new scan result arrives.
+  useEffect(() => {
+    setChickens((predictionData?.chickens ?? []).map(presentChicken));
+  }, [predictionData]);
+
   const multiAngle = new Set(chickens.map((chicken) => chicken.angle).filter(Boolean)).size > 1;
-  const totalWeight = predictionData?.total_weight ?? 0;
-  const totalOilMl = predictionData?.total_oil_ml ?? 0;
+  const totalWeight = useMemo(
+    () => Math.round(chickens.reduce((sum, c) => sum + (c.display_weight ?? 0), 0) * 100) / 100,
+    [chickens]
+  );
+  const totalOilMl = useMemo(
+    () => Math.round(chickens.reduce((sum, c) => sum + (c.display_oil_ml ?? 0), 0)),
+    [chickens]
+  );
+  const marketReadyCount = chickens.filter((chicken) => chicken.market_ready).length;
+
+  const handleMeasurementSaved = useCallback((updated) => {
+    setChickens((previous) =>
+      previous.map((chicken) =>
+        chicken.detected_chicken_id === updated.detected_chicken_id
+          ? presentChicken({ ...chicken, ...updated })
+          : chicken
+      )
+    );
+  }, []);
 
   const [view, setView] = useState(() => {
     try {
@@ -167,7 +192,7 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
           action={
             <div className="flex items-center gap-3">
               <span className="hidden text-[11px] font-medium text-muted sm:inline">
-                Market readiness needs verification
+                {marketReadyCount} of {chickens.length} market ready
               </span>
               <ViewModeToggle value={view} onChange={setView} />
             </div>
@@ -180,7 +205,11 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
           {view === 'card' && (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {chickens.map((chicken, index) => (
-                <ChickenCard key={chicken.tracking_id ?? index} chicken={chicken} />
+                <ChickenCard
+                  key={chicken.detected_chicken_id ?? chicken.tracking_id ?? index}
+                  chicken={chicken}
+                  onMeasurementSaved={handleMeasurementSaved}
+                />
               ))}
             </div>
           )}
@@ -191,7 +220,10 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
             <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
               {chickens.map((chicken, index) => (
                 <div key={chicken.tracking_id ?? index} className="w-80 flex-shrink-0 snap-start">
-                  <ChickenCard chicken={chicken} />
+                  <ChickenCard
+                    chicken={chicken}
+                    onMeasurementSaved={handleMeasurementSaved}
+                  />
                 </div>
               ))}
             </div>
@@ -203,8 +235,9 @@ export default function ResultsView({ onScanAgain, detectionData, predictionData
         chickens={chickens}
         totalWeight={totalWeight}
         totalOilMl={totalOilMl}
+        marketReadyCount={marketReadyCount}
       />
-      <p className="text-sm text-muted">Weight is an approximate, uncalibrated visual estimate. Oil yield is calculated from that estimate using assumed fat content and rendering efficiency. Neither is a measured value. Optional manual notes are available in scan history.</p>
+      <p className="text-sm text-muted">Weight is an approximate visual estimate. Oil yield is calculated from that weight using assumed fat content and rendering efficiency. Use <strong>Add actual measurements</strong> on a chicken card to replace an estimate with your own scale/oil reading; totals update and the AI estimate is kept. Market readiness is based on estimated weight and the selected chicken type, not age or food safety.</p>
 
       <div className="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row">
         <Button variant="secondary" className="w-full sm:w-auto" onClick={onScanAgain}>

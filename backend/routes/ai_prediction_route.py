@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from database.database import get_db
 from controllers.ai_prediction_controller import AIPredictionController
-from schemas.ai_prediction_schema import ImageTypeSchema, MeasurementSchema
+from schemas.ai_prediction_schema import ImageTypeSchema, MeasurementSchema, MeasurementResponseSchema
 from middleware.auth_middleware import get_current_user_id
 from services.ai_prediction_service import AIPredictionService
 from utils.scan_capacity import scan_capacity
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.patch("/chicken/{chicken_id}/measurements", response_model=MeasurementSchema)
+@router.patch("/chicken/{chicken_id}/measurements", response_model=MeasurementResponseSchema)
 def save_measurements(
     chicken_id: int,
     measurements: MeasurementSchema,
@@ -25,7 +25,7 @@ def save_measurements(
     return AIPredictionService.save_measurements(db, chicken_id, current_user_id, measurements)
 
 
-@router.get("/chicken/{chicken_id}/measurements", response_model=MeasurementSchema)
+@router.get("/chicken/{chicken_id}/measurements", response_model=MeasurementResponseSchema)
 def get_measurements(
     chicken_id: int,
     db: Session = Depends(get_db),
@@ -35,7 +35,7 @@ def get_measurements(
     if chicken is None:
         raise HTTPException(404, "Chicken observation not found")
     AIPredictionService.require_owned_session(db, chicken.scan_session_id, current_user_id)
-    return chicken
+    return AIPredictionService._measurement_response(db, chicken)
 
 
 @router.post("/predict")

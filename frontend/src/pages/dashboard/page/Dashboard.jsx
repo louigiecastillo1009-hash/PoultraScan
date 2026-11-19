@@ -76,7 +76,7 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-2.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-cream/45">
-                <span>AI flock diagnostics</span>
+                <span>AI flock overview</span>
                 <span className="h-1 w-1 rounded-full bg-cream/25" aria-hidden="true" />
                 <span>{today}</span>
               </div>

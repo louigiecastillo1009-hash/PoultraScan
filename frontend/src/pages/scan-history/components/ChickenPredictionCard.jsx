@@ -12,8 +12,9 @@ import { thumbnailSrc } from '../../../utils/thumbnailSrc';
 import DetailStat from './DetailStat';
 import SeverityBadge from './SeverityBadge';
 import { presentChicken } from '../../ai-scan/components/resultPresentation';
+import MeasurementEditor from '../../ai-scan/components/MeasurementEditor';
 
-export default function ChickenPredictionCard({ chicken }) {
+export default function ChickenPredictionCard({ chicken, onMeasurementSaved }) {
   chicken = presentChicken(chicken);
   const [expanded, setExpanded] = useState(false);
   const src = thumbnailSrc(chicken.image_url);
@@ -61,18 +62,22 @@ export default function ChickenPredictionCard({ chicken }) {
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
             <DetailStat
               icon={MdScale}
-              label="Estimated weight"
-              value={chicken.estimated_weight != null ? `~${chicken.estimated_weight} kg` : 'Estimate unavailable'}
+              label={chicken.weight_source === 'user' ? 'Actual weight' : 'Estimated weight'}
+              value={chicken.display_weight != null
+                ? `${chicken.weight_source === 'user' ? '' : '~'}${chicken.display_weight} kg`
+                : 'Estimate unavailable'}
             />
             <DetailStat
               icon={MdOpacity}
-              label="Estimated oil yield"
-              value={chicken.estimated_oil_ml != null ? `~${Math.round(chicken.estimated_oil_ml)} mL` : 'Not estimated'}
+              label={chicken.oil_source === 'user' ? 'Actual oil yield' : 'Estimated oil yield'}
+              value={chicken.display_oil_ml != null
+                ? `${chicken.oil_source === 'user' ? '' : '~'}${Math.round(chicken.display_oil_ml)} mL`
+                : 'Not estimated'}
             />
             <DetailStat
               icon={MdHealthAndSafety}
               label="Market ready"
-              value="Needs verification"
+              value={chicken.market_ready_label}
               tone={chicken.market_ready ? 'good' : 'default'}
             />
           </div>
@@ -87,23 +92,20 @@ export default function ChickenPredictionCard({ chicken }) {
             </p>
           )}
 
+          <p className="text-[11px] text-muted">
+            {chicken.market_ready_note}
+          </p>
+
           {chicken.care_tips && (
             <div className="rounded-xl border border-ink/10 bg-cream-deep/45 p-3">
               <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.12em] text-olive">
-                Care tips
+                Observed condition
               </p>
               <p className="text-[12px] leading-relaxed text-soft">{chicken.care_tips}</p>
             </div>
           )}
 
-          {chicken.recommendation && (
-            <div className="rounded-xl border border-[#CFDDB8] bg-success-soft p-3">
-              <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.12em] text-sage-dark">
-                Recommendation
-              </p>
-              <p className="text-[12px] leading-relaxed text-soft">{chicken.recommendation}</p>
-            </div>
-          )}
+          <MeasurementEditor chicken={chicken} onSaved={onMeasurementSaved} />
         </div>
       )}
     </div>

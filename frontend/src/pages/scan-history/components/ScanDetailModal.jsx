@@ -36,6 +36,22 @@ export default function ScanDetailModal({ scan, onClose }) {
 
   if (!scan) return null;
 
+  const handleMeasurementSaved = (updated) => {
+    setChickens((previous) =>
+      previous.map((chicken) =>
+        chicken.detected_chicken_id === updated.detected_chicken_id
+          ? { ...chicken, ...updated }
+          : chicken
+      )
+    );
+  };
+
+  const marketReadyValue = chickens.length
+    ? `${chickens.filter((chicken) => chicken.market_ready).length}/${chickens.length}`
+    : scan.total_detected
+      ? `${scan.market_ready_count ?? 0}/${scan.total_detected}`
+      : '--';
+
   const { date, time } = formatDateTime(scan.started_at);
   const { date: finishedDate, time: finishedTime } = formatDateTime(scan.finished_at);
   const src = thumbnailSrc(scan.thumbnail_url);
@@ -135,9 +151,7 @@ export default function ScanDetailModal({ scan, onClose }) {
           <DetailStat
             icon={MdHealthAndSafety}
             label="Market ready"
-            value={
-              'Needs verification'
-            }
+            value={marketReadyValue}
             tone="good"
           />
         </div>
@@ -177,6 +191,7 @@ export default function ScanDetailModal({ scan, onClose }) {
                 <ChickenPredictionCard
                   key={chicken.detected_chicken_id ?? chicken.tracking_id ?? index}
                   chicken={chicken}
+                  onMeasurementSaved={handleMeasurementSaved}
                 />
               ))}
             </div>

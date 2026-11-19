@@ -6,12 +6,20 @@ const TONES = {
   HIGH: 'danger',
 };
 
+const LABELS = {
+  NONE: 'No visible signs',
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  UNKNOWN: 'Not assessed',
+};
+
 export default function SeverityBadge({ severity }) {
   if (!severity) return null;
 
   return (
     <Badge tone={TONES[severity] || 'neutral'} size="sm">
-      {severity === 'UNKNOWN' ? 'Not assessed' : severity}
+      {LABELS[severity] || 'No clear signs'}
     </Badge>
   );
 }

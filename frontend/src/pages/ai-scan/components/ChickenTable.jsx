@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react';
 import {
   MdChevronRight,
   MdOutlinePets,
-  MdOutlineMedicalServices,
 } from 'react-icons/md';
 import { SEVERITY_STYLES } from '../../../constant/severity';
 
@@ -22,8 +21,8 @@ export default function ChickenTable({ chickens }) {
               <th className={th}>Chicken</th>
               <th className={th}>Health</th>
               <th className={th}>Severity</th>
-              <th className={th}>Estimated weight</th>
-              <th className={th}>Estimated Oil Yield</th>
+              <th className={th}>Weight</th>
+              <th className={th}>Oil yield</th>
               <th className={th}>Confidence</th>
               <th className={th}>Market Ready</th>
               <th className={`${th} text-right`}>Details</th>
@@ -33,10 +32,20 @@ export default function ChickenTable({ chickens }) {
             {chickens.map((chicken, i) => {
               const sev = SEVERITY_STYLES[chicken.severity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
               const isOpen = expanded === i;
-              const isUncertain = chicken.assessable === false || ['UNKNOWN', 'CANNOT_ASSESS'].includes(chicken.disease);
-              const hasExtra = Boolean(
-                chicken.breed || chicken.recommendation || (isUncertain && chicken.reasoning)
-              );
+              const isUncertain = chicken.assessable === false;
+              const hasExtra = Boolean(chicken.breed || chicken.care_tips);
+              const healthColor =
+                chicken.healthy === false ? 'bg-[#B3261E]'
+                  : chicken.healthy === true ? 'bg-[#6E8C56]'
+                    : 'bg-[#9A9B8A]';
+              const healthText =
+                chicken.healthy === false ? 'text-[#B3261E]'
+                  : chicken.healthy === true ? 'text-[#4D6938]'
+                    : 'text-[#6F7160]';
+              const sevLabel =
+                chicken.severity === 'NONE' ? 'No visible signs'
+                  : chicken.severity === 'UNKNOWN' ? 'No clear signs'
+                    : sev.label;
 
               return (
                 <Fragment key={chicken.tracking_id ?? i}>
@@ -47,17 +56,25 @@ export default function ChickenTable({ chickens }) {
                     </td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${isUncertain ? 'bg-[#9A9B8A]' : chicken.healthy ? 'bg-[#6E8C56]' : 'bg-[#B3261E]'}`} />
-                        <span className={`font-medium ${isUncertain ? 'text-[#6F7160]' : chicken.healthy ? 'text-[#4D6938]' : 'text-[#B3261E]'}`}>
+                        <span className={`w-2 h-2 rounded-full ${healthColor}`} />
+                        <span className={`font-medium ${healthText}`}>
                           {chicken.disease}
                         </span>
                       </span>
                     </td>
                     <td className={td}>
-                      <span className={`badge ${sev.bg} ${sev.text}`}>{chicken.severity === 'UNKNOWN' ? 'Not assessed' : sev.label}</span>
+                      <span className={`badge ${sev.bg} ${sev.text}`}>{sevLabel}</span>
                     </td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_weight == null ? 'Estimate unavailable' : `~${chicken.estimated_weight} kg`}</td>
-                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>{chicken.estimated_oil_ml == null ? 'Not estimated' : `~${Math.round(chicken.estimated_oil_ml)} mL`}</td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>
+                      {chicken.display_weight == null
+                        ? 'Estimate unavailable'
+                        : `${chicken.weight_source === 'user' ? '' : '~'}${chicken.display_weight} kg`}
+                    </td>
+                    <td className={`${td} text-[#4C4E3E] whitespace-nowrap`}>
+                      {chicken.display_oil_ml == null
+                        ? 'Not estimated'
+                        : `${chicken.oil_source === 'user' ? '' : '~'}${Math.round(chicken.display_oil_ml)} mL`}
+                    </td>
                     <td className={td}>
                       <span className="inline-flex items-center gap-2">
                         <span className="w-16 h-1.5 bg-[#DDE3CF] rounded-full overflow-hidden">
@@ -69,7 +86,9 @@ export default function ChickenTable({ chickens }) {
                       </span>
                     </td>
                     <td className={td}>
-                      <span className="text-xs font-medium text-[#6F7160]">Needs verification</span>
+                      <span className={`text-xs font-medium ${chicken.market_ready ? 'text-[#4D6938]' : 'text-[#6F7160]'}`}>
+                        {chicken.market_ready_label}
+                      </span>
                     </td>
                     <td className={`${td} text-right`}>
                       <button
@@ -103,13 +122,10 @@ export default function ChickenTable({ chickens }) {
                               {chicken.breed}
                             </p>
                           )}
-                          {chicken.recommendation && (
+                          {chicken.care_tips && (
                             <div className="rounded-xl border border-ink/10 bg-cream-deep/45 p-3">
-                              <div className="flex items-center gap-1.5 mb-1">
-                                <MdOutlineMedicalServices className="text-[#4D6938] text-sm" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4D6938]">Recommendation</span>
-                              </div>
-                              <p className="text-xs text-[#4C4E3E] leading-relaxed">{chicken.recommendation}</p>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#4D6938]">Observed condition</span>
+                              <p className="mt-1 text-xs text-[#4C4E3E] leading-relaxed">{chicken.care_tips}</p>
                             </div>
                           )}
                         </div>

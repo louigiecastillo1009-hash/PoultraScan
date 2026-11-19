@@ -102,9 +102,6 @@ def test_multi_angle_persistence_history_and_duplicate_submission(tmp_path, monk
         {"estimated_weight": 0, "estimated_oil_ml": 0, "weight_confidence": 0,
          "market_ready": False, "tips": "Weight unknown"} for _ in items
     ])
-    monkeypatch.setattr("services.ai_prediction_service.get_disease_recommendation", lambda *args: {
-        "breed": "Unknown", "recommendation": None, "prevention_tips": None, "severity": "NONE",
-    })
     engine = create_engine("sqlite://")
     Base.metadata.create_all(engine)
     with Session(engine) as db:
@@ -140,7 +137,7 @@ def test_unavailable_classification_is_unknown_not_healthy(monkeypatch):
     monkeypatch.setattr("services.ai_prediction_service.classify_diseases_batch_openrouter", fail_router)
     results, unavailable = AIPredictionService._classify_diseases_with_fallback([b"one", b"two"], 2)
     assert unavailable and len(results) == 2
-    assert all(AIPredictionService._display_status(r["disease_name"], r["confidence_score"]) == "UNKNOWN" for r in results)
+    assert all(AIPredictionService._display_status(r["disease_name"], r["confidence_score"]) == "No clear signs detected" for r in results)
     assert all(AIPredictionService._is_healthy(r["disease_name"], r["confidence_score"]) is None for r in results)
 
 
@@ -196,11 +193,6 @@ def test_quota_retry_replaces_previous_rows(tmp_path, monkeypatch):
             "services.ai_prediction_service.get_disease_insights_batch",
             lambda items: [{"estimated_weight": 2.0, "estimated_oil_ml": 300.0,
                             "weight_confidence": 60.0, "market_ready": True, "tips": "ok"} for _ in items],
-        )
-        monkeypatch.setattr(
-            "services.ai_prediction_service.get_disease_recommendation",
-            lambda *args: {"breed": "Broiler", "recommendation": "ok",
-                           "prevention_tips": None, "severity": "NONE"},
         )
 
         second = AIPredictionService.predict(db, 1, "FRONT")

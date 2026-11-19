@@ -103,13 +103,22 @@ Normal anatomy is NOT disease — do not flag these:
 - A bird looking toward the camera, closing its eyes, or being photographed
   from an awkward angle does not by itself indicate disease. Assess the
   whole bird (posture, feathers, droppings if visible) before deciding.
+- Sitting, resting, huddling, lying down, or standing in a bowl/container is
+  NORMAL chicken behavior. It is not lethargy by itself.
+- Slightly ruffled or fluffed feathers (dust bathing, resting, cold, wind)
+  are normal. Ruffled feathers ALONE are never enough to name a disease.
+- One non-specific sign is not a diagnosis. A specific disease needs at least
+  two concrete signs that agree with each other. If you only see posture or
+  feather changes, choose HEALTHY (or UNKNOWN when truly ambiguous), not a
+  named disease.
 
 You are NOT limited to a fixed list of diseases. Identify the single most
 likely condition based on what you actually observe, which may include (but
 is not limited to) any of the following common poultry diseases:
 
-- COCCIDIOSIS — ruffled/fluffed feathers, hunched posture, pale comb/wattles,
-  lethargy, bloody or watery diarrhea
+- COCCIDIOSIS — requires concrete evidence such as bloody or watery
+  diarrhea, often together with hunched posture, pale comb/wattles and
+  reduced activity. Ruffled feathers or sitting alone are NOT enough.
 - FOWL_POX — wart-like crusty nodules or lesions on comb, wattles, eyes, or
   beak corners; yellowish plaques near mouth/eyes
 - NEWCASTLE_DISEASE — labored breathing, nasal/eye discharge, twisted neck
@@ -138,11 +147,13 @@ slightly pale comb, slightly ruffled feathers, an odd camera angle, dim
 lighting) are never enough to flag a bird as sick.
 
 HEALTHY — choose this when the bird shows NO concrete sign of illness:
-reasonably upright/alert posture, feathers that are not severely ruffled or
-damaged, clear eyes, and no visible lesions, swelling, discharge, or abnormal
-droppings. Do not require a storybook-perfect bird — minor cosmetic variation,
-a paler comb, or an imperfect camera angle are all normal. When you choose
-HEALTHY, report your actual uncertainty without a minimum confidence floor.
+reasonably upright/alert posture (or normal resting posture), feathers that
+are not severely damaged, clear eyes, and no visible lesions, swelling,
+discharge, or abnormal droppings. Do not require a storybook-perfect bird —
+minor cosmetic variation, a paler comb, resting in a container, or an
+imperfect camera angle are all normal. When in doubt between a clean bird
+and vague signs, choose HEALTHY. When you choose HEALTHY, report your actual
+uncertainty without a minimum confidence floor.
 
 Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
 {
@@ -412,13 +423,11 @@ Also include "image_id": "image_1" (or the corresponding image ID) in EACH objec
                 is_blurry = item.get("is_blurry", False)
 
                 if not chicken_visible or is_blurry:
-                    results.append({
-                        "disease_name": "UNKNOWN",
-                        "confidence_score": 0.0,
-                        "reasoning": item.get("quality_note", "").strip() or DEFAULT_IMAGE_QUALITY_MESSAGE,
-                        "framing": "OK",
-                        "model_used": model_name,
-                    })
+                    results.append(_cannot_assess_result(
+                        "UNCLEAR",
+                        item.get("quality_note", "").strip() or DEFAULT_IMAGE_QUALITY_MESSAGE,
+                        model_name,
+                    ))
                     continue
 
                 disease_name = _sanitize_disease_name(item.get("disease", ""))

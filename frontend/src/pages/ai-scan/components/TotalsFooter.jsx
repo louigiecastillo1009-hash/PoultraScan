@@ -3,10 +3,16 @@ import { MdInfoOutline } from 'react-icons/md';
 
 import { Surface } from '../../../components/index';
 
-export default function TotalsFooter({ chickens, totalWeight, totalOilMl }) {
-  const hasWeight = chickens.some((chicken) => chicken.estimated_weight != null);
-  const hasOil = chickens.some((chicken) => chicken.estimated_oil_ml != null);
-  const someWeightMissing = hasWeight && chickens.some((chicken) => chicken.estimated_weight == null);
+export default function TotalsFooter({ chickens, totalWeight, totalOilMl, marketReadyCount = 0 }) {
+  const hasWeight = chickens.some((chicken) => chicken.display_weight != null);
+  const hasOil = chickens.some((chicken) => chicken.display_oil_ml != null);
+  const someWeightMissing = hasWeight && chickens.some((chicken) => chicken.display_weight == null);
+  const weightIsAllUser = chickens.every(
+    (chicken) => chicken.display_weight == null || chicken.weight_source === 'user'
+  );
+  const oilIsAllUser = chickens.every(
+    (chicken) => chicken.display_oil_ml == null || chicken.oil_source === 'user'
+  );
 
   return (
     <Surface padding="none" className="overflow-hidden">
@@ -33,7 +39,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl }) {
             Total weight
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {hasWeight ? `~${totalWeight}` : 'Estimate unavailable'}
+            {hasWeight ? `${weightIsAllUser ? '' : '~'}${totalWeight}` : 'Estimate unavailable'}
             {hasWeight && (
               <span className="ml-1 text-[12px] font-medium text-muted">kg</span>
             )}
@@ -53,7 +59,7 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl }) {
             />
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            {hasOil ? `~${Math.round(totalOilMl ?? 0)}` : 'Not estimated'}
+            {hasOil ? `${oilIsAllUser ? '' : '~'}${Math.round(totalOilMl ?? 0)}` : 'Not estimated'}
             {hasOil && (
               <span className="ml-1 text-[12px] font-medium text-muted">mL</span>
             )}
@@ -64,9 +70,12 @@ export default function TotalsFooter({ chickens, totalWeight, totalOilMl }) {
             Market ready
           </p>
           <p className="mt-1.5 font-display text-[1.8rem] font-medium leading-none text-ink">
-            Needs verification
+            {marketReadyCount}
+            <span className="ml-1 text-[12px] font-medium text-muted">of {chickens.length}</span>
           </p>
-          <p className="mt-2 text-xs text-muted">A healthy appearance does not confirm market weight, age, or food safety.</p>
+          <p className="mt-2 text-xs text-muted">
+            Based on estimated or entered weight and the selected chicken type. Age and food safety are not verified.
+          </p>
         </div>
       </div>
     </Surface>

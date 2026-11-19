@@ -96,25 +96,35 @@ class ScanSummaryService:
             DetectedChicken.scan_session_id == scan_session_id
         )
 
-        healthy_count = prediction_query.filter(
-            AIPrediction.disease == "HEALTHY"
-        ).count()
+        prediction_rows = prediction_query.all()
 
-        diseased_count = prediction_query.filter(
-            AIPrediction.disease.notin_(["HEALTHY", "UNKNOWN", "CANNOT_ASSESS"])
-        ).count()
+        # Imported lazily: ai_prediction_service imports this module, so a
+        # top-level import would be circular.
+        from services.ai_prediction_service import AIPredictionService
+
+        healthy_count = sum(1 for p in prediction_rows if p.disease == "HEALTHY")
+        # Only a specific condition at the flag-confidence threshold counts
+        # as diseased; low-confidence findings stay neutral everywhere.
+        diseased_count = sum(
+            1 for p in prediction_rows
+            if AIPredictionService._is_healthy(p.disease, p.disease_confidence) is False
+        )
 
         market_ready_count = prediction_query.filter(
             AIPrediction.market_ready.is_(True)
         ).count()
 
-        average_weight = db.query(func.avg(AIPrediction.estimated_weight)).join(
+        average_weight = db.query(
+            func.avg(func.coalesce(DetectedChicken.measured_weight_kg, AIPrediction.estimated_weight))
+        ).select_from(AIPrediction).join(
             DetectedChicken, AIPrediction.detected_chicken_id == DetectedChicken.id
         ).filter(
             DetectedChicken.scan_session_id == scan_session_id
         ).scalar()
 
-        estimated_total_oil_ml = db.query(func.sum(AIPrediction.estimated_oil_ml)).join(
+        estimated_total_oil_ml = db.query(
+            func.sum(func.coalesce(DetectedChicken.measured_oil_ml, AIPrediction.estimated_oil_ml))
+        ).select_from(AIPrediction).join(
             DetectedChicken, AIPrediction.detected_chicken_id == DetectedChicken.id
         ).filter(
             DetectedChicken.scan_session_id == scan_session_id
@@ -128,7 +138,7 @@ class ScanSummaryService:
             market_ready_count=market_ready_count,
             average_weight=round(average_weight, 2) if average_weight is not None else None,
             estimated_total_oil_ml=round(estimated_total_oil_ml, 2) if estimated_total_oil_ml is not None else None,
-            remarks="Counts are image observations; the same bird can appear in multiple angles. Unknown assessments are excluded from healthy/diseased counts."
+            remarks="Counts are image observations; the same bird can appear in multiple angles. Neutral or low-confidence health results are excluded from healthy/diseased counts."
         )
 
         db.add(new_summary)
@@ -136,6 +146,62 @@ class ScanSummaryService:
         db.refresh(new_summary)
 
         return new_summary
+
+    @staticmethod
+    def recalculate_for_session(db: Session, scan_session_id: int) -> ScanSummary | None:
+        """
+        Refreshes an existing summary after a user correction. Uses the
+        user-entered weight/oil when present, otherwise the AI estimate.
+        Does nothing when the session has no summary yet.
+        """
+        summary = db.query(ScanSummary).filter(
+            ScanSummary.scan_session_id == scan_session_id
+        ).first()
+        if summary is None:
+            return None
+
+        rows = (
+            db.query(DetectedChicken, AIPrediction)
+            .join(AIPrediction, AIPrediction.detected_chicken_id == DetectedChicken.id)
+            .filter(DetectedChicken.scan_session_id == scan_session_id)
+            .all()
+        )
+
+        weights = []
+        oils = []
+        from services.ai_prediction_service import AIPredictionService
+
+        healthy_count = 0
+        diseased_count = 0
+        for chicken, prediction in rows:
+            weight = chicken.measured_weight_kg
+            oil = chicken.measured_oil_ml
+            if weight is None:
+                weight = prediction.estimated_weight
+            if oil is None:
+                oil = prediction.estimated_oil_ml
+            if weight is not None:
+                weights.append(float(weight))
+            if oil is not None:
+                oils.append(float(oil))
+            healthy = AIPredictionService._is_healthy(
+                prediction.disease, prediction.disease_confidence
+            )
+            if healthy is True:
+                healthy_count += 1
+            elif healthy is False:
+                diseased_count += 1
+
+        summary.total_detected = len(rows)
+        summary.healthy_count = healthy_count
+        summary.diseased_count = diseased_count
+        summary.market_ready_count = sum(1 for _, p in rows if p.market_ready)
+        summary.average_weight = round(sum(weights) / len(weights), 2) if weights else None
+        summary.estimated_total_oil_ml = round(sum(oils), 2) if oils else None
+
+        db.commit()
+        db.refresh(summary)
+        return summary
 
     @staticmethod
     def get_history_for_user(
@@ -249,7 +315,12 @@ class ScanSummaryService:
             .join(DetectedChicken, AIPrediction.detected_chicken_id == DetectedChicken.id)
             .join(ScanSession, DetectedChicken.scan_session_id == ScanSession.id)
             .join(Farm, ScanSession.farm_id == Farm.id)
-            .filter(Farm.user_id == user_id, AIPrediction.disease != "HEALTHY")
+            .filter(
+                Farm.user_id == user_id,
+                AIPrediction.disease != "HEALTHY",
+                AIPrediction.disease.notin_(["UNKNOWN", "CANNOT_ASSESS"]),
+                AIPrediction.disease_confidence >= 80,
+            )
             .group_by(AIPrediction.disease)
             .order_by(func.count(AIPrediction.id).desc())
             .all()

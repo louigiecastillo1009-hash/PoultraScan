@@ -27,7 +27,11 @@ from utils.openrouter_vision import (
     get_disease_insights_batch_openrouter,
     OpenRouterVisionError,
 )
-from utils.openai_recommendation import get_disease_recommendation, RecommendationError
+from utils.market_readiness import (
+    DEFAULT_CHICKEN_TYPE,
+    normalize_chicken_type,
+    assess_market_readiness,
+)
 
 from services.scan_summary_service import ScanSummaryService
 from services.notification_service import NotificationService
@@ -43,11 +47,56 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 class AIPredictionService:
     @staticmethod
     def assessment_status(disease, model):
-        if disease not in ("UNKNOWN", "CANNOT_ASSESS"):
-            return "ASSESSED"
+        # Only a retake (bad framing / truly unusable photo) is not
+        # assessable. A usable photo with no specific condition (UNKNOWN)
+        # is still an assessed observation: "no clear signs detected".
+        if disease == "CANNOT_ASSESS":
+            return "RETAKE"
         if model == "n/a":
             return "UNAVAILABLE"
-        return "RETAKE"
+        return "ASSESSED"
+
+    @staticmethod
+    def _effective_values(chicken, prediction=None):
+        """User correction wins; the original AI estimate stays intact."""
+        measured_weight = chicken.measured_weight_kg
+        measured_oil = chicken.measured_oil_ml
+        estimated_weight = prediction.estimated_weight if prediction is not None else None
+        estimated_oil = prediction.estimated_oil_ml if prediction is not None else None
+
+        weight = measured_weight if measured_weight is not None else estimated_weight
+        oil = measured_oil if measured_oil is not None else estimated_oil
+        return {
+            "effective_weight": float(weight) if weight is not None else None,
+            "effective_oil_ml": float(oil) if oil is not None else None,
+            "weight_source": "user" if measured_weight is not None else ("ai" if estimated_weight is not None else None),
+            "oil_source": "user" if measured_oil is not None else ("ai" if estimated_oil is not None else None),
+        }
+
+    @staticmethod
+    def _measurement_response(db, chicken):
+        prediction = (
+            db.query(AIPrediction)
+            .filter(AIPrediction.detected_chicken_id == chicken.id)
+            .order_by(AIPrediction.id.desc())
+            .first()
+        )
+        session = db.query(ScanSession).filter(ScanSession.id == chicken.scan_session_id).first()
+        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
+        effective = AIPredictionService._effective_values(chicken, prediction)
+        healthy = (
+            AIPredictionService._is_healthy(prediction.disease, prediction.disease_confidence)
+            if prediction is not None else None
+        )
+        readiness = assess_market_readiness(chicken_type, effective["effective_weight"], healthy)
+        return {
+            "detected_chicken_id": chicken.id,
+            "measured_weight_kg": float(chicken.measured_weight_kg) if chicken.measured_weight_kg is not None else None,
+            "measured_height_cm": float(chicken.measured_height_cm) if chicken.measured_height_cm is not None else None,
+            "measured_oil_ml": float(chicken.measured_oil_ml) if chicken.measured_oil_ml is not None else None,
+            **effective,
+            **readiness,
+        }
 
     @staticmethod
     def save_measurements(db, chicken_id, user_id, measurements):
@@ -59,10 +108,24 @@ class AIPredictionService:
             setattr(chicken, field, value)
         db.commit()
         db.refresh(chicken)
-        return {
-            "measured_weight_kg": chicken.measured_weight_kg,
-            "measured_height_cm": chicken.measured_height_cm,
-        }
+
+        response = AIPredictionService._measurement_response(db, chicken)
+        prediction = (
+            db.query(AIPrediction)
+            .filter(AIPrediction.detected_chicken_id == chicken.id)
+            .order_by(AIPrediction.id.desc())
+            .first()
+        )
+        if prediction is not None:
+            prediction.market_ready = response["market_ready"]
+            db.commit()
+            # Keep the session summary in step with the user's correction.
+            try:
+                ScanSummaryService.recalculate_for_session(db, chicken.scan_session_id)
+            except Exception as error:
+                print(f"[SUMMARY WARNING] Could not recalculate summary: {error}")
+
+        return response
 
     @staticmethod
     def require_owned_session(db: Session, session_id: int, user_id: int):
@@ -73,12 +136,12 @@ class AIPredictionService:
             raise HTTPException(404, "Scan session not found")
         return session
 
-    # The AI alone is not accurate enough to alarm the farmer. A chicken is
-    # only shown as "Not Healthy" when a SPECIFIC condition was identified
-    # AND the model is reasonably confident. Anything uncertain (UNKNOWN,
-    # low confidence, failed classification, bad camera framing) is shown
-    # as "Healthy" — the raw result is still stored in the DB for the record.
-    MIN_FLAG_CONFIDENCE = 50.0
+    # A chicken is only shown as "Not Healthy" when a SPECIFIC condition was
+    # identified AND the model is reasonably confident. Anything uncertain
+    # (UNKNOWN, low confidence, failed classification, bad camera framing)
+    # is shown neutrally — never as a confirmed illness. Set at 80 so a
+    # single ambiguous visual cue cannot make a clean bird look sick.
+    MIN_FLAG_CONFIDENCE = 80.0
 
     # Label stored/returned when the camera framing (too close / too far /
     # unclear) makes an honest size + health assessment impossible.
@@ -111,15 +174,19 @@ class AIPredictionService:
     @staticmethod
     def _display_status(disease_name: str, confidence_score) -> str:
         """
-        The API response says "Healthy", "Not Healthy", or — when the
-        camera framing made an honest assessment impossible —
-        "CANNOT_ASSESS" (the frontend shows a reposition-camera card).
+        The API response says "Healthy", "Not Healthy", or one of the
+        neutral states. "No clear signs detected" is used when no specific,
+        sufficiently confident condition was found — it is not an illness
+        label and must not be styled as one.
         """
-        if disease_name in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS):
-            return disease_name
-        if AIPredictionService._is_healthy(disease_name, confidence_score) is None:
-            return "Assessment inconclusive"
-        if AIPredictionService._is_healthy(disease_name, confidence_score):
+        if disease_name == AIPredictionService.CANNOT_ASSESS:
+            return AIPredictionService.CANNOT_ASSESS
+        if disease_name == "UNKNOWN":
+            return "No clear signs detected"
+        status = AIPredictionService._is_healthy(disease_name, confidence_score)
+        if status is None:
+            return "No clear signs detected"
+        if status:
             return "Healthy"
         return "Not Healthy"
 
@@ -216,7 +283,7 @@ class AIPredictionService:
             print(f"[PREDICTION WARNING] OpenRouter batch insights also failed: {e}")
 
         return [{
-            "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
+            "tips": "No condition observation was generated for this photo.",
             "estimated_weight": 0.0,
             "weight_confidence": 0.0,
             "estimated_oil_ml": 0.0,
@@ -232,8 +299,14 @@ class AIPredictionService:
         insights: dict,
         angle: str,
         start_time: float,
+        chicken_type: str = DEFAULT_CHICKEN_TYPE,
     ) -> dict:
-        cannot_assess = classification.get("disease_name") in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS)
+        disease_name = classification["disease_name"]
+        confidence_score = classification["confidence_score"]
+        reasoning = classification.get("reasoning", "")
+        model_used = classification.get("model_used", "unknown")
+        unavailable = model_used == "n/a"
+        cannot_assess = disease_name == AIPredictionService.CANNOT_ASSESS or unavailable
 
         image_url = AIPredictionService._save_image_to_disk(crop_bytes)
         chicken_image = ChickenImage(
@@ -245,67 +318,60 @@ class AIPredictionService:
         db.commit()
         db.refresh(chicken_image)
 
-        disease_name = classification["disease_name"]
-        confidence_score = classification["confidence_score"]
-        reasoning = classification.get("reasoning", "")
-
         if cannot_assess:
-            # Bad camera framing (too close/too far) — skip Groq and don't
-            # fabricate weight/insights. The card tells the farmer to
-            # reposition the camera. No vision quota is spent on insights.
-            groq_data = {
-                "breed": "Unknown",
-                "recommendation": None,
-                "prevention_tips": None,
-                "severity": "UNKNOWN",
-            }
+            # Bad framing or unavailable provider — never fabricate weight
+            # or a health conclusion. The card asks for a retake or retry.
             insights_final = {
                 "tips": reasoning or CANNOT_ASSESS_USER_MESSAGE,
                 "estimated_weight": 0.0,
                 "weight_confidence": 0.0,
                 "estimated_oil_ml": 0.0,
-                "market_ready": False,
             }
         else:
-            try:
-                groq_data = get_disease_recommendation(disease_name, confidence_score)
-            except RecommendationError as e:
-                print(f"[RECOMMENDATION WARNING] {e}")
-                groq_data = {
-                    "breed": "Unknown",
-                    "recommendation": None,
-                    "prevention_tips": None,
-                    "severity": "UNKNOWN",
-                }
             insights_final = insights or {
-                "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
+                "tips": "No condition observation was generated for this photo.",
                 "estimated_weight": 0.0,
                 "weight_confidence": 0.0,
                 "estimated_oil_ml": 0.0,
-                "market_ready": False,
             }
+
+        healthy = AIPredictionService._is_healthy(disease_name, confidence_score)
+        severity = "UNKNOWN" if cannot_assess else ("MEDIUM" if healthy is False else "NONE")
+
+        estimated_weight = insights_final.get("estimated_weight") or None
+        estimated_oil = insights_final.get("estimated_oil_ml") or None
+        measured_weight = detected_chicken.measured_weight_kg
+        measured_oil = detected_chicken.measured_oil_ml
+        effective_weight = (
+            float(measured_weight) if measured_weight is not None
+            else (float(estimated_weight) if estimated_weight is not None else None)
+        )
+        effective_oil = (
+            float(measured_oil) if measured_oil is not None
+            else (float(estimated_oil) if estimated_oil is not None else None)
+        )
+        readiness = assess_market_readiness(chicken_type, effective_weight, healthy)
 
         processing_time_ms = int((time.time() - start_time) * 1000)
 
-        # NOTE: the actual disease name is still stored in the DB (still
-        # used above to generate the recommendation/prevention tips) —
-        # only the API response is simplified to Healthy/Not Healthy
-        # (plus CANNOT_ASSESS for framing failures).
+        # The raw disease label is still stored for the record. No treatment
+        # or medicine advice is generated or returned — this app only
+        # reports visible condition, count, weight and oil estimates.
         ai_prediction = AIPrediction(
             detected_chicken_id=detected_chicken.id,
             disease=disease_name,
             disease_confidence=confidence_score,
-            estimated_weight=insights_final["estimated_weight"] or None,
-            estimated_oil_ml=insights_final["estimated_oil_ml"] or None,
-            weight_confidence=insights_final.get("weight_confidence") if insights_final["estimated_weight"] else None,
-            market_ready=insights_final["market_ready"],
-            care_tips=insights_final["tips"],
-            breed=groq_data["breed"],
-            recommendation=groq_data["recommendation"],
-            prevention_tips=groq_data["prevention_tips"],
-            severity=groq_data["severity"],
+            estimated_weight=estimated_weight,
+            estimated_oil_ml=estimated_oil,
+            weight_confidence=insights_final.get("weight_confidence") if estimated_weight else None,
+            market_ready=readiness["market_ready"],
+            care_tips=insights_final.get("tips"),
+            breed=None,
+            recommendation=None,
+            prevention_tips=None,
+            severity=severity,
             model_name="gemini_disease_classifier",
-            model_version=classification.get("model_used", "unknown"),
+            model_version=model_used,
             processing_time_ms=processing_time_ms
         )
 
@@ -315,24 +381,33 @@ class AIPredictionService:
 
         return {
             "detected_chicken_id": detected_chicken.id,
-            "measured_weight_kg": detected_chicken.measured_weight_kg,
-            "measured_height_cm": detected_chicken.measured_height_cm,
-            "assessment_status": AIPredictionService.assessment_status(disease_name, classification.get("model_used")),
+            "measured_weight_kg": float(measured_weight) if measured_weight is not None else None,
+            "measured_height_cm": float(detected_chicken.measured_height_cm) if detected_chicken.measured_height_cm is not None else None,
+            "measured_oil_ml": float(measured_oil) if measured_oil is not None else None,
+            "assessment_status": AIPredictionService.assessment_status(disease_name, model_used),
             "tracking_id": detected_chicken.tracking_id,
             "chicken_image_id": chicken_image.id,
             "image_url": image_url,
             "ai_prediction_id": ai_prediction.id,
             "disease": AIPredictionService._display_status(disease_name, confidence_score),
             "confidence": confidence_score,
-            "healthy": AIPredictionService._is_healthy(disease_name, confidence_score),
+            "healthy": healthy,
             "assessable": not cannot_assess,
-            "cannot_assess_reason": reasoning if cannot_assess else None,
+            "cannot_assess_reason": (reasoning or CANNOT_ASSESS_USER_MESSAGE) if cannot_assess else None,
             "reasoning": reasoning,
             "angle": angle,
-            "estimated_weight": float(ai_prediction.estimated_weight) if ai_prediction.estimated_weight is not None else None,
+            "estimated_weight": float(estimated_weight) if estimated_weight is not None else None,
             "weight_confidence": float(ai_prediction.weight_confidence) if ai_prediction.weight_confidence is not None else None,
-            "estimated_oil_ml": float(ai_prediction.estimated_oil_ml) if ai_prediction.estimated_oil_ml is not None else None,
-            "market_ready": ai_prediction.market_ready,
+            "estimated_oil_ml": float(estimated_oil) if estimated_oil is not None else None,
+            "effective_weight": effective_weight,
+            "effective_oil_ml": effective_oil,
+            "weight_source": "user" if measured_weight is not None else ("ai" if estimated_weight is not None else None),
+            "oil_source": "user" if measured_oil is not None else ("ai" if estimated_oil is not None else None),
+            "chicken_type": readiness["chicken_type"],
+            "market_target_kg": readiness["market_target_kg"],
+            "market_ready": readiness["market_ready"],
+            "market_ready_label": readiness["market_ready_label"],
+            "market_ready_note": readiness["market_ready_note"],
             "care_tips": ai_prediction.care_tips,
             "breed": ai_prediction.breed,
             "recommendation": ai_prediction.recommendation,
@@ -380,8 +455,8 @@ class AIPredictionService:
             chicken["assessable"] for chicken in existing
         ):
             return {"chickens": existing, "total_chickens": len(existing),
-                    "total_weight": round(sum(c["estimated_weight"] or 0 for c in existing), 2),
-                    "total_oil_ml": round(sum(c["estimated_oil_ml"] or 0 for c in existing), 2),
+                    "total_weight": round(sum(c["effective_weight"] or 0 for c in existing), 2),
+                    "total_oil_ml": round(sum(c["effective_oil_ml"] or 0 for c in existing), 2),
                     "market_ready_count": sum(bool(c["market_ready"]) for c in existing)}
 
         if existing:
@@ -460,13 +535,14 @@ class AIPredictionService:
             crops, len(detected_chickens)
         )
 
-        # ONE call estimates weight/oil/tips for ALL assessable chickens —
-        # same Gemini-first, OpenRouter-fallback pattern. Chickens the AI
-        # marked CANNOT_ASSESS (bad framing) are excluded from the call:
-        # they would waste image tokens on an estimate we must not make.
+        # ONE call estimates weight/oil/observation for every usable crop.
+        # Only a retake (CANNOT_ASSESS) or an unavailable provider is
+        # skipped. UNKNOWN means "no specific condition found", so the
+        # bird is still usable for a weight estimate.
         assessable_indices = [
             i for i, classification in enumerate(classifications)
-            if classification.get("disease_name") not in ("UNKNOWN", AIPredictionService.CANNOT_ASSESS)
+            if classification.get("disease_name") != AIPredictionService.CANNOT_ASSESS
+            and classification.get("model_used") != "n/a"
         ]
         insight_items = [
             {
@@ -486,24 +562,26 @@ class AIPredictionService:
 
         quota_exhausted = classification_exhausted or insights_exhausted
 
-        # Everything past this point is DB writes + Groq (not Gemini/
-        # OpenRouter) — no additional vision-API quota is used no matter
-        # how many chickens.
+        session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
+        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
+
+        # Everything past this point is DB writes — no additional vision
+        # quota is used no matter how many chickens.
         chickens_result = []
         for chicken, crop_bytes, classification, insights, angle in zip(
             detected_chickens, crops, classifications, insights_list, angles
         ):
             chickens_result.append(
                 AIPredictionService._finalize_single_chicken(
-                    db, chicken, crop_bytes, classification, insights, angle, start_time
+                    db, chicken, crop_bytes, classification, insights, angle, start_time,
+                    chicken_type,
                 )
             )
 
-        total_weight = round(sum(c["estimated_weight"] or 0 for c in chickens_result), 2)
-        total_oil_ml = round(sum(c["estimated_oil_ml"] or 0 for c in chickens_result), 2)
+        total_weight = round(sum(c["effective_weight"] or 0 for c in chickens_result), 2)
+        total_oil_ml = round(sum(c["effective_oil_ml"] or 0 for c in chickens_result), 2)
         market_ready_count = sum(1 for c in chickens_result if c["market_ready"])
 
-        session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
         if session:
             session.status = ScanStatus.FAILED if quota_exhausted else ScanStatus.COMPLETED
             session.finished_at = func.now()
@@ -569,12 +647,20 @@ class AIPredictionService:
         )
 
         results = []
+        session = db.query(ScanSession).filter(ScanSession.id == scan_session_id).first()
+        chicken_type = normalize_chicken_type(getattr(session, "chicken_type", None))
         for chicken, prediction, image in rows:
             confidence = float(prediction.disease_confidence) if prediction.disease_confidence is not None else None
+            effective = AIPredictionService._effective_values(chicken, prediction)
+            healthy = AIPredictionService._is_healthy(prediction.disease, confidence)
+            readiness = assess_market_readiness(
+                chicken_type, effective["effective_weight"], healthy
+            )
             results.append({
                 "detected_chicken_id": chicken.id,
-                "measured_weight_kg": chicken.measured_weight_kg,
-                "measured_height_cm": chicken.measured_height_cm,
+                "measured_weight_kg": float(chicken.measured_weight_kg) if chicken.measured_weight_kg is not None else None,
+                "measured_height_cm": float(chicken.measured_height_cm) if chicken.measured_height_cm is not None else None,
+                "measured_oil_ml": float(chicken.measured_oil_ml) if chicken.measured_oil_ml is not None else None,
                 "assessment_status": AIPredictionService.assessment_status(prediction.disease, prediction.model_version),
                 "tracking_id": chicken.tracking_id,
                 "chicken_image_id": image.id if image else None,
@@ -582,15 +668,20 @@ class AIPredictionService:
                 "ai_prediction_id": prediction.id,
                 "disease": AIPredictionService._display_status(prediction.disease, confidence),
                 "confidence": confidence,
-                "healthy": AIPredictionService._is_healthy(prediction.disease, confidence),
+                "healthy": healthy,
                 "reasoning": None,
                 "angle": image.image_type if image else None,
-                "assessable": prediction.disease not in ("UNKNOWN", "CANNOT_ASSESS"),
+                "assessable": AIPredictionService.assessment_status(prediction.disease, prediction.model_version) == "ASSESSED",
                 "cannot_assess_reason": prediction.care_tips if prediction.disease in ("UNKNOWN", "CANNOT_ASSESS") else None,
                 "weight_confidence": float(prediction.weight_confidence) if prediction.weight_confidence is not None else None,
                 "estimated_weight": float(prediction.estimated_weight) if prediction.estimated_weight is not None else None,
                 "estimated_oil_ml": float(prediction.estimated_oil_ml) if prediction.estimated_oil_ml is not None else None,
-                "market_ready": prediction.market_ready,
+                **effective,
+                "chicken_type": readiness["chicken_type"],
+                "market_target_kg": readiness["market_target_kg"],
+                "market_ready": readiness["market_ready"],
+                "market_ready_label": readiness["market_ready_label"],
+                "market_ready_note": readiness["market_ready_note"],
                 "care_tips": prediction.care_tips,
                 "breed": prediction.breed,
                 "recommendation": prediction.recommendation,

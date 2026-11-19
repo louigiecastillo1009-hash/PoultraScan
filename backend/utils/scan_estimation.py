@@ -2,19 +2,16 @@
 
 VISUAL_ESTIMATION_INSTRUCTIONS = """
 Assess only the target chicken nearest the center of each crop. Ignore other
-birds in the background; never describe a group as one chicken. If the target
-cannot be distinguished, return null for its weight.
-For a clearly visible target, provide your best APPROXIMATE visual weight
+birds in the background; never describe a group as one chicken.
+For a clearly visible target, ALWAYS provide your best APPROXIMATE visual weight
 estimate in kg using its apparent maturity, body proportions, breast fullness
-and body condition. This is an uncalibrated AI estimate, not a measurement.
-A reference scale is not required for an approximate estimate. Do not infer
-weight from pixel area, crop occupancy or camera distance, assume every bird
-is a broiler, or assign every bird a standard weight. Return null if there is
-insufficient visual evidence. Never invent a fallback value.
+and body condition. A reference scale is not required for an approximate
+estimate. Do not infer weight from pixel area, crop occupancy or camera
+distance, assume every bird is a broiler, or assign every bird a standard
+weight. Only return null when the target is not identifiable or the image is
+unusable. Never invent a fallback value.
 Report honest self-reported weight confidence, not a claimed accuracy rate.
-Health alone does not establish market readiness. With no confirmed age,
-target market weight or withdrawal-period information, return market_ready:
-false. Do not claim a photo certifies food safety.
+Do not diagnose disease and do not recommend medicine or treatment.
 """
 
 

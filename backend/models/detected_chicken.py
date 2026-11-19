@@ -25,8 +25,11 @@ class DetectedChicken(Base):
 
     tracking_id = Column(Integer)
     # User-entered physical measurements; never inferred from image pixels.
+    # These override the AI display values (and scan totals) while the
+    # original AI estimate stays stored in AIPrediction.
     measured_weight_kg = Column(DECIMAL(8,3))
     measured_height_cm = Column(DECIMAL(8,2))
+    measured_oil_ml = Column(DECIMAL(8,2))
 
     confidence = Column(DECIMAL(5,2))
 

@@ -63,27 +63,25 @@ class GeminiInsightsError(Exception):
 
 def _build_prompt(disease: str, confidence: float) -> str:
     return f"""
-You are a poultry health assistant for a chicken farm monitoring app.
+You are a poultry photo analyst for a chicken farm monitoring app.
 
 You are given a photo of a live chicken. A separate AI model already classified it as:
-- Disease: {disease}
+- Condition: {disease}
 - Confidence: {confidence}%
 
 {VISUAL_ESTIMATION_INSTRUCTIONS}
 
 Respond ONLY with valid JSON, no markdown, no code fences, in this exact format:
 {{
-  "tips": "2-4 sentences of practical care/treatment advice for this condition",
-  "estimated_weight": <number in kg, based on the chicken's visible size in the photo, realistic broiler range>,
-  "weight_confidence": <integer 0-100, how confident you are in the weight estimate given the bird's visibility and framing in the photo>,
-  "market_ready": <true or false, whether this chicken would be safe/ready for market>
+  "tips": "1-2 sentences describing ONLY the visible body condition that supports the weight estimate (posture, feather condition, body fullness). Do NOT name a disease, diagnose, or recommend medicine or treatment.",
+  "estimated_weight": <number in kg, your best approximate visual estimate>,
+  "weight_confidence": <integer 0-100, how confident you are in the weight estimate given the bird's visibility and framing in the photo>
 }}
 
 Note: oil yield is NOT requested here — the app computes it from the
 estimated_weight using its own formula, so do not invent an oil number.
-
-If disease is HEALTHY, tips should be general maintenance advice.
-If disease is COCCIDIOSIS, FOWL_POX, or NEWCASTLE, market_ready should be false and tips should focus on treatment/isolation.
+Market readiness is also computed by the app from the selected chicken
+type and weight; do not return it.
 """
 
 
@@ -165,7 +163,7 @@ def get_disease_insights(disease: str, confidence: float, image_bytes: bytes) ->
 
     print("All Gemini models failed. Returning fallback defaults.")
     return {
-        "tips": "Unable to generate care tips at this time. Please consult a veterinarian.",
+        "tips": "No condition observation was generated for this photo.",
         "estimated_weight": 0.0,
         "weight_confidence": 0.0,
         "estimated_oil_ml": 0.0,
@@ -201,7 +199,7 @@ def get_disease_insights_batch(items: list[dict]) -> list[dict]:
     )
 
     batch_prompt = f"""
-You are a poultry health assistant for a chicken farm monitoring app.
+You are a poultry photo analyst for a chicken farm monitoring app.
 
 You are given {len(items)} separate chicken images, in order, labeled
 image_1 through image_{len(items)}. Each has already been classified by
@@ -216,20 +214,16 @@ exactly {len(items)} objects in the same order as the images, each in
 this exact format:
 {{
   "image_id": "image_1",
-  "tips": "2-4 sentences of practical care/treatment advice for this condition",
-  "estimated_weight": <number in kg ONLY if supported, otherwise null>,
-  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>,
-  "market_ready": <true or false>
+  "tips": "1-2 sentences describing ONLY the visible body condition that supports the weight estimate. Do NOT name a disease, diagnose, or recommend medicine or treatment.",
+  "estimated_weight": <number in kg, your best approximate visual estimate>,
+  "weight_confidence": <integer 0-100, how confident you are in that weight estimate given the bird's visibility and framing in that image>
 }}
 Use the actual image ID (image_1, image_2, etc.) for each result.
 
 Note: oil yield is NOT requested here — the app computes it from each
 estimated_weight using its own formula, so do not invent an oil number.
-
-If a chicken's disease is HEALTHY, tips
-should be general maintenance advice. If COCCIDIOSIS, FOWL_POX, or
-NEWCASTLE, market_ready should be false and tips should focus on
-treatment/isolation.
+Market readiness is computed by the app from the selected chicken type
+and weight; do not return it.
 """
 
     for model_name in FREE_MODELS:

@@ -36,7 +36,7 @@ export default function ScanHistory() {
       <PageHeader
         eyebrow="Records"
         title="Scan history"
-        description="Review and manage past AI diagnostic scans across all facilities."
+        description="Review and manage past AI scans across all facilities."
         actions={
           <Button onClick={() => navigate('/scan')}>
             <MdAdd className="text-lg" aria-hidden="true" />

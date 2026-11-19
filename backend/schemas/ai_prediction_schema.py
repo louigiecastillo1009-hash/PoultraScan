@@ -38,6 +38,18 @@ class ChickenPredictionSchema(BaseModel):
     # The vision model's confidence in its own weight ESTIMATE (0-100).
     weight_confidence: Optional[float] = None
     estimated_oil_ml: Optional[float]
+    # User-entered corrections. When present they replace the AI values in
+    # the UI and in totals; the original AI estimate is still returned.
+    measured_weight_kg: Optional[float] = None
+    measured_oil_ml: Optional[float] = None
+    effective_weight: Optional[float] = None
+    effective_oil_ml: Optional[float] = None
+    weight_source: Optional[str] = None
+    oil_source: Optional[str] = None
+    chicken_type: str = "BROILER"
+    market_target_kg: Optional[float] = None
+    market_ready_label: Optional[str] = None
+    market_ready_note: Optional[str] = None
     market_ready: bool
     care_tips: str
     breed: Optional[str] = None
@@ -69,3 +81,17 @@ class MeasurementSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     measured_weight_kg: Optional[float] = Field(default=None, ge=0.001, le=99999, allow_inf_nan=False)
     measured_height_cm: Optional[float] = Field(default=None, ge=0.01, le=99999, allow_inf_nan=False)
+    measured_oil_ml: Optional[float] = Field(default=None, ge=0.001, le=999999, allow_inf_nan=False)
+
+
+class MeasurementResponseSchema(MeasurementSchema):
+    detected_chicken_id: int
+    effective_weight: Optional[float] = None
+    effective_oil_ml: Optional[float] = None
+    weight_source: Optional[str] = None
+    oil_source: Optional[str] = None
+    chicken_type: str = "BROILER"
+    market_target_kg: Optional[float] = None
+    market_ready: bool = False
+    market_ready_label: Optional[str] = None
+    market_ready_note: Optional[str] = None

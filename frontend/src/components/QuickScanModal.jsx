@@ -19,6 +19,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [chickenType, setChickenType] = useState('BROILER');
 
   const { status, summary, error, runQuickScan, reset } = useQuickScan(farmId);
 
@@ -42,7 +43,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!hasFarm) return;
-    if (file) runQuickScan(file, 'UPLOAD');
+    if (file) runQuickScan(file, 'UPLOAD', chickenType);
   };
 
   const handleCaptureClick = () => {
@@ -53,7 +54,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
   const handleCameraCapture = (file) => {
     setCameraOpen(false);
     if (!hasFarm) return;
-    runQuickScan(file, 'WEBCAM');
+    runQuickScan(file, 'WEBCAM', chickenType);
   };
 
   const handleMoreInfo = () => {
@@ -68,6 +69,10 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
 
   const severity =
     SEVERITY_STYLES[summary?.topSeverity?.toUpperCase()] || SEVERITY_STYLES.UNKNOWN;
+  const severityText =
+    !summary?.topSeverity || ['UNKNOWN', 'NONE'].includes(summary.topSeverity.toUpperCase())
+      ? 'No clear signs'
+      : severity.label;
 
   // While the camera is open, render ONLY the camera modal — hide the
   // sheet + backdrop entirely instead of stacking both overlays, which
@@ -113,7 +118,19 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
       )}
 
       {hasFarm && status === 'idle' && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3">
+          <label className="flex items-center justify-between gap-2 text-[12px] font-medium text-ink">
+            Chicken type
+            <select
+              value={chickenType}
+              onChange={(event) => setChickenType(event.target.value)}
+              className="rounded-lg border border-ink/15 bg-paper px-2 py-1 text-[12px]"
+            >
+              <option value="BROILER">Broiler (≥ 1.8 kg)</option>
+              <option value="NATIVE">Native (≥ 1.2 kg)</option>
+            </select>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={handleCaptureClick}
@@ -130,6 +147,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
             <MdUpload className="text-2xl text-sage-dark" aria-hidden="true" />
             <span className="text-[12.5px] font-semibold">Upload</span>
           </button>
+          </div>
         </div>
       )}
 
@@ -157,7 +175,9 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
             <MdCheckCircle className="flex-shrink-0 text-lg text-sage-dark" aria-hidden="true" />
             <span className="text-[12px] font-semibold text-sage-dark">
               {summary.chickenCount} {summary.chickenCount === 1 ? 'chicken' : 'chickens'} scanned ·{' '}
-              {summary.healthyCount}/{summary.chickenCount} healthy
+              {summary.flaggedCount > 0
+                ? `${summary.flaggedCount} flagged`
+                : 'no health issues flagged'}
             </span>
           </div>
 
@@ -172,7 +192,7 @@ export default function QuickScanModal({ isOpen, onClose, farmId }) {
               <span className="flex items-center gap-1.5">
                 <span className={`h-1.5 w-1.5 rounded-full ${severity.dot}`} aria-hidden="true" />
                 <span className={`text-[9px] font-bold uppercase tracking-[0.12em] ${severity.text}`}>
-                  {summary.topSeverity}
+                  {severityText}
                 </span>
               </span>
             </div>
