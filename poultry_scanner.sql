@@ -5,7 +5,11 @@
 --
 -- Usage:
 --   mysql -u <user> -p < poultry_scanner.sql
--- or paste into your MySQL client / Aiven console.
+-- or paste into your MySQL client / Laragon (phpMyAdmin) / Aiven console.
+--
+-- Includes the alembic_version stamp at head so the backend's startup
+-- migration runner (backend/database/migrations_runner.py) sees the schema
+-- as already up to date instead of re-running add-column migrations.
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS `chicken_ai`
@@ -22,12 +26,14 @@ USE `chicken_ai`;
 -- ------------------------------------------------------------
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `alembic_version`;
 DROP TABLE IF EXISTS `activity_logs`;
 DROP TABLE IF EXISTS `notifications`;
 DROP TABLE IF EXISTS `journal_entries`;
 DROP TABLE IF EXISTS `ai_predictions`;
 DROP TABLE IF EXISTS `chicken_images`;
 DROP TABLE IF EXISTS `detected_chickens`;
+DROP TABLE IF EXISTS `scan_photos`;
 DROP TABLE IF EXISTS `scan_summaries`;
 DROP TABLE IF EXISTS `scan_sessions`;
 DROP TABLE IF EXISTS `farms`;
@@ -92,7 +98,23 @@ CREATE TABLE IF NOT EXISTS `scan_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 4. scan_summaries
+-- 4. scan_photos
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `scan_photos` (
+  `id`               INT           NOT NULL AUTO_INCREMENT,
+  `scan_session_id`  INT           NOT NULL,
+  `angle`            VARCHAR(10)   NOT NULL DEFAULT 'FRONT',
+  `image_url`        VARCHAR(255)  NOT NULL,
+  `created_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_scan_photos_scan_session_id` (`scan_session_id`),
+  CONSTRAINT `fk_scan_photos_scan_session_id`
+    FOREIGN KEY (`scan_session_id`) REFERENCES `scan_sessions` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 5. scan_summaries
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `scan_summaries` (
   `id`                      INT           NOT NULL AUTO_INCREMENT,
@@ -113,12 +135,16 @@ CREATE TABLE IF NOT EXISTS `scan_summaries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 5. detected_chickens
+-- 6. detected_chickens
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `detected_chickens` (
   `id`                    INT           NOT NULL AUTO_INCREMENT,
   `scan_session_id`       INT           NOT NULL,
+  `scan_photo_id`         INT           NULL,
   `tracking_id`           INT           NULL,
+  `measured_weight_kg`    DECIMAL(8,3)  NULL,
+  `measured_height_cm`    DECIMAL(8,2)  NULL,
+  `measured_oil_ml`       DECIMAL(8,2)  NULL,
   `confidence`            DECIMAL(5,2)  NULL,
   `bounding_box_x`        FLOAT         NULL,
   `bounding_box_y`        FLOAT         NULL,
@@ -127,18 +153,22 @@ CREATE TABLE IF NOT EXISTS `detected_chickens` (
   `created_at`            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_detected_chickens_scan_session_id` (`scan_session_id`),
+  KEY `fk_detected_chickens_scan_photo_id` (`scan_photo_id`),
   CONSTRAINT `fk_detected_chickens_scan_session_id`
     FOREIGN KEY (`scan_session_id`) REFERENCES `scan_sessions` (`id`)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_detected_chickens_scan_photo_id`
+    FOREIGN KEY (`scan_photo_id`) REFERENCES `scan_photos` (`id`)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 6. chicken_images
+-- 7. chicken_images
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `chicken_images` (
   `id`                     INT           NOT NULL AUTO_INCREMENT,
   `detected_chicken_id`    INT           NOT NULL,
-  `image_type`             ENUM('WEBCAM', 'FRONT', 'LEFT', 'RIGHT') NOT NULL,
+  `image_type`             ENUM('WEBCAM', 'FRONT', 'BACK', 'LEFT', 'RIGHT') NOT NULL,
   `image_url`              VARCHAR(255)  NOT NULL,
   `created_at`             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -149,7 +179,7 @@ CREATE TABLE IF NOT EXISTS `chicken_images` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 7. ai_predictions
+-- 8. ai_predictions
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ai_predictions` (
   `id`                     INT           NOT NULL AUTO_INCREMENT,
@@ -164,6 +194,7 @@ CREATE TABLE IF NOT EXISTS `ai_predictions` (
   `recommendation`         TEXT          NULL,
   `prevention_tips`        TEXT          NULL,
   `severity`               VARCHAR(20)   NULL,
+  `weight_confidence`      DECIMAL(5,2)  NULL,
   `model_name`             VARCHAR(100)  NULL,
   `model_version`          VARCHAR(50)   NULL,
   `processing_time_ms`     INT           NULL,
@@ -176,7 +207,7 @@ CREATE TABLE IF NOT EXISTS `ai_predictions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 8. journal_entries
+-- 9. journal_entries
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `journal_entries` (
   `id`                INT           NOT NULL AUTO_INCREMENT,
@@ -203,7 +234,7 @@ CREATE TABLE IF NOT EXISTS `journal_entries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 9. notifications
+-- 10. notifications
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id`          INT           NOT NULL AUTO_INCREMENT,
@@ -220,7 +251,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- 10. activity_logs
+-- 11. activity_logs
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `activity_logs` (
   `id`          INT           NOT NULL AUTO_INCREMENT,
@@ -234,3 +265,17 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 12. alembic_version
+-- ------------------------------------------------------------
+-- Stamp the schema as fully migrated (head = a7b3c9d1e2f4) so the
+-- backend's startup migration runner does not try to re-apply
+-- add-column migrations against this already-correct schema.
+CREATE TABLE IF NOT EXISTS `alembic_version` (
+  `version_num` VARCHAR(32) NOT NULL,
+  PRIMARY KEY (`version_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `alembic_version` (`version_num`) VALUES ('a7b3c9d1e2f4')
+  ON DUPLICATE KEY UPDATE `version_num` = VALUES(`version_num`);

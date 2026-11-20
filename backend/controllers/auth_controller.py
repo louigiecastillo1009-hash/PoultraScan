@@ -4,6 +4,8 @@ import logging
 from sqlalchemy.orm import Session
 from fastapi import status, Response, HTTPException
 from fastapi.responses import JSONResponse
+from starlette.background import BackgroundTask
+from database.database import SessionLocal
 from utils.jwt_handler import ACCESS_TOKEN_EXPIRE_MINUTES
 from services.user_service import UserService
 from services.notification_service import NotificationService
@@ -25,6 +27,40 @@ logger = logging.getLogger(__name__)
 REMEMBER_ME_EXPIRE_DAYS = 30
 DEFAULT_SESSION_MAX_AGE = ACCESS_TOKEN_EXPIRE_MINUTES * 60  # matches the JWT's exp
 REMEMBER_ME_MAX_AGE = 60 * 60 * 24 * REMEMBER_ME_EXPIRE_DAYS
+
+
+def _send_welcome_email_task(user_id: int, email: str, name: str) -> None:
+    """Runs after the login response is sent, so email never slows/breaks login."""
+    try:
+        EmailService.send_welcome_email(email, name)
+    except Exception as exc:
+        logger.warning("Failed to send welcome email to %s: %s", email, exc)
+        db = SessionLocal()
+        try:
+            UserService.release_welcome_email(db, user_id)
+        except Exception as release_exc:
+            logger.warning("Could not reset welcome flag for user %s: %s", user_id, release_exc)
+        finally:
+            db.close()
+
+
+def _welcome_email_task_for(db: Session, user) -> BackgroundTask | None:
+    """Return a background task for the user's first login, or None."""
+    if getattr(user, "welcome_email_sent_at", None) is not None:
+        return None
+    if not EmailService.is_configured():
+        # Don't mark users as welcomed when email can't actually be sent.
+        return None
+    try:
+        if not UserService.claim_welcome_email(db, user.id):
+            return None
+    except Exception as exc:
+        db.rollback()
+        logger.warning("Could not claim welcome email for user %s: %s", user.id, exc)
+        return None
+    return BackgroundTask(
+        _send_welcome_email_task, user.id, user.email, user.fullname or user.username
+    )
 
 
 class AuthController:
@@ -61,7 +97,8 @@ class AuthController:
 
         response = JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"message": "Login successful"}
+            content={"message": "Login successful"},
+            background=_welcome_email_task_for(db, user),
         )
         response.set_cookie(
             key="access_token",
@@ -162,7 +199,8 @@ class AuthController:
 
         response = JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"message": "Login successful"}
+            content={"message": "Login successful"},
+            background=_welcome_email_task_for(db, user),
         )
         response.set_cookie(
             key="access_token",

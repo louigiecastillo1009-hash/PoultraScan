@@ -159,6 +159,62 @@ class EmailService:
         )
 
     @classmethod
+    def send_welcome_email(cls, to_email: str, name: str | None = None) -> None:
+        """Greet a user the first time they log in, styled to match the app UI."""
+        greeting = html.escape((name or "").strip() or "there")
+
+        features = [
+            ("Scan your flock", "Snap a photo to count chickens and spot early signs of illness."),
+            ("Track your farms", "Keep every farm, scan session and journal entry in one place."),
+            ("Get smart insights", "Receive AI-powered care tips and health summaries for your birds."),
+        ]
+        feature_rows = "".join(
+            f"""
+        <tr>
+          <td valign="top" style="padding:0 12px 14px 0;width:24px;">
+            <span style="display:inline-block;width:22px;height:22px;line-height:22px;border-radius:11px;background-color:{BRAND_LIGHT_GREEN};color:{BRAND_PRIMARY};font-size:13px;font-weight:bold;text-align:center;">&#10003;</span>
+          </td>
+          <td valign="top" style="padding:0 0 14px 0;">
+            <span style="color:{BRAND_INK};font-size:15px;font-weight:bold;">{title}</span><br />
+            <span style="color:{BRAND_TEXT_MUTED};font-size:14px;line-height:22px;">{desc}</span>
+          </td>
+        </tr>"""
+            for title, desc in features
+        )
+
+        body_html = f"""\
+      <h1 style="margin:0 0 12px 0;color:{BRAND_INK};font-size:22px;line-height:28px;">Welcome to Poultry Scan AI, {greeting}!</h1>
+      <p style="margin:0 0 24px 0;color:{BRAND_TEXT_MUTED};font-size:15px;line-height:24px;">
+        Thanks for joining us. Your account is all set, and your dashboard is ready.
+        Here's what you can do to get started:
+      </p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{feature_rows}
+      </table>
+
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 0 0;">
+        <tr>
+          <td align="center" style="background-color:{BRAND_PRIMARY};border-radius:8px;">
+            <a href="{DEFAULT_APP_URL}/dashboard" target="_blank"
+               style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+              Go to Dashboard
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:24px 0 0 0;color:{BRAND_TEXT_MUTED};font-size:14px;line-height:22px;">
+        Happy farming!<br />
+        <strong style="color:{BRAND_INK};">The Poultry Scan AI Team</strong>
+      </p>"""
+
+        cls._send(
+            to_email,
+            "Welcome to Poultry Scan AI",
+            cls._render_shell("Welcome to Poultry Scan AI", body_html),
+        )
+
+    @classmethod
     def send_feedback(cls, message: str, sender_email: str | None = None) -> None:
         """Email new user feedback to the team inbox, styled like the feedback modal."""
         recipient = os.getenv("FEEDBACK_TO_EMAIL") or os.getenv("BREVO_SENDER_EMAIL")

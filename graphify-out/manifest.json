@@ -24,10 +24,10 @@
     "semantic_hash": "9a1794e7d02af4fb71f75772667960cf"
   },
   "backend/controllers/auth_controller.py": {
-    "mtime": 1789278808.3410099,
-    "seen": 1794985661.952278,
-    "ast_hash": "66f4e56fb4ede23bbb82cc2cb8171f86",
-    "semantic_hash": "66f4e56fb4ede23bbb82cc2cb8171f86"
+    "mtime": 1795155110.8697727,
+    "seen": 1795155178.4895318,
+    "ast_hash": "8fff95a4c10a4f3b6aef8db33af82ada",
+    "semantic_hash": ""
   },
   "backend/controllers/chicken_image_controller.py": {
     "mtime": 1783128972.3023348,
@@ -252,10 +252,10 @@
     "semantic_hash": "76dfc0f64db9c1e253224443dbe1514d"
   },
   "backend/models/user.py": {
-    "mtime": 1783495706.2473004,
-    "seen": 1794985661.952361,
-    "ast_hash": "b6504c255bf5c183596fff06956cf25c",
-    "semantic_hash": "b6504c255bf5c183596fff06956cf25c"
+    "mtime": 1795155064.18207,
+    "seen": 1795155178.4957166,
+    "ast_hash": "3eb96b3dd60219a25e57345aed0e55f8",
+    "semantic_hash": ""
   },
   "backend/package.json": {
     "mtime": 1783150782.8468843,
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "backend/services/email_service.py": {
-    "mtime": 1794985906.393211,
-    "seen": 1794987147.4346712,
-    "ast_hash": "2dfe50e15e1a65402a1c295553601e6f",
+    "mtime": 1795155078.328516,
+    "seen": 1795155178.4999864,
+    "ast_hash": "b89d56324b7ce5975466df1e6a88e091",
     "semantic_hash": ""
   },
   "backend/services/farm_service.py": {
@@ -468,10 +468,10 @@
     "semantic_hash": ""
   },
   "backend/services/user_service.py": {
-    "mtime": 1789194168.3455746,
-    "seen": 1794985661.9524233,
-    "ast_hash": "4fdc58bbc5b404067cfd5ec6b3b95bc0",
-    "semantic_hash": "4fdc58bbc5b404067cfd5ec6b3b95bc0"
+    "mtime": 1795155095.0824318,
+    "seen": 1795155178.5007155,
+    "ast_hash": "0078eff45ae4f770fcd7cdf3dddbcb83",
+    "semantic_hash": ""
   },
   "backend/tests/conftest.py": {
     "mtime": 1789194294.2332656,
@@ -510,9 +510,9 @@
     "semantic_hash": ""
   },
   "backend/utils/gemini_disease_classifier.py": {
-    "mtime": 1795053002.7342026,
-    "seen": 1795053079.3398077,
-    "ast_hash": "c34e2a709f3e3bd10e8d3fa1fcde3891",
+    "mtime": 1795053093.2930932,
+    "seen": 1795154663.7159076,
+    "ast_hash": "0171b308d7b20d4fc91c5ade65810f51",
     "semantic_hash": ""
   },
   "backend/utils/gemini_image_counter.py": {
@@ -4503,6 +4503,12 @@
     "mtime": 1795052784.0199072,
     "seen": 1795053079.3289983,
     "ast_hash": "5cc75fafdab02ed3257db5effca1ca08",
+    "semantic_hash": ""
+  },
+  "backend/migrations/versions/f3a1c7e9b2d4_add_welcome_email_sent_at_to_users.py": {
+    "mtime": 1795155064.2969377,
+    "seen": 1795155178.4939513,
+    "ast_hash": "9fb93a29a216759d367c1ac64c555c69",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

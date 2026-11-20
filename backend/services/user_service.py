@@ -185,6 +185,29 @@ class UserService:
         return user
 
     @staticmethod
+    def claim_welcome_email(db: Session, user_id: int) -> bool:
+        """Atomically mark the welcome email as sent.
+
+        Returns True only for the single request that flips the flag, so two
+        simultaneous first logins can never send the welcome email twice.
+        """
+        claimed = (
+            db.query(User)
+            .filter(User.id == user_id, User.welcome_email_sent_at.is_(None))
+            .update({User.welcome_email_sent_at: datetime.now(timezone.utc)}, synchronize_session=False)
+        )
+        db.commit()
+        return claimed == 1
+
+    @staticmethod
+    def release_welcome_email(db: Session, user_id: int) -> None:
+        """Undo a claim when sending failed, so the next login retries."""
+        db.query(User).filter(User.id == user_id).update(
+            {User.welcome_email_sent_at: None}, synchronize_session=False
+        )
+        db.commit()
+
+    @staticmethod
     def find_or_create_google_user(db: Session, email: str, fullname: str, avatar_url: str | None = None) -> User:
         user = UserService.find_by_email(db, email)
         if user:
